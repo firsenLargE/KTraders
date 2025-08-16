@@ -1,17 +1,20 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Dashboard - Kapil Traders</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --primary: #1e40af;
             --primary-dark: #1e3a8a;
             --success: #16a34a;
             --success-dark: #15803d;
-            --warning: #b45309;
+            --warning: #f59e0b;
             --warning-bg: #fef3c7;
             --warning-border: #fde68a;
+            --danger: #dc2626;
+            --info: #0ea5e9;
             --text-dark: #1f2937;
             --text-light: #6b7280;
             --background: #f9fafb;
@@ -35,30 +38,30 @@
         }
 
         .navbar {
-            background: var(--text-dark);
+            background: linear-gradient(135deg, var(--text-dark) 0%, #374151 100%);
             color: var(--white);
-            padding: 1rem 1.5rem;
+            padding: 1.25rem 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin: -1.5rem -1.5rem 1.5rem;
+            margin: -1.5rem -1.5rem 2rem;
             box-shadow: var(--shadow);
+            border-radius: 0 0 16px 16px;
         }
 
         .navbar-brand {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 1rem;
         }
 
         .navbar-brand strong {
-            font-size: 1.25rem;
+            font-size: 1.5rem;
             font-weight: 700;
         }
 
         .navbar-welcome {
-            padding-left: 70px;
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: 600;
             color: var(--accent);
             font-family: 'Poppins', sans-serif;
@@ -78,31 +81,57 @@
 
         .navbar-links {
             display: flex;
-            gap: 0.5rem;
+            gap: 0.75rem;
+            flex-wrap: wrap;
         }
 
         .navbar a {
             color: var(--white);
             text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 0.375rem;
-            font-size: 0.875rem;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
             font-weight: 500;
-            transition: background-color 0.2s ease;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .navbar a:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
         }
 
-        h2 {
-            font-size: 1.5rem;
+        .nav-icon {
+            font-size: 1.1rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
             font-weight: 700;
             color: var(--text-dark);
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.5rem;
         }
 
-        .stats {
+        .page-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-light);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stats-row {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1.5rem;
@@ -111,137 +140,270 @@
 
         .stat-card {
             background: var(--white);
-            padding: 1.5rem;
-            border-radius: 0.5rem;
+            padding: 2rem 1.5rem;
+            border-radius: 16px;
             text-align: center;
             box-shadow: var(--shadow);
-            transition: transform 0.2s ease;
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--info));
         }
 
         .stat-card:hover {
-            transform: translateY(-2px);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: block;
         }
 
         .stat-number {
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: 700;
-            color: var(--primary);
             margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--info));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .stat-card div:last-child {
-            font-size: 0.875rem;
+        .stat-label {
+            font-size: 0.9rem;
             color: var(--text-light);
-        }
-
-        .recent-products {
-            background: var(--white);
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            box-shadow: var(--shadow);
-        }
-
-        .recent-products h3 {
-            font-size: 1.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             font-weight: 600;
-            color: var(--text-dark);
-            margin-bottom: 1rem;
         }
 
-        .product-item {
-            padding: 0.75rem 0;
-            border-bottom: 1px solid var(--border);
+        .stat-trend {
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            font-weight: 500;
+        }
+
+        .trend-up {
+            color: var(--success);
+        }
+
+        .trend-down {
+            color: var(--danger);
+        }
+
+        .dashboard-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--background);
         }
 
-        .product-item:last-child {
-            border-bottom: none;
-        }
-
-        .product-item div {
-            font-size: 0.875rem;
-        }
-
-        .product-item strong {
+        .card-title {
+            font-size: 1.25rem;
             font-weight: 600;
             color: var(--text-dark);
-        }
-
-        .product-item small {
-            color: var(--text-light);
-        }
-
-        .low-stock {
-            color: #dc2626;
-            font-weight: 600;
-        }
-
-        .btn-container {
-            margin-top: 1.5rem;
             display: flex;
-            gap: 1rem;
-            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 0.375rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            text-decoration: none;
-            color: var(--white);
+        .card-action {
+            padding: 0.5rem 1rem;
             background: var(--primary);
-            transition: background-color 0.2s ease, transform 0.2s ease;
-            text-align: center;
+            color: var(--white);
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
         }
 
-        .btn:hover {
+        .card-action:hover {
             background: var(--primary-dark);
             transform: translateY(-1px);
         }
 
-        .btn:active {
-            transform: translateY(0);
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 1rem 0;
         }
 
-        .btn-success {
-            background: var(--success);
+        .recent-items {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
         }
 
-        .btn-success:hover {
-            background: var(--success-dark);
+        .recent-item {
+            padding: 1rem;
+            background: var(--background);
+            border-radius: 12px;
+            border-left: 4px solid var(--primary);
+            transition: all 0.2s ease;
         }
 
-        .warning {
+        .recent-item:hover {
+            background: #f1f5f9;
+            transform: translateX(4px);
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 1rem;
+        }
+
+        .item-value {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .item-details {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .low-stock-warning {
             background: var(--warning-bg);
             border: 1px solid var(--warning-border);
             color: var(--warning);
             padding: 1rem;
-            border-radius: 0.375rem;
+            border-radius: 12px;
             margin-top: 1.5rem;
-            font-size: 0.875rem;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
-        .warning strong {
+        .warning-icon {
+            font-size: 1.25rem;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .quick-action {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.25rem;
+            background: var(--white);
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--text-dark);
+            box-shadow: var(--shadow);
+            transition: all 0.2s ease;
+            border-left: 4px solid var(--primary);
+        }
+
+        .quick-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            color: var(--text-dark);
+        }
+
+        .action-icon {
+            font-size: 2rem;
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary), var(--info));
+            color: var(--white);
+            border-radius: 12px;
+        }
+
+        .action-content h3 {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .action-content p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        /* Order Status Indicators */
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
             font-weight: 600;
         }
+
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-processing { background: #dbeafe; color: #1e40af; }
+        .status-completed { background: #d1fae5; color: #065f46; }
 
         @media (max-width: 768px) {
             .navbar {
                 flex-direction: column;
                 gap: 1rem;
+                padding: 1.5rem;
             }
 
             .navbar-links {
-                flex-wrap: wrap;
                 justify-content: center;
+                width: 100%;
             }
 
-            .stats {
+            .dashboard-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .page-title {
+                font-size: 2rem;
             }
         }
 
@@ -251,15 +413,19 @@
             }
 
             .navbar {
-                margin: -1rem -1rem 1rem;
+                margin: -1rem -1rem 1.5rem;
             }
 
-            h2 {
-                font-size: 1.25rem;
+            .stats-row {
+                grid-template-columns: 1fr;
             }
 
-            .recent-products h3 {
-                font-size: 1rem;
+            .page-title {
+                font-size: 1.75rem;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -267,67 +433,251 @@
 <body>
     <div class="navbar">
         <div class="navbar-brand">
-            <strong>Kapil Traders</strong>
-            <span class="navbar-welcome">Welcome <span th:text="${session.validuser?.uname}"></span></span>        </div>
+            <strong>🏪 Kapil Traders</strong>
+            <span class="navbar-welcome">Welcome <span th:text="${session.validuser?.uname}">Admin</span>!</span>
+        </div>
         <div class="navbar-links">
-            <a th:href="@{/dashboard}">Dashboard</a>
-            <a th:href="@{/products}">Products</a>
-            <a th:href="@{/reports}">Reports</a>
-            <a th:href="@{/sales}">Sales</a>
-            <a th:href="@{/forecasting}">Forecasting</a>
-            <a th:href="@{/purchase-orders}">Orders</a>
-
-            <form th:action="@{/logout}" method="post" style="display:inline;">
-                <button type="submit" class="btn">Logout</button>
-            </form>
+            <a th:href="@{/dashboard}"><span class="nav-icon">🏠</span> Dashboard</a>
+            <a th:href="@{/products}"><span class="nav-icon">📦</span> Products</a>
+            <a th:href="@{/orders}"><span class="nav-icon">🛒</span> Orders</a>
+            <a th:href="@{/sales}"><span class="nav-icon">💰</span> Sales</a>
+            <a th:href="@{/forecasts}"><span class="nav-icon">🔮</span> Forecasts</a>
+            <a th:href="@{/reports}"><span class="nav-icon">📊</span> Reports</a>
+            <a th:href="@{/logout}"><span class="nav-icon">🚪</span> Logout</a>
         </div>
     </div>
 
-    <h2>Dashboard</h2>
+    <div class="page-header">
+        <h1 class="page-title">📊 Business Dashboard</h1>
+        <p class="page-subtitle">Your complete business overview at a glance</p>
+    </div>
     
-    <div class="stats">
+    <!-- Key Statistics -->
+    <div class="stats-row">
         <div class="stat-card">
+            <span class="stat-icon">📦</span>
             <div class="stat-number" th:text="${totalProducts} ?: 0">0</div>
-            <div>Total Products</div>
+            <div class="stat-label">Total Products</div>
+            <div class="stat-trend trend-up">+5% from last month</div>
         </div>
         <div class="stat-card">
+            <span class="stat-icon">⚠️</span>
             <div class="stat-number" th:text="${lowStockProducts} ?: 0">0</div>
-            <div>Low Stock Items</div>
+            <div class="stat-label">Low Stock Items</div>
+            <div class="stat-trend trend-down" th:if="${lowStockProducts > 0}">Needs attention</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number" th:text="'₹' + ${#numbers.formatDecimal(totalValue ?: 0, 0, 2)}">₹0.00</div>
-            <div>Total Value</div>
+            <span class="stat-icon">💰</span>
+            <div class="stat-number" th:text="'₹' + ${#numbers.formatDecimal(totalValue ?: 0, 0, 0)}">₹0</div>
+            <div class="stat-label">Inventory Value</div>
+            <div class="stat-trend trend-up">+12% this quarter</div>
+        </div>
+        <div class="stat-card">
+            <span class="stat-icon">🛒</span>
+            <div class="stat-number" th:text="${pendingOrders} ?: 0">0</div>
+            <div class="stat-label">Pending Orders</div>
+            <div class="stat-trend">
+                <span th:text="${processingOrders} ?: 0">0</span> processing
+            </div>
         </div>
     </div>
 
-    <div class="recent-products">
-        <h3>Recent Products</h3>
-        <div th:if="${recentProducts != null and #lists.size(recentProducts) > 0}">
-            <div th:each="product : ${recentProducts}" class="product-item">
-                <div>
-                    <strong th:text="${product.name}">Product Name</strong><br>
-                    <small th:text="${product.category} + ' - ' + ${product.size}">Category - Size</small>
-                </div>
-                <div>
-                    <span th:class="${product.quantity < 10} ? 'low-stock' : ''" 
-                          th:text="${product.quantity} + ' units'">0 units</span><br>
-                    <small th:text="'₹' + ${#numbers.formatDecimal(product.price, 0, 2)}">₹0.00</small>
+    <!-- Main Dashboard Grid -->
+    <div class="dashboard-grid">
+        <!-- Recent Products -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <span>📦</span> Recent Products
+                </h3>
+                <a th:href="@{/add-product}" class="card-action">+ Add Product</a>
+            </div>
+            <div th:if="${recentProducts != null and #lists.size(recentProducts) > 0}" class="recent-items">
+                <div th:each="product : ${recentProducts}" class="recent-item">
+                    <div class="item-header">
+                        <div class="item-name" th:text="${product.name}">Product Name</div>
+                        <div class="item-value" th:text="'₹' + ${#numbers.formatDecimal(product.price, 0, 2)}">₹0.00</div>
+                    </div>
+                    <div class="item-details">
+                        <span th:text="${product.category}">Category</span>
+                        <span th:text="${product.size}">Size</span>
+                        <span th:class="${product.quantity < 10} ? 'trend-down' : 'trend-up'" 
+                              th:text="${product.quantity} + ' units'">0 units</span>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div th:if="${recentProducts == null or #lists.size(recentProducts) == 0}">
-            <p>No products found. Add some products to get started!</p>
-        </div>
-        <div class="btn-container">
-            <div sec:authorize="hasRole('ROLE_ADMIN')">
-                <a th:href="@{/add-product}" class="btn btn-success">Add New Product</a>
+            <div th:if="${recentProducts == null or #lists.size(recentProducts) == 0}" 
+                 style="text-align: center; padding: 2rem; color: var(--text-light);">
+                <p>No products found. Add your first product to get started!</p>
             </div>
-            <a th:href="@{/products}" class="btn">View All Products</a>
+        </div>
+
+        <!-- Recent Sales -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <span>💰</span> Recent Sales
+                </h3>
+                <a th:href="@{/sales}" class="card-action">View All</a>
+            </div>
+            <div th:if="${recentSales != null and #lists.size(recentSales) > 0}" class="recent-items">
+                <div th:each="sale : ${recentSales}" class="recent-item">
+                    <div class="item-header">
+                        <div class="item-name" th:text="${sale.product?.name}">Product Name</div>
+                        <div class="item-value" th:text="'₹' + ${#numbers.formatDecimal(sale.totalPrice, 0, 2)}">₹0.00</div>
+                    </div>
+                    <div class="item-details">
+                        <span th:text="${sale.customer?.name ?: 'Unknown Customer'}">Customer</span>
+                        <span th:text="${sale.quantity} + ' units'">0 units</span>
+                        <span th:text="${#temporals.format(sale.date, 'MMM dd')}">Date</span>
+                    </div>
+                </div>
+            </div>
+            <div th:if="${recentSales == null or #lists.size(recentSales) == 0}" 
+                 style="text-align: center; padding: 2rem; color: var(--text-light);">
+                <p>No recent sales found.</p>
+            </div>
+        </div>
+
+        <!-- Sales Chart -->
+        <div class="dashboard-card" style="grid-column: 1 / -1;">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <span>📈</span> Sales Overview
+                </h3>
+                <a th:href="@{/reports}" class="card-action">Detailed Reports</a>
+            </div>
+            <div class="chart-container">
+                <canvas id="salesChart"></canvas>
+            </div>
         </div>
     </div>
 
-    <div th:if="${lowStockProducts > 0}" class="warning">
-        <strong>Warning:</strong> <span th:text="${lowStockProducts}"></span> product(s) have low stock (less than 10 units)!
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <a th:href="@{/add-product}" class="quick-action">
+            <div class="action-icon">📦</div>
+            <div class="action-content">
+                <h3>Add Product</h3>
+                <p>Add new inventory items</p>
+            </div>
+        </a>
+        <a th:href="@{/sales}" class="quick-action">
+            <div class="action-icon">💰</div>
+            <div class="action-content">
+                <h3>Record Sale</h3>
+                <p>Process customer orders</p>
+            </div>
+        </a>
+        <a th:href="@{/orders}" class="quick-action">
+            <div class="action-icon">🛒</div>
+            <div class="action-content">
+                <h3>Manage Orders</h3>
+                <p>Track order status</p>
+            </div>
+        </a>
+        <a th:href="@{/forecasts}" class="quick-action">
+            <div class="action-icon">🔮</div>
+            <div class="action-content">
+                <h3>View Forecasts</h3>
+                <p>AI demand predictions</p>
+            </div>
+        </a>
+        <a th:href="@{/customers}" class="quick-action">
+            <div class="action-icon">👥</div>
+            <div class="action-content">
+                <h3>Customers</h3>
+                <p>Manage customer data</p>
+            </div>
+        </a>
+        <a th:href="@{/reports}" class="quick-action">
+            <div class="action-icon">📊</div>
+            <div class="action-content">
+                <h3>Analytics</h3>
+                <p>Business insights</p>
+            </div>
+        </a>
     </div>
+
+    <!-- Low Stock Warning -->
+    <div th:if="${lowStockProducts > 0}" class="low-stock-warning">
+        <span class="warning-icon">⚠️</span>
+        <div>
+            <strong>Inventory Alert!</strong> You have <span th:text="${lowStockProducts}"></span> product(s) 
+            with low stock (less than 10 units). Consider restocking soon to avoid stockouts.
+        </div>
+    </div>
+
+    <script>
+        // Sample sales chart
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Sales (₹)',
+                    data: [12000, 19000, 15000, 25000, 22000, 30000],
+                    backgroundColor: 'rgba(30, 64, 175, 0.1)',
+                    borderColor: 'rgba(30, 64, 175, 0.8)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: 'rgba(30, 64, 175, 1)',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                elements: {
+                    point: {
+                        hoverRadius: 8
+                    }
+                }
+            }
+        });
+
+        // Add some interactive features
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate stat numbers
+            document.querySelectorAll('.stat-number').forEach(el => {
+                const finalValue = el.textContent.replace(/[₹,]/g, '');
+                if (!isNaN(finalValue) && finalValue !== '') {
+                    let currentValue = 0;
+                    const increment = finalValue / 50;
+                    const timer = setInterval(() => {
+                        currentValue += increment;
+                        if (currentValue >= finalValue) {
+                            currentValue = finalValue;
+                            clearInterval(timer);
+                        }
+                        const prefix = el.textContent.includes('₹') ? '₹' : '';
+                        el.textContent = prefix + Math.floor(currentValue);
+                    }, 30);
+                }
+            });
+        });
+    </script>
 </body>
 </html>

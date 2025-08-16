@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Forecast Debug - Kapil Traders</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .debug-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .debug-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+        }
+        .error { border-left-color: #dc3545; background: #f8d7da; }
+        .success { border-left-color: #28a745; background: #d4edda; }
+        .warning { border-left-color: #ffc107; background: #fff3cd; }
+        pre {
+            background: #f1f1f1;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>🔍 Forecast System Debug Information</h1>
+        
+        <div class="debug-item">
+            <h3>📊 System Overview</h3>
+            <p><strong>Total Products:</strong> <span th:text="${debugInfo.totalProducts}">0</span></p>
+            <p><strong>Total Forecasts:</strong> <span th:text="${debugInfo.totalForecasts}">0</span></p>
+        </div>
+        
+        <div class="debug-item">
+            <h3>📦 Product Details</h3>
+            <div th:if="${debugInfo.totalProducts > 0}">
+                <ul>
+                    <li th:each="product : ${debugInfo.productDetails}" th:text="${product}"></li>
+                </ul>
+            </div>
+            <div th:if="${debugInfo.totalProducts == 0}" class="error">
+                <p><strong>⚠️ No products found!</strong> You need to add products before generating forecasts.</p>
+                <p><a href="/add-product">Add Products</a></p>
+            </div>
+        </div>
+        
+        <div class="debug-item">
+            <h3>🎯 Recommendations</h3>
+            <div th:if="${debugInfo.totalProducts == 0}">
+                <p class="error">1. Add some products to your inventory first</p>
+            </div>
+            <div th:if="${debugInfo.totalProducts > 0 and debugInfo.totalForecasts == 0}">
+                <p class="warning">1. Products exist but no forecasts generated yet</p>
+                <p class="warning">2. Try generating forecasts manually</p>
+                <p class="warning">3. Check if products have sufficient sales history</p>
+            </div>
+            <div th:if="${debugInfo.totalForecasts > 0}">
+                <p class="success">✅ System is working correctly!</p>
+            </div>
+        </div>
+        
+        <div class="debug-item">
+            <h3>🔧 Actions</h3>
+            <a href="/products" style="margin-right: 10px; padding: 8px 16px; background: #007bff; color: white; text-decoration: none; border-radius: 4px;">View Products</a>
+            <a href="/add-product" style="margin-right: 10px; padding: 8px 16px; background: #28a745; color: white; text-decoration: none; border-radius: 4px;">Add Product</a>
+            <a href="/forecasts" style="margin-right: 10px; padding: 8px 16px; background: #6f42c1; color: white; text-decoration: none; border-radius: 4px;">Back to Forecasts</a>
+        </div>
+    </div>
+</body>
+</html>
