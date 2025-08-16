@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
     <meta charset="UTF-8">
     <title>Dashboard - Kapil Traders</title>
@@ -268,14 +268,18 @@
     <div class="navbar">
         <div class="navbar-brand">
             <strong>Kapil Traders</strong>
-            <span class="navbar-welcome">Welcome <span th:text="${session.validuser?.uname}"></span></span>
-        </div>
+            <span class="navbar-welcome">Welcome <span th:text="${session.validuser?.uname}"></span></span>        </div>
         <div class="navbar-links">
             <a th:href="@{/dashboard}">Dashboard</a>
             <a th:href="@{/products}">Products</a>
             <a th:href="@{/reports}">Reports</a>
             <a th:href="@{/sales}">Sales</a>
-            <a th:href="@{/logout}">Logout</a>
+            <a th:href="@{/forecasting}">Forecasting</a>
+            <a th:href="@{/purchase-orders}">Orders</a>
+
+            <form th:action="@{/logout}" method="post" style="display:inline;">
+                <button type="submit" class="btn">Logout</button>
+            </form>
         </div>
     </div>
 
@@ -315,7 +319,9 @@
             <p>No products found. Add some products to get started!</p>
         </div>
         <div class="btn-container">
-            <a th:href="@{/add-product}" class="btn btn-success">Add New Product</a>
+            <div sec:authorize="hasRole('ROLE_ADMIN')">
+                <a th:href="@{/add-product}" class="btn btn-success">Add New Product</a>
+            </div>
             <a th:href="@{/products}" class="btn">View All Products</a>
         </div>
     </div>

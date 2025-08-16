@@ -13,7 +13,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -26,7 +28,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
+
 // import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -856,7 +862,830 @@ class DataInitializer implements CommandLineRunner {
             System.out.println("Password: admin123");
         }
         
-        // No sample products will be created
     }
 }
-// WebConfig moved to its own file WebConfig.java
+// Add these new entities to your existing KapilTradersApplication.java file
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ============ NEW ENTITIES FOR ADVANCED FEATURES ============
+
+@Entity
+@Table(name = "demand_forecasts")
+class DemandForecast {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @ManyToOne
+    @JoinColumn(name = "product_id")
+    private Product product;
+    
+    private LocalDate forecastDate;
+    private Integer predictedDemand;
+    private Double confidence;
+    private String season; // SPRING, SUMMER, AUTUMN, WINTER
+    private LocalDate createdAt;
+    
+    public DemandForecast() {}
+    
+    public DemandForecast(Product product, LocalDate forecastDate, Integer predictedDemand, 
+                         Double confidence, String season) {
+        this.product = product;
+        this.forecastDate = forecastDate;
+        this.predictedDemand = predictedDemand;
+        this.confidence = confidence;
+        this.season = season;
+        this.createdAt = LocalDate.now();
+    }
+    
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public Product getProduct() { return product; }
+    public void setProduct(Product product) { this.product = product; }
+    public LocalDate getForecastDate() { return forecastDate; }
+    public void setForecastDate(LocalDate forecastDate) { this.forecastDate = forecastDate; }
+    public Integer getPredictedDemand() { return predictedDemand; }
+    public void setPredictedDemand(Integer predictedDemand) { this.predictedDemand = predictedDemand; }
+    public Double getConfidence() { return confidence; }
+    public void setConfidence(Double confidence) { this.confidence = confidence; }
+    public String getSeason() { return season; }
+    public void setSeason(String season) { this.season = season; }
+    public LocalDate getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDate createdAt) { this.createdAt = createdAt; }
+}
+
+@Entity
+@Table(name = "purchase_orders")
+class PurchaseOrder {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @ManyToOne
+    @JoinColumn(name = "product_id")
+    private Product product;
+    
+    private Integer recommendedQuantity;
+    private Integer economicOrderQuantity;
+    private LocalDate suggestedOrderDate;
+    private LocalDate expectedDeliveryDate;
+    private String status; // PENDING, ORDERED, DELIVERED
+    private String supplier;
+    private Double estimatedCost;
+    private String reason; // LOW_STOCK, FORECAST_DEMAND, etc.
+    private LocalDate createdAt;
+    
+    public PurchaseOrder() {}
+    
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public Product getProduct() { return product; }
+    public void setProduct(Product product) { this.product = product; }
+    public Integer getRecommendedQuantity() { return recommendedQuantity; }
+    public void setRecommendedQuantity(Integer recommendedQuantity) { this.recommendedQuantity = recommendedQuantity; }
+    public Integer getEconomicOrderQuantity() { return economicOrderQuantity; }
+    public void setEconomicOrderQuantity(Integer economicOrderQuantity) { this.economicOrderQuantity = economicOrderQuantity; }
+    public LocalDate getSuggestedOrderDate() { return suggestedOrderDate; }
+    public void setSuggestedOrderDate(LocalDate suggestedOrderDate) { this.suggestedOrderDate = suggestedOrderDate; }
+    public LocalDate getExpectedDeliveryDate() { return expectedDeliveryDate; }
+    public void setExpectedDeliveryDate(LocalDate expectedDeliveryDate) { this.expectedDeliveryDate = expectedDeliveryDate; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public String getSupplier() { return supplier; }
+    public void setSupplier(String supplier) { this.supplier = supplier; }
+    public Double getEstimatedCost() { return estimatedCost; }
+    public void setEstimatedCost(Double estimatedCost) { this.estimatedCost = estimatedCost; }
+    public String getReason() { return reason; }
+    public void setReason(String reason) { this.reason = reason; }
+    public LocalDate getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDate createdAt) { this.createdAt = createdAt; }
+}
+
+@Entity
+@Table(name = "business_metrics")
+class BusinessMetrics {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    private LocalDate date;
+    private Double totalRevenue;
+    private Double totalProfit;
+    private Integer totalSales;
+    private Integer uniqueCustomers;
+    private Double averageOrderValue;
+    private String topSellingCategory;
+    private String topSellingProduct;
+    private Double inventoryTurnover;
+    
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public LocalDate getDate() { return date; }
+    public void setDate(LocalDate date) { this.date = date; }
+    public Double getTotalRevenue() { return totalRevenue; }
+    public void setTotalRevenue(Double totalRevenue) { this.totalRevenue = totalRevenue; }
+    public Double getTotalProfit() { return totalProfit; }
+    public void setTotalProfit(Double totalProfit) { this.totalProfit = totalProfit; }
+    public Integer getTotalSales() { return totalSales; }
+    public void setTotalSales(Integer totalSales) { this.totalSales = totalSales; }
+    public Integer getUniqueCustomers() { return uniqueCustomers; }
+    public void setUniqueCustomers(Integer uniqueCustomers) { this.uniqueCustomers = uniqueCustomers; }
+    public Double getAverageOrderValue() { return averageOrderValue; }
+    public void setAverageOrderValue(Double averageOrderValue) { this.averageOrderValue = averageOrderValue; }
+    public String getTopSellingCategory() { return topSellingCategory; }
+    public void setTopSellingCategory(String topSellingCategory) { this.topSellingCategory = topSellingCategory; }
+    public String getTopSellingProduct() { return topSellingProduct; }
+    public void setTopSellingProduct(String topSellingProduct) { this.topSellingProduct = topSellingProduct; }
+    public Double getInventoryTurnover() { return inventoryTurnover; }
+    public void setInventoryTurnover(Double inventoryTurnover) { this.inventoryTurnover = inventoryTurnover; }
+}
+
+// ============ NEW REPOSITORIES ============
+
+@Repository
+interface DemandForecastRepository extends JpaRepository<DemandForecast, Long> {
+    List<DemandForecast> findByProductId(Integer productId);
+    List<DemandForecast> findByForecastDateBetween(LocalDate startDate, LocalDate endDate);
+    @Query("SELECT df FROM DemandForecast df WHERE df.forecastDate >= :startDate ORDER BY df.confidence DESC")
+    List<DemandForecast> findUpcomingForecastsOrderByConfidence(@Param("startDate") LocalDate startDate);
+}
+
+@Repository
+interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Long> {
+    List<PurchaseOrder> findByStatus(String status);
+    List<PurchaseOrder> findByProductId(Integer productId);
+    @Query("SELECT po FROM PurchaseOrder po WHERE po.suggestedOrderDate <= :date AND po.status = 'PENDING'")
+    List<PurchaseOrder> findDuePurchaseOrders(@Param("date") LocalDate date);
+}
+
+@Repository
+interface BusinessMetricsRepository extends JpaRepository<BusinessMetrics, Long> {
+    BusinessMetrics findByDate(LocalDate date);
+    List<BusinessMetrics> findByDateBetweenOrderByDateDesc(LocalDate startDate, LocalDate endDate);
+    @Query("SELECT bm FROM BusinessMetrics bm ORDER BY bm.date DESC")
+    List<BusinessMetrics> findAllOrderByDateDesc();
+}
+
+// ============ NEW SERVICES ============
+
+interface DemandForecastService {
+    void generateForecasts();
+    List<DemandForecast> getForecastsForProduct(Integer productId);
+    List<DemandForecast> getUpcomingForecasts();
+    DemandForecast generateSingleProductForecast(Product product);
+}
+
+interface PurchaseOrderService {
+    List<PurchaseOrder> generateAutomaticOrders();
+    PurchaseOrder createPurchaseOrder(Product product, String reason);
+    List<PurchaseOrder> getPendingOrders();
+    void updateOrderStatus(Long orderId, String status);
+    List<PurchaseOrder> getDueOrders();
+}
+
+interface BusinessIntelligenceService {
+    BusinessMetrics generateTodayMetrics();
+    BusinessMetrics getMetricsForDate(LocalDate date);
+    List<BusinessMetrics> getMetricsForPeriod(LocalDate startDate, LocalDate endDate);
+    Map<String, Object> getDashboardData();
+    Map<String, Object> getAdvancedAnalytics();
+}
+
+@Service
+class DemandForecastServiceImpl implements DemandForecastService {
+    
+    @Autowired
+    private ProductService productService;
+    
+    @Autowired
+    private SaleService saleService;
+    
+    @Autowired
+    private DemandForecastRepository demandForecastRepository;
+    
+    @Override
+    public void generateForecasts() {
+        List<Product> products = productService.getAllProducts();
+        for (Product product : products) {
+            generateSingleProductForecast(product);
+        }
+    }
+    
+    @Override
+    public DemandForecast generateSingleProductForecast(Product product) {
+        // Simple moving average forecasting algorithm
+        List<Sale> sales = saleService.getAllSales().stream()
+            .filter(sale -> sale.getProduct().getId().equals(product.getId()))
+            .filter(sale -> sale.getDate().isAfter(LocalDate.now().minusDays(90)))
+            .collect(Collectors.toList());
+        
+        if (sales.isEmpty()) {
+            // No sales data, predict based on current stock level
+            DemandForecast forecast = new DemandForecast(
+                product, 
+                LocalDate.now().plusDays(30),
+                Math.max(1, product.getQuantity() / 10),
+                0.3,
+                getCurrentSeason()
+            );
+            return demandForecastRepository.save(forecast);
+        }
+        
+        // Calculate average daily sales
+        double totalSold = sales.stream().mapToInt(Sale::getQuantity).sum();
+        long dayRange = Math.max(1, sales.stream()
+            .map(Sale::getDate)
+            .distinct()
+            .count());
+        
+        double averageDailySales = totalSold / dayRange;
+        
+        // Apply seasonal adjustment
+        double seasonalMultiplier = getSeasonalMultiplier(getCurrentSeason(), product.getCategory());
+        
+        // Predict demand for next 30 days
+        int predictedDemand = (int) Math.ceil(averageDailySales * 30 * seasonalMultiplier);
+        
+        // Calculate confidence based on data consistency
+        double confidence = Math.min(0.95, Math.max(0.1, dayRange / 90.0));
+        
+        DemandForecast forecast = new DemandForecast(
+            product,
+            LocalDate.now().plusDays(30),
+            predictedDemand,
+            confidence,
+            getCurrentSeason()
+        );
+        
+        return demandForecastRepository.save(forecast);
+    }
+    
+    @Override
+    public List<DemandForecast> getForecastsForProduct(Integer productId) {
+        return demandForecastRepository.findByProductId(productId);
+    }
+    
+    @Override
+    public List<DemandForecast> getUpcomingForecasts() {
+        return demandForecastRepository.findUpcomingForecastsOrderByConfidence(LocalDate.now());
+    }
+    
+    private String getCurrentSeason() {
+        int month = LocalDate.now().getMonthValue();
+        if (month >= 3 && month <= 5) return "SPRING";
+        if (month >= 6 && month <= 8) return "SUMMER";
+        if (month >= 9 && month <= 11) return "AUTUMN";
+        return "WINTER";
+    }
+    
+    private double getSeasonalMultiplier(String season, String category) {
+        // Simple seasonal adjustments - you can make this more sophisticated
+        Map<String, Double> seasonalFactors = Map.of(
+            "SUMMER", 1.2,
+            "WINTER", 0.9,
+            "SPRING", 1.1,
+            "AUTUMN", 1.0
+        );
+        return seasonalFactors.getOrDefault(season, 1.0);
+    }
+}
+
+@Service
+class PurchaseOrderServiceImpl implements PurchaseOrderService {
+    
+    @Autowired
+    private ProductService productService;
+    
+    @Autowired
+    private DemandForecastService demandForecastService;
+    
+    @Autowired
+    private PurchaseOrderRepository purchaseOrderRepository;
+    
+    @Override
+    public List<PurchaseOrder> generateAutomaticOrders() {
+        List<PurchaseOrder> newOrders = new ArrayList<>();
+        List<Product> products = productService.getAllProducts();
+        
+        for (Product product : products) {
+            // Check if product needs reordering
+            if (shouldReorder(product)) {
+                PurchaseOrder order = createPurchaseOrder(product, determineReorderReason(product));
+                newOrders.add(order);
+            }
+        }
+        
+        return newOrders;
+    }
+    
+    @Override
+    public PurchaseOrder createPurchaseOrder(Product product, String reason) {
+        PurchaseOrder order = new PurchaseOrder();
+        order.setProduct(product);
+        order.setReason(reason);
+        order.setStatus("PENDING");
+        order.setCreatedAt(LocalDate.now());
+        order.setSuggestedOrderDate(LocalDate.now());
+        order.setExpectedDeliveryDate(LocalDate.now().plusDays(7)); // 1 week delivery
+        
+        // Calculate EOQ (Economic Order Quantity) - simplified version
+        int eoq = calculateEOQ(product);
+        order.setEconomicOrderQuantity(eoq);
+        
+        // Get forecast-based recommendation
+        List<DemandForecast> forecasts = demandForecastService.getForecastsForProduct(product.getId());
+        int forecastDemand = forecasts.stream()
+            .mapToInt(DemandForecast::getPredictedDemand)
+            .sum();
+        
+        int recommendedQty = Math.max(eoq, forecastDemand - product.getQuantity());
+        order.setRecommendedQuantity(Math.max(1, recommendedQty));
+        
+        order.setEstimatedCost(product.getPrice() * order.getRecommendedQuantity() * 0.7); // 30% profit margin
+        order.setSupplier("Auto-Generated Supplier");
+        
+        return purchaseOrderRepository.save(order);
+    }
+    
+    @Override
+    public List<PurchaseOrder> getPendingOrders() {
+        return purchaseOrderRepository.findByStatus("PENDING");
+    }
+    
+    @Override
+    public void updateOrderStatus(Long orderId, String status) {
+        PurchaseOrder order = purchaseOrderRepository.findById(orderId).orElse(null);
+        if (order != null) {
+            order.setStatus(status);
+            purchaseOrderRepository.save(order);
+        }
+    }
+    
+    @Override
+    public List<PurchaseOrder> getDueOrders() {
+        return purchaseOrderRepository.findDuePurchaseOrders(LocalDate.now());
+    }
+    
+    private boolean shouldReorder(Product product) {
+        int currentStock = product.getQuantity() != null ? product.getQuantity() : 0;
+        
+        // Reorder if stock is below 10 units
+        if (currentStock < 10) return true;
+        
+        // Check forecasts
+        List<DemandForecast> forecasts = demandForecastService.getForecastsForProduct(product.getId());
+        int expectedDemand = forecasts.stream()
+            .filter(f -> f.getForecastDate().isBefore(LocalDate.now().plusDays(30)))
+            .mapToInt(DemandForecast::getPredictedDemand)
+            .sum();
+        
+        return currentStock < expectedDemand;
+    }
+    
+    private String determineReorderReason(Product product) {
+        if (product.getQuantity() < 10) return "LOW_STOCK";
+        return "FORECAST_DEMAND";
+    }
+    
+    private int calculateEOQ(Product product) {
+        // Simplified EOQ calculation
+        // In reality, you'd need ordering cost and holding cost
+        double annualDemand = 365.0; // Assume 1 unit per day
+        double orderingCost = 50.0; // Fixed cost per order
+        double holdingCost = product.getPrice() * 0.1; // 10% of item cost per year
+        
+        return (int) Math.ceil(Math.sqrt((2 * annualDemand * orderingCost) / holdingCost));
+    }
+}
+
+@Service
+class BusinessIntelligenceServiceImpl implements BusinessIntelligenceService {
+    
+    @Autowired
+    private SaleService saleService;
+    
+    @Autowired
+    private ProductService productService;
+    
+    @Autowired
+    private CustomerService customerService;
+    
+    @Autowired
+    private BusinessMetricsRepository businessMetricsRepository;
+    
+    @Override
+    public BusinessMetrics generateTodayMetrics() {
+        LocalDate today = LocalDate.now();
+        
+        // Check if metrics already exist for today
+        BusinessMetrics existing = businessMetricsRepository.findByDate(today);
+        if (existing != null) {
+            return existing;
+        }
+        
+        BusinessMetrics metrics = new BusinessMetrics();
+        metrics.setDate(today);
+        
+        List<Sale> todaySales = saleService.getAllSales().stream()
+            .filter(sale -> sale.getDate().equals(today))
+            .collect(Collectors.toList());
+        
+        // Calculate metrics
+        metrics.setTotalRevenue(todaySales.stream().mapToDouble(Sale::getTotalPrice).sum());
+        metrics.setTotalSales(todaySales.size());
+        
+        // Calculate profit (assuming 30% profit margin)
+        metrics.setTotalProfit(metrics.getTotalRevenue() * 0.3);
+        
+        // Unique customers
+        metrics.setUniqueCustomers((int) todaySales.stream()
+            .filter(sale -> sale.getCustomer() != null)
+            .map(sale -> sale.getCustomer().getId())
+            .distinct()
+            .count());
+        
+        // Average order value
+        metrics.setAverageOrderValue(
+            todaySales.isEmpty() ? 0.0 : metrics.getTotalRevenue() / todaySales.size()
+        );
+        
+        // Top selling product and category
+        Map<String, Long> productSales = todaySales.stream()
+            .collect(Collectors.groupingBy(
+                sale -> sale.getProduct().getName(),
+                Collectors.counting()
+            ));
+        
+        metrics.setTopSellingProduct(
+            productSales.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("None")
+        );
+        
+        Map<String, Long> categorySales = todaySales.stream()
+            .collect(Collectors.groupingBy(
+                sale -> sale.getProduct().getCategory(),
+                Collectors.counting()
+            ));
+        
+        metrics.setTopSellingCategory(
+            categorySales.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("None")
+        );
+        
+        // Inventory turnover (simplified)
+        double totalInventoryValue = productService.getTotalInventoryValue();
+        metrics.setInventoryTurnover(
+            totalInventoryValue > 0 ? metrics.getTotalRevenue() / totalInventoryValue : 0.0
+        );
+        
+        return businessMetricsRepository.save(metrics);
+    }
+    
+    @Override
+    public BusinessMetrics getMetricsForDate(LocalDate date) {
+        return businessMetricsRepository.findByDate(date);
+    }
+    
+    @Override
+    public List<BusinessMetrics> getMetricsForPeriod(LocalDate startDate, LocalDate endDate) {
+        return businessMetricsRepository.findByDateBetweenOrderByDateDesc(startDate, endDate);
+    }
+    
+    @Override
+    public Map<String, Object> getDashboardData() {
+        Map<String, Object> data = new HashMap<>();
+        
+        LocalDate today = LocalDate.now();
+        LocalDate weekAgo = today.minusDays(7);
+        LocalDate monthAgo = today.minusDays(30);
+        
+        // Generate today's metrics
+        BusinessMetrics todayMetrics = generateTodayMetrics();
+        
+        // Get recent metrics
+        List<BusinessMetrics> weeklyMetrics = getMetricsForPeriod(weekAgo, today);
+        List<BusinessMetrics> monthlyMetrics = getMetricsForPeriod(monthAgo, today);
+        
+        data.put("todayMetrics", todayMetrics);
+        data.put("weeklyRevenue", weeklyMetrics.stream().mapToDouble(BusinessMetrics::getTotalRevenue).sum());
+        data.put("monthlyRevenue", monthlyMetrics.stream().mapToDouble(BusinessMetrics::getTotalRevenue).sum());
+        data.put("weeklyProfit", weeklyMetrics.stream().mapToDouble(BusinessMetrics::getTotalProfit).sum());
+        data.put("monthlyProfit", monthlyMetrics.stream().mapToDouble(BusinessMetrics::getTotalProfit).sum());
+        
+        // Growth rates
+        if (weeklyMetrics.size() >= 2) {
+            double currentWeekRevenue = weeklyMetrics.stream()
+                .filter(m -> m.getDate().isAfter(today.minusDays(7)))
+                .mapToDouble(BusinessMetrics::getTotalRevenue)
+                .sum();
+            double previousWeekRevenue = weeklyMetrics.stream()
+                .filter(m -> m.getDate().isBefore(today.minusDays(7)))
+                .mapToDouble(BusinessMetrics::getTotalRevenue)
+                .sum();
+            
+            double growthRate = previousWeekRevenue > 0 ? 
+                ((currentWeekRevenue - previousWeekRevenue) / previousWeekRevenue) * 100 : 0;
+            data.put("revenueGrowthRate", growthRate);
+        }
+        
+        return data;
+    }
+    
+    @Override
+    public Map<String, Object> getAdvancedAnalytics() {
+        Map<String, Object> analytics = new HashMap<>();
+        
+        List<Sale> allSales = saleService.getAllSales();
+        List<Product> allProducts = productService.getAllProducts();
+        
+        // ABC Analysis
+        Map<String, Double> productRevenue = allSales.stream()
+            .collect(Collectors.groupingBy(
+                sale -> sale.getProduct().getName(),
+                Collectors.summingDouble(Sale::getTotalPrice)
+            ));
+        
+        analytics.put("productRevenue", productRevenue);
+        
+        // Sales trend over time
+        Map<LocalDate, Double> dailySales = allSales.stream()
+            .collect(Collectors.groupingBy(
+                Sale::getDate,
+                Collectors.summingDouble(Sale::getTotalPrice)
+            ));
+        
+        analytics.put("dailySales", dailySales);
+        
+        // Category performance
+        Map<String, Double> categoryRevenue = allSales.stream()
+            .collect(Collectors.groupingBy(
+                sale -> sale.getProduct().getCategory(),
+                Collectors.summingDouble(Sale::getTotalPrice)
+            ));
+        
+        analytics.put("categoryRevenue", categoryRevenue);
+        
+        return analytics;
+    }
+}
+// Add these new controllers to your existing KapilTradersApplication.java file
+
+// ============ NEW CONTROLLERS ============
+
+@Controller
+@RequestMapping("/forecasting")
+class DemandForecastController {
+    
+    @Autowired
+    private DemandForecastService demandForecastService;
+    
+    @Autowired
+    private ProductService productService;
+    
+@Controller
+@RequestMapping("/forecasting")
+public class ForecastingController {
+
+    @Autowired
+    private DemandForecastService demandForecastService;
+
+    @Autowired
+    private ProductService productService;
+
+    @GetMapping
+    public String showForecasting(Model model) {
+        List<DemandForecast> forecasts = demandForecastService.getUpcomingForecasts();
+
+        int totalPredictedDemand = forecasts.stream()
+                .filter(f -> f.getPredictedDemand() != null)
+                .mapToInt(DemandForecast::getPredictedDemand)
+                .sum();
+
+        long highConfidenceCount = forecasts.stream()
+                .filter(f -> f.getConfidence() != null && f.getConfidence() >= 0.8)
+                .count();
+
+        model.addAttribute("forecasts", forecasts);
+        model.addAttribute("totalPredictedDemand", totalPredictedDemand);
+        model.addAttribute("highConfidenceCount", highConfidenceCount);
+
+        return "forecasting";
+    }
+
+    @PostMapping("/generate")
+    public String generateForecasts(RedirectAttributes redirectAttrs) {
+        try {
+            demandForecastService.generateForecasts();
+            redirectAttrs.addFlashAttribute("success", "Forecasts generated successfully!");
+        } catch (Exception e) {
+            redirectAttrs.addFlashAttribute("error", "Error generating forecasts: " + e.getMessage());
+        }
+        return "redirect:/forecasting";
+    }
+}
+
+    // Optional: Single product forecast generation (example usage)
+    @PostMapping("/generate/{productId}")
+    public String generateSingleProductForecast(@PathVariable Integer productId, RedirectAttributes redirectAttributes) {
+        Product product = productService.getProductById(productId);
+        if (product == null) {
+            redirectAttributes.addFlashAttribute("error", "Product not found!");
+            return "redirect:/forecasting";
+        }
+
+        try {
+            demandForecastService.generateSingleProductForecast(product);
+            redirectAttributes.addFlashAttribute("success", "Forecast generated for " + product.getName() + "!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error generating forecast: " + e.getMessage());
+        }
+
+        return "redirect:/forecasting";
+    }
+
+    // Optional utility method for Thymeleaf: check if reorder is needed
+    public boolean isReorderNeeded(Product product) {
+        List<DemandForecast> forecasts = demandForecastService.getForecastsForProduct(product.getId());
+        int expectedDemand = forecasts.stream()
+            .filter(f -> f.getForecastDate().isBefore(LocalDate.now().plusDays(30)))
+            .mapToInt(DemandForecast::getPredictedDemand)
+            .sum();
+
+        return product.getQuantity() < expectedDemand; // corrected
+    }
+
+
+    
+    @GetMapping("/product/{id}")
+    @ResponseBody
+    public List<DemandForecast> getProductForecasts(@PathVariable Integer id) {
+        return demandForecastService.getForecastsForProduct(id);
+    }
+}
+
+@Controller
+@RequestMapping("/purchase-orders")
+class PurchaseOrderController {
+    
+    @Autowired
+    private PurchaseOrderService purchaseOrderService;
+    
+    @Autowired
+    private ProductService productService;
+    
+    @GetMapping
+    public String showPurchaseOrders(Model model, HttpSession session) {
+        if (session.getAttribute("validuser") == null) {
+            return "redirect:/";
+        }
+        
+        List<PurchaseOrder> pendingOrders = purchaseOrderService.getPendingOrders();
+        List<PurchaseOrder> dueOrders = purchaseOrderService.getDueOrders();
+        
+        model.addAttribute("pendingOrders", pendingOrders);
+        model.addAttribute("dueOrders", dueOrders);
+        
+        return "purchase-orders";
+    }
+    
+    @PostMapping("/generate-automatic")
+    public String generateAutomaticOrders(RedirectAttributes redirectAttributes, HttpSession session) {
+        if (session.getAttribute("validuser") == null) {
+            return "redirect:/";
+        }
+        
+        try {
+            List<PurchaseOrder> newOrders = purchaseOrderService.generateAutomaticOrders();
+            redirectAttributes.addFlashAttribute("success", 
+                "Generated " + newOrders.size() + " automatic purchase orders!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error generating orders: " + e.getMessage());
+        }
+        
+        return "redirect:/purchase-orders";
+    }
+    
+    @PostMapping("/{id}/update-status")
+    public String updateOrderStatus(@PathVariable Long id, 
+                                   @RequestParam String status,
+                                   RedirectAttributes redirectAttributes,
+                                   HttpSession session) {
+        if (session.getAttribute("validuser") == null) {
+            return "redirect:/";
+        }
+        
+        try {
+            purchaseOrderService.updateOrderStatus(id, status);
+            redirectAttributes.addFlashAttribute("success", "Order status updated successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error updating order status: " + e.getMessage());
+        }
+        
+        return "redirect:/purchase-orders";
+    }
+}
+
+@Controller
+@RequestMapping("/business-intelligence")
+class BusinessIntelligenceController {
+    
+    @Autowired
+    private BusinessIntelligenceService businessIntelligenceService;
+    
+    @GetMapping
+    public String showBusinessIntelligence(Model model, HttpSession session) {
+        if (session.getAttribute("validuser") == null) {
+            return "redirect:/";
+        }
+        
+        Map<String, Object> dashboardData = businessIntelligenceService.getDashboardData();
+        Map<String, Object> analytics = businessIntelligenceService.getAdvancedAnalytics();
+        
+        model.addAllAttributes(dashboardData);
+        model.addAllAttributes(analytics);
+        
+        return "business-intelligence";
+    }
+    
+    @GetMapping("/api/dashboard-data")
+    @ResponseBody
+    public Map<String, Object> getDashboardData() {
+        return businessIntelligenceService.getDashboardData();
+    }
+    
+    @GetMapping("/api/analytics")
+    @ResponseBody
+    public Map<String, Object> getAnalytics() {
+        return businessIntelligenceService.getAdvancedAnalytics();
+    }
+    
+    @GetMapping("/api/metrics/{date}")
+    @ResponseBody
+    public BusinessMetrics getMetricsForDate(@PathVariable String date) {
+        LocalDate targetDate = LocalDate.parse(date);
+        return businessIntelligenceService.getMetricsForDate(targetDate);
+    }
+}
