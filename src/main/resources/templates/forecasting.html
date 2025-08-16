@@ -57,7 +57,15 @@
             <td th:text="${forecast.forecastDate}">2025-08-15</td>
             <td th:text="${forecast.predictedDemand}">0</td>
             <td>
-                <span th:text="${#numbers.formatDecimal(forecast.confidence * 100, 1)} + '%'">0%</span>
+<td>
+    <span th:if="${forecast.confidencePercentage != null}"
+          th:text="${T(String).format('%.1f%%', forecast.confidencePercentage)}">0%</span>
+    <span th:unless="${forecast.confidencePercentage != null}">N/A</span>
+</td>
+
+
+
+
             </td>
             <td th:text="${forecast.season}">SUMMER</td>
             <td>
@@ -78,5 +86,6 @@
 </form>
 
 </body>
+
 
 </html>

@@ -941,7 +941,25 @@ class DemandForecast {
     private Double confidence;
     private String season; // SPRING, SUMMER, AUTUMN, WINTER
     private LocalDate createdAt;
-    
+    // In DemandForecast class
+private Double confidencePercentage;
+private String confidenceDisplay;
+
+public Double getConfidencePercentage() {
+    return confidencePercentage;
+}
+
+
+public void setConfidencePercentage(Double confidencePercentage) {
+    this.confidencePercentage = confidencePercentage;
+}
+public String getConfidenceDisplay() {
+    return confidenceDisplay;
+}
+
+public void setConfidenceDisplay(String confidenceDisplay) {
+    this.confidenceDisplay = confidenceDisplay;
+}
     public DemandForecast() {}
     
     public DemandForecast(Product product, LocalDate forecastDate, Integer predictedDemand, 
@@ -1497,17 +1515,7 @@ class BusinessIntelligenceServiceImpl implements BusinessIntelligenceService {
 
 @Controller
 @RequestMapping("/forecasting")
-class DemandForecastController {
-    
-    @Autowired
-    private DemandForecastService demandForecastService;
-    
-    @Autowired
-    private ProductService productService;
-    
-@Controller
-@RequestMapping("/forecasting")
-public class ForecastingController {
+ class ForecastingController {
 
     @Autowired
     private DemandForecastService demandForecastService;
@@ -1515,9 +1523,19 @@ public class ForecastingController {
     @Autowired
     private ProductService productService;
 
+    // Display forecasting dashboard
     @GetMapping
     public String showForecasting(Model model) {
         List<DemandForecast> forecasts = demandForecastService.getUpcomingForecasts();
+
+        // Precompute confidence display string safely
+        for (DemandForecast f : forecasts) {
+            if (f.getConfidence() != null) {
+                f.setConfidenceDisplay(String.format("%.1f%%", f.getConfidence() * 100));
+            } else {
+                f.setConfidenceDisplay("N/A");
+            }
+        }
 
         int totalPredictedDemand = forecasts.stream()
                 .filter(f -> f.getPredictedDemand() != null)
@@ -1535,6 +1553,7 @@ public class ForecastingController {
         return "forecasting";
     }
 
+    // Generate forecasts for all products
     @PostMapping("/generate")
     public String generateForecasts(RedirectAttributes redirectAttrs) {
         try {
@@ -1545,26 +1564,66 @@ public class ForecastingController {
         }
         return "redirect:/forecasting";
     }
-}
 
-    // Optional: Single product forecast generation (example usage)
+    // Generate forecast for a single product
     @PostMapping("/generate/{productId}")
-    public String generateSingleProductForecast(@PathVariable Integer productId, RedirectAttributes redirectAttributes) {
+    public String generateSingleProductForecast(@PathVariable Integer productId,
+                                                RedirectAttributes redirectAttrs) {
         Product product = productService.getProductById(productId);
         if (product == null) {
-            redirectAttributes.addFlashAttribute("error", "Product not found!");
+            redirectAttrs.addFlashAttribute("error", "Product not found!");
             return "redirect:/forecasting";
         }
 
         try {
             demandForecastService.generateSingleProductForecast(product);
-            redirectAttributes.addFlashAttribute("success", "Forecast generated for " + product.getName() + "!");
+            redirectAttrs.addFlashAttribute("success", "Forecast generated for " + product.getName() + "!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Error generating forecast: " + e.getMessage());
+            redirectAttrs.addFlashAttribute("error", "Error generating forecast: " + e.getMessage());
         }
 
         return "redirect:/forecasting";
     }
+
+
+    // @PostMapping("/generate/{productId}")
+    // public String generateSingleProductForecast(@PathVariable Integer productId, RedirectAttributes redirectAttrs) {
+    //     Product product = productService.getProductById(productId);
+    //     if (product == null) {
+    //         redirectAttrs.addFlashAttribute("error", "Product not found!");
+    //         return "redirect:/forecasting";
+    //     }
+
+    //     try {
+    //         demandForecastService.generateSingleProductForecast(product);
+    //         redirectAttrs.addFlashAttribute("success", "Forecast generated for " + product.getName() + "!");
+    //     } catch (Exception e) {
+    //         redirectAttrs.addFlashAttribute("error", "Error generating forecast: " + e.getMessage());
+    //     }
+
+    //     return "redirect:/forecasting";
+    // }
+
+
+
+    // // Optional: Single product forecast generation (example usage)
+    // @PostMapping("/generate/{productId}")
+    // public String generateSingleProductForecast(@PathVariable Integer productId, RedirectAttributes redirectAttributes) {
+    //     Product product = productService.getProductById(productId);
+    //     if (product == null) {
+    //         redirectAttributes.addFlashAttribute("error", "Product not found!");
+    //         return "redirect:/forecasting";
+    //     }
+
+    //     try {
+    //         demandForecastService.generateSingleProductForecast(product);
+    //         redirectAttributes.addFlashAttribute("success", "Forecast generated for " + product.getName() + "!");
+    //     } catch (Exception e) {
+    //         redirectAttributes.addFlashAttribute("error", "Error generating forecast: " + e.getMessage());
+    //     }
+
+    //     return "redirect:/forecasting";
+    // }
 
     // Optional utility method for Thymeleaf: check if reorder is needed
     public boolean isReorderNeeded(Product product) {
