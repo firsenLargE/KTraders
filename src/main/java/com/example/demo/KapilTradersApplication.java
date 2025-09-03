@@ -4,6 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.CommandLineRunner;
 import java.util.Map;
+import java.util.Objects;
 import java.util.HashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -15,11 +16,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.data.jpa.repository.Query;
-
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.persistence.*;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -34,8 +33,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 
-// ============ MAIN APPLICATION CLASS ============
 @SpringBootApplication
 public class KapilTradersApplication {
     public static void main(String[] args) {
@@ -43,14 +43,11 @@ public class KapilTradersApplication {
     }
 }
 
-// ============ ENTITIES ============
-
 @Entity
 class Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String name;
     private String contact;
     private String email;
@@ -62,27 +59,61 @@ class Customer {
     @OneToMany(mappedBy = "customer")
     private List<Order> orders;
 
-    // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public String getContact() { return contact; }
-    public void setContact(String contact) { this.contact = contact; }
+    public String getName() {
+        return name;
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public String getAddress() { return address; }
-    public void setAddress(String address) { this.address = address; }
+    public String getContact() {
+        return contact;
+    }
 
-    public List<Sale> getSales() { return sales; }
-    public void setSales(List<Sale> sales) { this.sales = sales; }
+    public void setContact(String contact) {
+        this.contact = contact;
+    }
 
-    public List<Order> getOrders() { return orders; }
-    public void setOrders(List<Order> orders) { this.orders = orders; }
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public List<Sale> getSales() {
+        return sales;
+    }
+
+    public void setSales(List<Sale> sales) {
+        this.sales = sales;
+    }
+
+    public List<Order> getOrders() {
+        return orders;
+    }
+
+    public void setOrders(List<Order> orders) {
+        this.orders = orders;
+    }
 }
 
 @Entity
@@ -94,22 +125,47 @@ class User {
     private String uname;
     private String email;
     private String password;
-    
-    public User() {}
+
+    public User() {
+    }
+
     public User(String uname, String email, String password) {
         this.uname = uname;
         this.email = email;
         this.password = password;
     }
-    
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
-    public String getUname() { return uname; }
-    public void setUname(String uname) { this.uname = uname; }
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getUname() {
+        return uname;
+    }
+
+    public void setUname(String uname) {
+        this.uname = uname;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }
 
 @Entity
@@ -125,12 +181,15 @@ class Product {
     private Double price;
     private LocalDate date;
     private String imagePath;
-    private Integer minStockLevel = 10; // Minimum stock level for reordering
-    private Integer maxStockLevel = 100; // Maximum stock level
+    private Integer minStockLevel = 10;
+    private Integer maxStockLevel = 100;
     private String supplier;
-    
-    public Product() {}
-    public Product(String name, String category, String size, Integer quantity, Double price, LocalDate date, String imagePath) {
+
+    public Product() {
+    }
+
+    public Product(String name, String category, String size, Integer quantity, Double price, LocalDate date,
+            String imagePath) {
         this.name = name;
         this.category = category;
         this.size = size;
@@ -139,30 +198,94 @@ class Product {
         this.date = date;
         this.imagePath = imagePath;
     }
-    
-    // Getters and Setters
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
-    public String getSize() { return size; }
-    public void setSize(String size) { this.size = size; }
-    public Integer getQuantity() { return quantity; }
-    public void setQuantity(Integer quantity) { this.quantity = quantity; }
-    public Double getPrice() { return price; }
-    public void setPrice(Double price) { this.price = price; }
-    public LocalDate getDate() { return date; }
-    public void setDate(LocalDate date) { this.date = date; }
-    public String getImagePath() { return imagePath; }
-    public void setImagePath(String imagePath) { this.imagePath = imagePath; }
-    public Integer getMinStockLevel() { return minStockLevel; }
-    public void setMinStockLevel(Integer minStockLevel) { this.minStockLevel = minStockLevel; }
-    public Integer getMaxStockLevel() { return maxStockLevel; }
-    public void setMaxStockLevel(Integer maxStockLevel) { this.maxStockLevel = maxStockLevel; }
-    public String getSupplier() { return supplier; }
-    public void setSupplier(String supplier) { this.supplier = supplier; }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getSize() {
+        return size;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public Double getPrice() {
+        return price;
+    }
+
+    public void setPrice(Double price) {
+        this.price = price;
+    }
+
+    public LocalDate getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDate date) {
+        this.date = date;
+    }
+
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
+    }
+
+    public Integer getMinStockLevel() {
+        return minStockLevel;
+    }
+
+    public void setMinStockLevel(Integer minStockLevel) {
+        this.minStockLevel = minStockLevel;
+    }
+
+    public Integer getMaxStockLevel() {
+        return maxStockLevel;
+    }
+
+    public void setMaxStockLevel(Integer maxStockLevel) {
+        this.maxStockLevel = maxStockLevel;
+    }
+
+    public String getSupplier() {
+        return supplier;
+    }
+
+    public void setSupplier(String supplier) {
+        this.supplier = supplier;
+    }
 }
 
 @Entity
@@ -178,13 +301,14 @@ class Sale {
 
     @ManyToOne
     @JoinColumn(name = "customer_id")
-    private Customer customer; 
+    private Customer customer;
 
     private Integer quantity;
     private Double totalPrice;
     private LocalDate date;
 
-    public Sale() {}
+    public Sale() {
+    }
 
     public Sale(Product product, Integer quantity, Double totalPrice, LocalDate date) {
         this.product = product;
@@ -193,22 +317,55 @@ class Sale {
         this.date = date;
     }
 
-    // Getters and Setters
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
-    public Product getProduct() { return product; }
-    public void setProduct(Product product) { this.product = product; }
-    public Integer getQuantity() { return quantity; }
-    public void setQuantity(Integer quantity) { this.quantity = quantity; }
-    public Double getTotalPrice() { return totalPrice; }
-    public void setTotalPrice(Double totalPrice) { this.totalPrice = totalPrice; }
-    public LocalDate getDate() { return date; }
-    public void setDate(LocalDate date) { this.date = date; }
-    public Customer getCustomer() { return customer; }
-    public void setCustomer(Customer customer) { this.customer = customer; }
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public Double getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(Double totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public LocalDate getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDate date) {
+        this.date = date;
+    }
+
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
+    }
 }
 
-// New Order Entity
 @Entity
 @Table(name = "orders")
 class Order {
@@ -229,13 +386,14 @@ class Order {
     private Double totalAmount;
     private LocalDate orderDate;
     private LocalDate expectedDeliveryDate;
-    
+
     @Enumerated(EnumType.STRING)
     private OrderStatus status = OrderStatus.PENDING;
-    
+
     private String notes;
 
-    public Order() {}
+    public Order() {
+    }
 
     public Order(Customer customer, Product product, Integer quantity, Double unitPrice, LocalDate orderDate) {
         this.customer = customer;
@@ -244,37 +402,94 @@ class Order {
         this.unitPrice = unitPrice;
         this.totalAmount = unitPrice * quantity;
         this.orderDate = orderDate;
-        this.expectedDeliveryDate = orderDate.plusDays(7); // Default 7 days delivery
+        this.expectedDeliveryDate = orderDate.plusDays(7);
     }
 
-    // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Customer getCustomer() { return customer; }
-    public void setCustomer(Customer customer) { this.customer = customer; }
-    public Product getProduct() { return product; }
-    public void setProduct(Product product) { this.product = product; }
-    public Integer getQuantity() { return quantity; }
-    public void setQuantity(Integer quantity) { this.quantity = quantity; }
-    public Double getUnitPrice() { return unitPrice; }
-    public void setUnitPrice(Double unitPrice) { this.unitPrice = unitPrice; }
-    public Double getTotalAmount() { return totalAmount; }
-    public void setTotalAmount(Double totalAmount) { this.totalAmount = totalAmount; }
-    public LocalDate getOrderDate() { return orderDate; }
-    public void setOrderDate(LocalDate orderDate) { this.orderDate = orderDate; }
-    public LocalDate getExpectedDeliveryDate() { return expectedDeliveryDate; }
-    public void setExpectedDeliveryDate(LocalDate expectedDeliveryDate) { this.expectedDeliveryDate = expectedDeliveryDate; }
-    public OrderStatus getStatus() { return status; }
-    public void setStatus(OrderStatus status) { this.status = status; }
-    public String getNotes() { return notes; }
-    public void setNotes(String notes) { this.notes = notes; }
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public Double getUnitPrice() {
+        return unitPrice;
+    }
+
+    public void setUnitPrice(Double unitPrice) {
+        this.unitPrice = unitPrice;
+    }
+
+    public Double getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(Double totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
+    public LocalDate getOrderDate() {
+        return orderDate;
+    }
+
+    public void setOrderDate(LocalDate orderDate) {
+        this.orderDate = orderDate;
+    }
+
+    public LocalDate getExpectedDeliveryDate() {
+        return expectedDeliveryDate;
+    }
+
+    public void setExpectedDeliveryDate(LocalDate expectedDeliveryDate) {
+        this.expectedDeliveryDate = expectedDeliveryDate;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(OrderStatus status) {
+        this.status = status;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
 }
 
 enum OrderStatus {
     PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
 }
 
-// New Forecast Entity
 @Entity
 @Table(name = "forecasts")
 class Forecast {
@@ -286,17 +501,19 @@ class Forecast {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    private String season; // SPRING, SUMMER, AUTUMN, WINTER
+    private String season;
     private Integer predictedDemand;
-    private Double confidence; // Confidence level (0.0 to 1.0)
+    private Double confidence;
     private LocalDate forecastDate;
-    private LocalDate forecastFor; // The month being forecasted
-    private String method; // SEASONAL, TREND, EXPONENTIAL_SMOOTHING
-    private Double accuracy; // Historical accuracy of this forecast method
+    private LocalDate forecastFor;
+    private String method;
+    private Double accuracy;
 
-    public Forecast() {}
+    public Forecast() {
+    }
 
-    public Forecast(Product product, String season, Integer predictedDemand, Double confidence, LocalDate forecastFor, String method) {
+    public Forecast(Product product, String season, Integer predictedDemand, Double confidence, LocalDate forecastFor,
+            String method) {
         this.product = product;
         this.season = season;
         this.predictedDemand = predictedDemand;
@@ -306,47 +523,233 @@ class Forecast {
         this.method = method;
     }
 
-    // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Product getProduct() { return product; }
-    public void setProduct(Product product) { this.product = product; }
-    public String getSeason() { return season; }
-    public void setSeason(String season) { this.season = season; }
-    public Integer getPredictedDemand() { return predictedDemand; }
-    public void setPredictedDemand(Integer predictedDemand) { this.predictedDemand = predictedDemand; }
-    public Double getConfidence() { return confidence; }
-    public void setConfidence(Double confidence) { this.confidence = confidence; }
-    public LocalDate getForecastDate() { return forecastDate; }
-    public void setForecastDate(LocalDate forecastDate) { this.forecastDate = forecastDate; }
-    public LocalDate getForecastFor() { return forecastFor; }
-    public void setForecastFor(LocalDate forecastFor) { this.forecastFor = forecastFor; }
-    public String getMethod() { return method; }
-    public void setMethod(String method) { this.method = method; }
-    public Double getAccuracy() { return accuracy; }
-    public void setAccuracy(Double accuracy) { this.accuracy = accuracy; }
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+
+    public String getSeason() {
+        return season;
+    }
+
+    public void setSeason(String season) {
+        this.season = season;
+    }
+
+    public Integer getPredictedDemand() {
+        return predictedDemand;
+    }
+
+    public void setPredictedDemand(Integer predictedDemand) {
+        this.predictedDemand = predictedDemand;
+    }
+
+    public Double getConfidence() {
+        return confidence;
+    }
+
+    public void setConfidence(Double confidence) {
+        this.confidence = confidence;
+    }
+
+    public LocalDate getForecastDate() {
+        return forecastDate;
+    }
+
+    public void setForecastDate(LocalDate forecastDate) {
+        this.forecastDate = forecastDate;
+    }
+
+    public LocalDate getForecastFor() {
+        return forecastFor;
+    }
+
+    public void setForecastFor(LocalDate forecastFor) {
+        this.forecastFor = forecastFor;
+    }
+
+    public String getMethod() {
+        return method;
+    }
+
+    public void setMethod(String method) {
+        this.method = method;
+    }
+
+    public Double getAccuracy() {
+        return accuracy;
+    }
+
+    public void setAccuracy(Double accuracy) {
+        this.accuracy = accuracy;
+    }
 }
 
-// ============ REPOSITORIES ============
+class SimpleKnapsackProduct {
+    public Integer id;
+    public String name;
+    public String category;
+    public int price;
+    public int value;
+    public int stock;
+    public boolean selected = false;
+
+    public SimpleKnapsackProduct(Product product) {
+        this.id = product.getId();
+        this.name = product.getName();
+        this.category = product.getCategory();
+        this.price = product.getPrice() != null ? product.getPrice().intValue() : 0;
+        this.stock = product.getQuantity() != null ? product.getQuantity() : 0;
+        this.value = calculateProductValue(product);
+    }
+
+    private int calculateProductValue(Product product) {
+        int baseValue = this.price;
+        int stockBonus = Math.min(this.stock * 2, baseValue / 4);
+        int categoryBonus = getCategoryBonus(product.getCategory(), baseValue);
+        return baseValue + stockBonus + categoryBonus;
+    }
+
+    private int getCategoryBonus(String category, int baseValue) {
+        if (category == null)
+            return 0;
+
+        switch (category.toLowerCase()) {
+            case "electronics":
+                return baseValue / 10;
+            case "premium":
+                return baseValue / 8;
+            case "bestseller":
+                return baseValue / 6;
+            case "gadgets":
+                return baseValue / 12;
+            default:
+                return 0;
+        }
+    }
+}
+
+ class SimpleKnapsackResult {
+    private List<SimpleKnapsackProduct> selectedProducts = new ArrayList<>();
+    private int totalCost = 0;
+    private int totalValue = 0;
+    private int totalItems = 0;
+    private int remainingBudget = 0;
+    private double efficiencyPercent = 0.0;
+    private boolean empty = false;
+    private int originalBudget;
+
+    // Getters
+    public List<SimpleKnapsackProduct> getSelectedProducts() {
+        return selectedProducts;
+    }
+
+    public int getTotalCost() {
+        return totalCost;
+    }
+
+    public int getTotalValue() {
+        return totalValue;
+    }
+
+    public int getTotalItems() {
+        return totalItems;
+    }
+
+    public int getRemainingBudget() {
+        return remainingBudget;
+    }
+
+    public double getEfficiencyPercent() {
+        return efficiencyPercent;
+    }
+
+    public boolean isEmpty() {
+        return empty || selectedProducts.isEmpty();
+    }
+
+    public int getOriginalBudget() {
+        return originalBudget;
+    }
+
+    // Setters
+    public void setSelectedProducts(List<SimpleKnapsackProduct> selectedProducts) {
+        this.selectedProducts = selectedProducts;
+    }
+
+    public void setTotalCost(int totalCost) {
+        this.totalCost = totalCost;
+    }
+
+    public void setTotalValue(int totalValue) {
+        this.totalValue = totalValue;
+    }
+
+    public void setTotalItems(int totalItems) {
+        this.totalItems = totalItems;
+    }
+
+    public void setRemainingBudget(int remainingBudget) {
+        this.remainingBudget = remainingBudget;
+    }
+
+    public void setEfficiencyPercent(double efficiencyPercent) {
+        this.efficiencyPercent = efficiencyPercent;
+    }
+
+    public void setEmpty(boolean empty) {
+        this.empty = empty;
+    }
+
+    public void setOriginalBudget(int originalBudget) {
+        this.originalBudget = originalBudget;
+    }
+
+    // Summary method
+    public String getSummary() {
+        return String.format("Selected %d items for ₹%,d (%.1f%% of budget used)",
+                totalItems, totalCost, efficiencyPercent);
+    }
+}
+
+
 @Repository
 interface UserRepository extends org.springframework.data.jpa.repository.JpaRepository<User, Long> {
     User findByEmailAndPassword(String email, String password);
+
     User findByEmail(String email);
+
     boolean existsByEmail(String email);
 }
 
 @Repository
 interface ProductRepository extends org.springframework.data.jpa.repository.JpaRepository<Product, Integer> {
     List<Product> findByNameContainingIgnoreCase(String name);
+
     List<Product> findByCategoryContainingIgnoreCase(String category);
+
     long countByQuantityLessThan(int quantity);
+
     List<Product> findByQuantityLessThan(int quantity);
-    
+
     @Query("SELECT p FROM Product p ORDER BY p.date DESC")
     List<Product> findAllOrderByDateDesc();
+
     List<Product> findByImagePathIsNotNull();
+
     List<Product> findByImagePathIsNull();
-    
+
     @Query("SELECT p FROM Product p WHERE p.quantity <= p.minStockLevel")
     List<Product> findProductsNeedingReorder();
 }
@@ -354,13 +757,13 @@ interface ProductRepository extends org.springframework.data.jpa.repository.JpaR
 @Repository
 interface SaleRepository extends org.springframework.data.jpa.repository.JpaRepository<Sale, Integer> {
     List<Sale> findByDate(LocalDate date);
-    
+
     @Query("SELECT s FROM Sale s WHERE s.product.id = ?1 AND s.date BETWEEN ?2 AND ?3")
     List<Sale> findByProductAndDateRange(Integer productId, LocalDate startDate, LocalDate endDate);
-    
+
     @Query("SELECT SUM(s.quantity) FROM Sale s WHERE s.product.id = ?1 AND s.date BETWEEN ?2 AND ?3")
     Optional<Long> sumQuantityByProductAndDateRange(Integer productId, LocalDate startDate, LocalDate endDate);
-    
+
     @Query("SELECT s FROM Sale s WHERE s.date >= ?1 ORDER BY s.date DESC")
     List<Sale> findRecentSales(LocalDate fromDate);
 }
@@ -373,12 +776,14 @@ interface CustomerRepository extends org.springframework.data.jpa.repository.Jpa
 @Repository
 interface OrderRepository extends org.springframework.data.jpa.repository.JpaRepository<Order, Long> {
     List<Order> findByStatus(OrderStatus status);
+
     List<Order> findByCustomerId(Long customerId);
+
     List<Order> findByOrderDateBetween(LocalDate startDate, LocalDate endDate);
-    
+
     @Query("SELECT o FROM Order o ORDER BY o.orderDate DESC")
     List<Order> findAllOrderByOrderDateDesc();
-    
+
     @Query("SELECT COUNT(o) FROM Order o WHERE o.status = ?1")
     long countByStatus(OrderStatus status);
 }
@@ -386,80 +791,114 @@ interface OrderRepository extends org.springframework.data.jpa.repository.JpaRep
 @Repository
 interface ForecastRepository extends org.springframework.data.jpa.repository.JpaRepository<Forecast, Long> {
     List<Forecast> findByProductId(Integer productId);
+
     List<Forecast> findByForecastForBetween(LocalDate startDate, LocalDate endDate);
+
     List<Forecast> findBySeason(String season);
-    
+
     @Query("SELECT f FROM Forecast f WHERE f.product.id = ?1 AND f.forecastFor = ?2")
     Optional<Forecast> findByProductAndForecastFor(Integer productId, LocalDate forecastFor);
 }
 
-// ============ SERVICES ============
-
-// ... (keeping existing service interfaces and implementations)
-// I'll continue with the enhanced services that include forecasting and order management
-
 interface UserService {
     void signUp(User user);
+
     User login(String email, String password);
+
     User findByEmail(String email);
+
     boolean existsByEmail(String email);
 }
 
 interface ProductService {
     void addProduct(Product product);
+
     List<Product> getAllProducts();
+
     Product getProductById(Integer id);
+
     void updateProduct(Product product);
+
     List<Product> searchProducts(String name);
+
     void deleteProduct(Integer id);
+
     long countProducts();
+
     long countLowStockProducts();
+
     double getTotalInventoryValue();
+
     List<Product> getProductsNeedingReorder();
 }
 
 interface SaleService {
     void addSale(Sale sale);
+
     List<Sale> getAllSales();
+
     Sale getSaleById(Integer id);
+
     List<Sale> getRecentSales(int days);
+
     List<Sale> getSalesByProductAndDateRange(Integer productId, LocalDate startDate, LocalDate endDate);
+
     Long getTotalSalesQuantityForProduct(Integer productId, LocalDate startDate, LocalDate endDate);
 }
 
 interface CustomerService {
     void saveCustomer(Customer customer);
+
     List<Customer> getAllCustomers();
+
     Customer getCustomerById(Long id);
+
     void deleteCustomer(Long id);
+
     List<Customer> searchCustomers(String name);
 }
 
 interface OrderService {
     void createOrder(Order order);
+
     List<Order> getAllOrders();
+
     Order getOrderById(Long id);
+
     void updateOrderStatus(Long orderId, OrderStatus status);
+
     List<Order> getOrdersByStatus(OrderStatus status);
+
     List<Order> getOrdersByCustomer(Long customerId);
+
     long countOrdersByStatus(OrderStatus status);
+
     void deleteOrder(Long id);
 }
 
 interface ForecastService {
     void generateForecast(Integer productId);
+
     List<Forecast> getForecastsByProduct(Integer productId);
+
     List<Forecast> getSeasonalForecasts(String season);
+
     void generateAllProductForecasts();
+
     Forecast getForecastForProductAndDate(Integer productId, LocalDate forecastFor);
 }
 
-// Service Implementations
+interface SimpleKnapsackService {
+    SimpleKnapsackResult findBestProducts(List<Product> products, int budget, int maxItems);
+
+    List<Map<String, Object>> convertProductsToJsonFormat(List<Product> products);
+}
+
 @Service
 class UserServiceImpl implements UserService {
     @Autowired
     private UserRepository userRepository;
-    
+
     @Override
     public void signUp(User user) {
         userRepository.save(user);
@@ -469,12 +908,12 @@ class UserServiceImpl implements UserService {
     public User login(String email, String password) {
         return userRepository.findByEmailAndPassword(email, password);
     }
-    
+
     @Override
     public User findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
-    
+
     @Override
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
@@ -534,8 +973,8 @@ class ProductServiceImpl implements ProductService {
     public double getTotalInventoryValue() {
         List<Product> products = productRepository.findAll();
         return products.stream()
-            .mapToDouble(p -> p.getPrice() * p.getQuantity())
-            .sum();
+                .mapToDouble(p -> p.getPrice() * p.getQuantity())
+                .sum();
     }
 
     @Override
@@ -669,36 +1108,34 @@ class OrderServiceImpl implements OrderService {
 class ForecastServiceImpl implements ForecastService {
     @Autowired
     private ForecastRepository forecastRepository;
-    
+
     @Autowired
     private SaleService saleService;
-    
+
     @Autowired
     private ProductService productService;
 
     @Override
     public void generateForecast(Integer productId) {
         Product product = productService.getProductById(productId);
-        if (product == null) return;
+        if (product == null)
+            return;
 
-        // Get historical sales data for the last 12 months
         LocalDate endDate = LocalDate.now();
         LocalDate startDate = endDate.minusMonths(12);
-        
+
         List<Sale> historicalSales = saleService.getSalesByProductAndDateRange(productId, startDate, endDate);
-        
-        // Generate forecasts for next 3 months
+
         for (int i = 1; i <= 3; i++) {
             LocalDate forecastDate = endDate.plusMonths(i);
             String season = getSeason(forecastDate);
-            
-            // Simple forecasting algorithm based on seasonal patterns
+
             Integer predictedDemand = calculateSeasonalDemand(historicalSales, season, forecastDate);
             Double confidence = calculateConfidence(historicalSales, season);
-            
-            // Check if forecast already exists
-            Optional<Forecast> existingForecast = forecastRepository.findByProductAndForecastFor(productId, forecastDate.withDayOfMonth(1));
-            
+
+            Optional<Forecast> existingForecast = forecastRepository.findByProductAndForecastFor(productId,
+                    forecastDate.withDayOfMonth(1));
+
             Forecast forecast;
             if (existingForecast.isPresent()) {
                 forecast = existingForecast.get();
@@ -706,9 +1143,10 @@ class ForecastServiceImpl implements ForecastService {
                 forecast.setConfidence(confidence);
                 forecast.setSeason(season);
             } else {
-                forecast = new Forecast(product, season, predictedDemand, confidence, forecastDate.withDayOfMonth(1), "SEASONAL");
+                forecast = new Forecast(product, season, predictedDemand, confidence, forecastDate.withDayOfMonth(1),
+                        "SEASONAL");
             }
-            
+
             forecastRepository.save(forecast);
         }
     }
@@ -716,60 +1154,69 @@ class ForecastServiceImpl implements ForecastService {
     private String getSeason(LocalDate date) {
         Month month = date.getMonth();
         switch (month) {
-            case DECEMBER: case JANUARY: case FEBRUARY: return "WINTER";
-            case MARCH: case APRIL: case MAY: return "SPRING";
-            case JUNE: case JULY: case AUGUST: return "SUMMER";
-            case SEPTEMBER: case OCTOBER: case NOVEMBER: return "AUTUMN";
-            default: return "UNKNOWN";
+            case DECEMBER:
+            case JANUARY:
+            case FEBRUARY:
+                return "WINTER";
+            case MARCH:
+            case APRIL:
+            case MAY:
+                return "SPRING";
+            case JUNE:
+            case JULY:
+            case AUGUST:
+                return "SUMMER";
+            case SEPTEMBER:
+            case OCTOBER:
+            case NOVEMBER:
+                return "AUTUMN";
+            default:
+                return "UNKNOWN";
         }
     }
 
     private Integer calculateSeasonalDemand(List<Sale> historicalSales, String season, LocalDate forecastDate) {
-        if (historicalSales.isEmpty()) return 5; // Default forecast
-        
-        // Group sales by season
+        if (historicalSales.isEmpty())
+            return 5;
+
         Map<String, List<Sale>> salesBySeason = new HashMap<>();
         for (Sale sale : historicalSales) {
             String saleSeason = getSeason(sale.getDate());
             salesBySeason.computeIfAbsent(saleSeason, k -> new ArrayList<>()).add(sale);
         }
-        
-        // Calculate average demand for the season
+
         List<Sale> seasonSales = salesBySeason.get(season);
         if (seasonSales == null || seasonSales.isEmpty()) {
-            // Use overall average if no seasonal data
             double avgDemand = historicalSales.stream()
+                    .mapToInt(Sale::getQuantity)
+                    .average()
+                    .orElse(5.0);
+            return (int) Math.ceil(avgDemand);
+        }
+
+        double seasonalAvg = seasonSales.stream()
                 .mapToInt(Sale::getQuantity)
                 .average()
                 .orElse(5.0);
-            return (int) Math.ceil(avgDemand);
-        }
-        
-        double seasonalAvg = seasonSales.stream()
-            .mapToInt(Sale::getQuantity)
-            .average()
-            .orElse(5.0);
-        
-        // Apply trend factor (simple linear trend)
-        double trendFactor = 1.0 + (Math.random() * 0.2 - 0.1); // ±10% variation
-        
+
+        double trendFactor = 1.0 + (Math.random() * 0.2 - 0.1);
+
         return Math.max(1, (int) Math.ceil(seasonalAvg * trendFactor));
     }
 
     private Double calculateConfidence(List<Sale> historicalSales, String season) {
-        if (historicalSales.size() < 3) return 0.6; // Low confidence with little data
-        
-        // Calculate coefficient of variation for confidence
+        if (historicalSales.size() < 3)
+            return 0.6;
+
         double mean = historicalSales.stream().mapToInt(Sale::getQuantity).average().orElse(1.0);
         double variance = historicalSales.stream()
-            .mapToDouble(sale -> Math.pow(sale.getQuantity() - mean, 2))
-            .average()
-            .orElse(1.0);
-        
+                .mapToDouble(sale -> Math.pow(sale.getQuantity() - mean, 2))
+                .average()
+                .orElse(1.0);
+
         double stdDev = Math.sqrt(variance);
-        double cv = stdDev / mean; // Coefficient of variation
-        
-        // Higher variation = lower confidence
+        double cv = stdDev / mean;
+
         double confidence = Math.max(0.5, 1.0 - cv);
         return BigDecimal.valueOf(confidence).setScale(2, RoundingMode.HALF_UP).doubleValue();
     }
@@ -798,13 +1245,182 @@ class ForecastServiceImpl implements ForecastService {
     }
 }
 
-// ============ CONTROLLERS ============
+    @Service
+    class SimpleKnapsackServiceImpl implements SimpleKnapsackService {
+
+        @Override
+        public SimpleKnapsackResult findBestProducts(List<Product> products, int budget, int maxItems) {
+            List<SimpleKnapsackProduct> availableProducts = products.stream()
+                    .filter(product -> product.getPrice() != null && product.getPrice() > 0)
+                    .filter(product -> product.getQuantity() != null && product.getQuantity() > 0)
+                    .map(SimpleKnapsackProduct::new)
+                    .collect(Collectors.toList());
+
+            if (availableProducts.isEmpty()) {
+                SimpleKnapsackResult emptyResult = new SimpleKnapsackResult();
+                emptyResult.setEmpty(true);
+                return emptyResult;
+            }
+
+            return runBudgetUtilizationKnapsack(availableProducts, budget, maxItems);
+        }
+
+    private SimpleKnapsackResult runBudgetUtilizationKnapsack(List<SimpleKnapsackProduct> products, int budget, int maxItems) {
+    int n = products.size();
+
+    if (n == 0 || budget <= 0 || maxItems <= 0) {
+        SimpleKnapsackResult emptyResult = new SimpleKnapsackResult();
+        emptyResult.setEmpty(true);
+        emptyResult.setOriginalBudget(budget);
+        return emptyResult;
+    }
+
+    // dp[b][k] = max value achievable with budget b and up to k items
+    int[][] dp = new int[budget + 1][maxItems + 1];
+    boolean[][][] chosen = new boolean[n + 1][budget + 1][maxItems + 1];
+
+    for (int i = 1; i <= n; i++) {
+        SimpleKnapsackProduct current = products.get(i - 1);
+
+        for (int b = budget; b >= current.price; b--) {
+            for (int k = 1; k <= maxItems; k++) {
+                int newValue = dp[b - current.price][k - 1] + current.value;
+
+                if (newValue > dp[b][k]) {
+                    dp[b][k] = newValue;
+                    chosen[i][b][k] = true;
+                }
+            }
+        }
+    }
+
+    // Find the best solution
+    int bestValue = 0;
+    int bestBudget = 0;
+    int bestItems = 0;
+    for (int b = 0; b <= budget; b++) {
+        for (int k = 0; k <= maxItems; k++) {
+            if (dp[b][k] > bestValue) {
+                bestValue = dp[b][k];
+                bestBudget = b;
+                bestItems = k;
+            }
+        }
+    }
+
+    // Backtrack to find selected products
+    List<SimpleKnapsackProduct> selectedProducts = new ArrayList<>();
+    int b = bestBudget;
+    int k = bestItems;
+
+    for (int i = n; i > 0 && k > 0; i--) {
+        if (b >= products.get(i - 1).price && chosen[i][b][k]) {
+            SimpleKnapsackProduct product = products.get(i - 1);
+            product.selected = true;
+            selectedProducts.add(product);
+            b -= product.price;
+            k--;
+        }
+    }
+
+    return buildResult(selectedProducts, budget);
+}
+
+
+
+        private SimpleKnapsackResult buildResult(List<SimpleKnapsackProduct> selectedProducts, int originalBudget) {
+        SimpleKnapsackResult result = new SimpleKnapsackResult();
+        
+        int totalCost = selectedProducts.stream().mapToInt(p -> p.price).sum();
+        int totalValue = selectedProducts.stream().mapToInt(p -> p.value).sum();
+        
+        result.setSelectedProducts(selectedProducts);
+        result.setTotalCost(totalCost);
+        result.setTotalValue(totalValue);
+        result.setTotalItems(selectedProducts.size());
+        result.setRemainingBudget(originalBudget - totalCost);
+        result.setOriginalBudget(originalBudget);
+        
+        // Calculate efficiency percentage
+        double efficiencyPercent = originalBudget > 0 ? ((double) totalCost / originalBudget * 100) : 0.0;
+        result.setEfficiencyPercent(efficiencyPercent);
+        
+        // Mark as empty if no products selected
+        result.setEmpty(selectedProducts.isEmpty());
+        
+        return result;
+    }
+
+
+
+
+
+
+//debug
+public void debugKnapsack(List<SimpleKnapsackProduct> products, int budget, int maxItems) {
+    System.out.println("=== KNAPSACK DEBUG ===");
+    System.out.println("Budget: " + budget);
+    System.out.println("Max Items: " + maxItems);
+    System.out.println("Available Products: " + products.size());
+    
+    // Sort by efficiency ratio for debugging
+    products.sort((a, b) -> Double.compare((double)b.value/b.price, (double)a.value/a.price));
+    
+    System.out.println("Top 10 most efficient products:");
+    for (int i = 0; i < Math.min(10, products.size()); i++) {
+        SimpleKnapsackProduct p = products.get(i);
+        double ratio = (double)p.value / p.price;
+        System.out.printf("%d. %s - Price: %d, Value: %d, Ratio: %.2f%n", 
+            i+1, p.name, p.price, p.value, ratio);
+    }
+    
+    // Simple greedy selection for comparison
+    System.out.println("\nGreedy selection (for comparison):");
+    int greedyBudget = budget;
+    int greedyItems = 0;
+    int greedyCost = 0;
+    int greedyValue = 0;
+    
+    for (SimpleKnapsackProduct p : products) {
+        if (greedyBudget >= p.price && greedyItems < maxItems) {
+            greedyBudget -= p.price;
+            greedyCost += p.price;
+            greedyValue += p.value;
+            greedyItems++;
+            System.out.printf("Selected: %s (Price: %d, Value: %d)%n", p.name, p.price, p.value);
+        }
+        if (greedyItems >= maxItems) break;
+    }
+    
+    System.out.printf("Greedy Result: %d items, Cost: %d, Value: %d, Remaining: %d%n", 
+        greedyItems, greedyCost, greedyValue, greedyBudget);
+    System.out.println("=== END DEBUG ===");
+}
+
+
+    @Override
+    public List<Map<String, Object>> convertProductsToJsonFormat(List<Product> products) {
+        return products.stream().map(product -> {
+            SimpleKnapsackProduct kProduct = new SimpleKnapsackProduct(product);
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", kProduct.id);
+            map.put("name", kProduct.name != null ? kProduct.name : "Unknown Product");
+            map.put("category", kProduct.category != null ? kProduct.category : "Other");
+            map.put("price", kProduct.price);
+            map.put("stock", kProduct.stock);
+            map.put("value", kProduct.value);
+            map.put("ratio",
+                    kProduct.price > 0 ? String.format("%.2f", (double) kProduct.value / kProduct.price) : "0.00");
+            return map;
+        }).collect(Collectors.toList());
+    }
+}
 
 @Controller
 class HomeController {
     @Autowired
     private UserService userService;
-    
+
     @Autowired
     private ProductService productService;
 
@@ -813,6 +1429,9 @@ class HomeController {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private SimpleKnapsackService simpleKnapsackService;
 
     @GetMapping("/")
     public String home() {
@@ -824,27 +1443,23 @@ class HomeController {
         if (session.getAttribute("validuser") == null) {
             return "redirect:/";
         }
-        
-        // Dashboard statistics
+
         List<Product> products = productService.getAllProducts();
         long totalProducts = productService.countProducts();
         long lowStockProducts = productService.countLowStockProducts();
         double totalValue = productService.getTotalInventoryValue();
-        
-        // Order statistics
+
         long pendingOrders = orderService.countOrdersByStatus(OrderStatus.PENDING);
         long processingOrders = orderService.countOrdersByStatus(OrderStatus.PROCESSING);
-        
-        // Recent products
+
         List<Product> recentProducts = products.stream()
-                .sorted((p1, p2) -> p2.getDate() != null && p1.getDate() != null ? 
-                    p2.getDate().compareTo(p1.getDate()) : 0)
+                .sorted((p1, p2) -> p2.getDate() != null && p1.getDate() != null ? p2.getDate().compareTo(p1.getDate())
+                        : 0)
                 .limit(5)
                 .toList();
-        
-        // Recent sales summary
+
         List<Sale> recentSales = saleService.getRecentSales(7);
-        
+
         model.addAttribute("totalProducts", totalProducts);
         model.addAttribute("lowStockProducts", lowStockProducts);
         model.addAttribute("totalValue", totalValue);
@@ -852,26 +1467,25 @@ class HomeController {
         model.addAttribute("processingOrders", processingOrders);
         model.addAttribute("recentProducts", recentProducts);
         model.addAttribute("recentSales", recentSales.stream().limit(5).toList());
-        
+
         return "dashboard";
     }
 
     @GetMapping("/reports")
     public String showReports(Model model, HttpSession session) {
-        if (session.getAttribute("validuser") == null) return "redirect:/";
+        if (session.getAttribute("validuser") == null)
+            return "redirect:/";
 
         List<Product> products = productService.getAllProducts();
         model.addAttribute("products", products);
 
-        // Prepare arrays for chart.js
         List<String> productNames = products.stream()
-                                            .map(Product::getName)
-                                            .toList();
+                .map(Product::getName)
+                .toList();
         List<Integer> productQuantities = products.stream()
-                                                  .map(Product::getQuantity)
-                                                  .map(q -> q != null ? q : 0)
-                                                  .toList();
-        // Category distribution
+                .map(Product::getQuantity)
+                .map(q -> q != null ? q : 0)
+                .toList();
         Map<String, Long> categoryCounts = products.stream()
                 .collect(Collectors.groupingBy(Product::getCategory, Collectors.counting()));
 
@@ -892,10 +1506,10 @@ class HomeController {
     public String postLogin(@ModelAttribute User user, Model model, HttpSession session) {
         try {
             User usr = userService.login(user.getEmail().toLowerCase(), user.getPassword());
-            
+
             if (usr != null) {
                 session.setAttribute("validuser", usr);
-                session.setMaxInactiveInterval(3600); // 1 hour session
+                session.setMaxInactiveInterval(3600);
                 model.addAttribute("uname", usr.getUname());
                 return "redirect:/dashboard";
             } else {
@@ -907,7 +1521,7 @@ class HomeController {
             return "index";
         }
     }
-    
+
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
@@ -915,29 +1529,200 @@ class HomeController {
     }
 
     @PostMapping("/signup")
-    public String postSignup(@ModelAttribute User user, 
-                           RedirectAttributes redirectAttributes, 
-                           Model model) {
+    public String postSignup(@ModelAttribute User user,
+            RedirectAttributes redirectAttributes,
+            Model model) {
         try {
-            // Check if user already exists
             if (userService.existsByEmail(user.getEmail().toLowerCase())) {
                 model.addAttribute("error", "Email already exists. Please use a different email.");
                 return "signup";
             }
-            
-            // Normalize email
+
             user.setEmail(user.getEmail().toLowerCase());
-            
+
             userService.signUp(user);
             redirectAttributes.addFlashAttribute("success", "Account created successfully! Please login.");
-            
+
             return "redirect:/";
-            
+
         } catch (Exception e) {
             model.addAttribute("error", "Error creating account: " + e.getMessage());
             return "signup";
         }
     }
+
+    @GetMapping("/optimizer")
+    public String showOptimizer(Model model, HttpSession session) {
+        if (session.getAttribute("validuser") == null) {
+            return "redirect:/";
+        }
+
+        List<Product> products = productService.getAllProducts();
+        model.addAttribute("products", simpleKnapsackService.convertProductsToJsonFormat(products));
+        model.addAttribute("totalProducts", products.size());
+
+        return "optimizer";
+    }
+
+    @PostMapping("/optimize")
+    @ResponseBody
+    public ResponseEntity<SimpleKnapsackResult> optimizeProductSelection(
+            @RequestParam int budget,
+            @RequestParam(defaultValue = "5") int maxItems,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) Integer minPrice,
+            @RequestParam(required = false) Integer maxPrice,
+            @RequestParam(required = false) Integer minStock,
+            HttpSession session) {
+
+        if (session.getAttribute("validuser") == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        try {
+            List<Product> products = productService.getAllProducts();
+
+            // Apply filters
+            List<Product> filteredProducts = products.stream()
+                    .filter(p -> p.getPrice() != null && p.getQuantity() != null)
+                    .filter(p -> category == null || category.isEmpty() ||
+                            (p.getCategory() != null && p.getCategory().equals(category)))
+                    .filter(p -> minPrice == null || p.getPrice() >= minPrice)
+                    .filter(p -> maxPrice == null || p.getPrice() <= maxPrice)
+                    .filter(p -> minStock == null || p.getQuantity() >= minStock)
+                    .filter(p -> p.getQuantity() > 0) // Only products in stock
+                    .collect(Collectors.toList());
+
+            SimpleKnapsackResult result = simpleKnapsackService.findBestProducts(filteredProducts, budget, maxItems);
+
+            result.setOriginalBudget(budget);
+
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            System.err.println("Error in optimization: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/api/products")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> getAllProducts(HttpSession session) {
+        if (session.getAttribute("validuser") == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        try {
+            List<Product> products = productService.getAllProducts();
+
+            if (products == null) {
+                return ResponseEntity.ok(new ArrayList<>());
+            }
+
+            List<Map<String, Object>> productsJson = products.stream().map(product -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", product.getId());
+                map.put("name", product.getName() != null ? product.getName() : "Unknown Product");
+                map.put("category", product.getCategory() != null ? product.getCategory() : "Other");
+                map.put("price", product.getPrice() != null ? product.getPrice().intValue() : 0);
+                map.put("stock", product.getQuantity() != null ? product.getQuantity() : 0);
+
+                // Calculate value using the same logic as SimpleKnapsackProduct
+                int price = product.getPrice() != null ? product.getPrice().intValue() : 0;
+                int stock = product.getQuantity() != null ? product.getQuantity() : 0;
+                int value = calculateProductValue(product, price, stock);
+
+                map.put("value", value);
+                map.put("ratio", price > 0 ? String.format("%.2f", (double) value / price) : "0.00");
+
+                return map;
+            }).collect(Collectors.toList());
+
+            return ResponseEntity.ok(productsJson);
+        } catch (Exception e) {
+            System.err.println("Error in getAllProducts API: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/api/statistics")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getStatistics(HttpSession session) {
+        if (session.getAttribute("validuser") == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        try {
+            List<Product> products = productService.getAllProducts();
+            Map<String, Object> stats = new HashMap<>();
+
+            if (products == null || products.isEmpty()) {
+                stats.put("totalProducts", 0);
+                stats.put("avgPrice", 0);
+                stats.put("totalValue", 0);
+                stats.put("categoriesCount", 0);
+            } else {
+                stats.put("totalProducts", products.size());
+
+                double avgPrice = products.stream()
+                        .filter(p -> p.getPrice() != null)
+                        .mapToDouble(Product::getPrice)
+                        .average()
+                        .orElse(0.0);
+                stats.put("avgPrice", Math.round(avgPrice));
+
+                double totalValue = products.stream()
+                        .mapToDouble(p -> {
+                            double price = p.getPrice() != null ? p.getPrice() : 0.0;
+                            int quantity = p.getQuantity() != null ? p.getQuantity() : 0;
+                            return price * quantity;
+                        })
+                        .sum();
+                stats.put("totalValue", Math.round(totalValue));
+
+                long categoriesCount = products.stream()
+                        .map(Product::getCategory)
+                        .filter(Objects::nonNull)
+                        .distinct()
+                        .count();
+                stats.put("categoriesCount", categoriesCount);
+            }
+
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            System.err.println("Error in getStatistics API: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // Helper method for calculating product value (add this to HomeController)
+    private int calculateProductValue(Product product, int price, int stock) {
+        int baseValue = price;
+        int stockBonus = Math.min(stock * 2, baseValue / 4);
+        int categoryBonus = getCategoryBonus(product.getCategory(), baseValue);
+        return baseValue + stockBonus + categoryBonus;
+    }
+
+    private int getCategoryBonus(String category, int baseValue) {
+        if (category == null)
+            return 0;
+
+        switch (category.toLowerCase()) {
+            case "electronics":
+                return baseValue / 10;
+            case "premium":
+                return baseValue / 8;
+            case "bestseller":
+                return baseValue / 6;
+            case "gadgets":
+                return baseValue / 12;
+            default:
+                return 0;
+        }
+    }
+
 }
 
 @Controller
@@ -969,9 +1754,9 @@ class ProductController {
 
     @PostMapping("/add-product")
     public String addProduct(@ModelAttribute Product product,
-                             @RequestParam("imageFile") MultipartFile imageFile,
-                             RedirectAttributes redirectAttributes,
-                             HttpSession session) {
+            @RequestParam("imageFile") MultipartFile imageFile,
+            RedirectAttributes redirectAttributes,
+            HttpSession session) {
         if (session.getAttribute("validuser") == null) {
             return "redirect:/";
         }
@@ -981,12 +1766,11 @@ class ProductController {
                 product.setDate(LocalDate.now());
             }
 
-            // External upload directory (relative to where the app runs)
             String uploadDir = "uploads/";
             File uploadPath = new File(uploadDir);
 
             if (!uploadPath.exists()) {
-                uploadPath.mkdirs(); // create if not exists
+                uploadPath.mkdirs();
             }
 
             if (!imageFile.isEmpty()) {
@@ -995,7 +1779,6 @@ class ProductController {
 
                 Files.copy(imageFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-                // Store relative URL path (for browser access)
                 product.setImagePath("/uploads/" + fileName);
             }
 
@@ -1025,9 +1808,9 @@ class ProductController {
 
     @PostMapping("/edit-product/{id}")
     public String updateProduct(@PathVariable Integer id,
-                                @ModelAttribute Product product,
-                                RedirectAttributes redirectAttributes,
-                                HttpSession session) {
+            @ModelAttribute Product product,
+            RedirectAttributes redirectAttributes,
+            HttpSession session) {
         if (session.getAttribute("validuser") == null) {
             return "redirect:/";
         }
@@ -1045,8 +1828,8 @@ class ProductController {
 
     @GetMapping("/delete-product/{id}")
     public String deleteProduct(@PathVariable Integer id,
-                                RedirectAttributes redirectAttributes,
-                                HttpSession session) {
+            RedirectAttributes redirectAttributes,
+            HttpSession session) {
         if (session.getAttribute("validuser") == null) {
             return "redirect:/";
         }
@@ -1114,19 +1897,20 @@ class SaleController {
         if (session.getAttribute("validuser") == null) {
             return "redirect:/";
         }
-        
+
         model.addAttribute("sale", new Sale());
         model.addAttribute("products", productService.getAllProducts());
         model.addAttribute("customers", customerService.getAllCustomers());
         model.addAttribute("sales", saleService.getAllSales());
         model.addAttribute("customer", new Customer());
-        
+
         return "sales";
     }
 
     @GetMapping("/sales/add")
     public String showAddSaleForm(Model model, HttpSession session) {
-        if (session.getAttribute("validuser") == null) return "redirect:/";
+        if (session.getAttribute("validuser") == null)
+            return "redirect:/";
 
         model.addAttribute("sale", new Sale());
         model.addAttribute("products", productService.getAllProducts());
@@ -1135,13 +1919,13 @@ class SaleController {
 
     @PostMapping("/sales/add")
     public String addSale(@ModelAttribute Sale sale,
-                          RedirectAttributes redirectAttributes,
-                          HttpSession session) {
+            RedirectAttributes redirectAttributes,
+            HttpSession session) {
 
-        if (session.getAttribute("validuser") == null) return "redirect:/";
+        if (session.getAttribute("validuser") == null)
+            return "redirect:/";
 
         try {
-            // Fetch full Product and Customer objects using IDs from the form
             Product product = productService.getProductById(sale.getProduct().getId());
             Customer customer = customerService.getCustomerById(sale.getCustomer().getId());
 
@@ -1150,15 +1934,12 @@ class SaleController {
                 return "redirect:/sales";
             }
 
-            // Set the fetched objects to the sale
             sale.setProduct(product);
             sale.setCustomer(customer);
 
-            // Reduce product stock
             product.setQuantity(product.getQuantity() - sale.getQuantity());
             productService.updateProduct(product);
 
-            // Calculate total price
             sale.setTotalPrice(product.getPrice() * sale.getQuantity());
             sale.setDate(LocalDate.now());
 
@@ -1176,7 +1957,8 @@ class SaleController {
     public void generateReceipt(@PathVariable Integer id, HttpServletResponse response) throws IOException {
         Sale sale = saleService.getSaleById(id);
 
-        if (sale == null) return;
+        if (sale == null)
+            return;
 
         response.setContentType("application/pdf");
         response.setHeader("Content-Disposition", "attachment; filename=receipt_" + id + ".pdf");
@@ -1211,8 +1993,9 @@ class CustomerController {
 
     @GetMapping
     public String listCustomers(Model model, HttpSession session) {
-        if (session.getAttribute("validuser") == null) return "redirect:/";
-        
+        if (session.getAttribute("validuser") == null)
+            return "redirect:/";
+
         model.addAttribute("customers", customerService.getAllCustomers());
         model.addAttribute("customer", new Customer());
         return "customers";
@@ -1220,33 +2003,36 @@ class CustomerController {
 
     @GetMapping("/add")
     public String showAddCustomerForm(Model model, HttpSession session) {
-        if (session.getAttribute("validuser") == null) return "redirect:/";
-        
+        if (session.getAttribute("validuser") == null)
+            return "redirect:/";
+
         model.addAttribute("customer", new Customer());
         return "customers";
     }
 
     @PostMapping("/add")
-    public String saveOrUpdateCustomer(@ModelAttribute Customer customer, 
-                                     RedirectAttributes redirectAttributes,
-                                     HttpSession session) {
-        if (session.getAttribute("validuser") == null) return "redirect:/";
-        
+    public String saveOrUpdateCustomer(@ModelAttribute Customer customer,
+            RedirectAttributes redirectAttributes,
+            HttpSession session) {
+        if (session.getAttribute("validuser") == null)
+            return "redirect:/";
+
         try {
             customerService.saveCustomer(customer);
-            redirectAttributes.addFlashAttribute("success", 
-                customer.getId() == null ? "Customer added successfully!" : "Customer updated successfully!");
+            redirectAttributes.addFlashAttribute("success",
+                    customer.getId() == null ? "Customer added successfully!" : "Customer updated successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error saving customer: " + e.getMessage());
         }
-        
+
         return "redirect:/customers";
     }
 
     @GetMapping("/edit/{id}")
     public String editCustomer(@PathVariable Long id, Model model, HttpSession session) {
-        if (session.getAttribute("validuser") == null) return "redirect:/";
-        
+        if (session.getAttribute("validuser") == null)
+            return "redirect:/";
+
         Customer customer = customerService.getCustomerById(id);
         model.addAttribute("customer", customer);
         model.addAttribute("customers", customerService.getAllCustomers());
@@ -1255,303 +2041,244 @@ class CustomerController {
 
     @GetMapping("/delete/{id}")
     public String deleteCustomer(@PathVariable Long id, RedirectAttributes redirectAttributes,
-                               HttpSession session) {
-        if (session.getAttribute("validuser") == null) return "redirect:/";
-        
+            HttpSession session) {
+        if (session.getAttribute("validuser") == null)
+            return "redirect:/";
+
         try {
             customerService.deleteCustomer(id);
             redirectAttributes.addFlashAttribute("success", "Customer deleted successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error deleting customer: " + e.getMessage());
         }
-        
+
         return "redirect:/customers";
     }
 }
 
-// New Order Controller
 @Controller
 @RequestMapping("/orders")
 class OrderController {
     @Autowired
     private OrderService orderService;
-    
+
     @Autowired
     private CustomerService customerService;
-    
+
     @Autowired
     private ProductService productService;
 
     @GetMapping
     public String listOrders(Model model, HttpSession session) {
-        if (session.getAttribute("validuser") == null) return "redirect:/";
-        
+        if (session.getAttribute("validuser") == null)
+            return "redirect:/";
+
         List<Order> orders = orderService.getAllOrders();
         model.addAttribute("orders", orders);
         model.addAttribute("order", new Order());
         model.addAttribute("customers", customerService.getAllCustomers());
         model.addAttribute("products", productService.getAllProducts());
-        
-        // Order statistics
+
         model.addAttribute("pendingCount", orderService.countOrdersByStatus(OrderStatus.PENDING));
         model.addAttribute("processingCount", orderService.countOrdersByStatus(OrderStatus.PROCESSING));
         model.addAttribute("shippedCount", orderService.countOrdersByStatus(OrderStatus.SHIPPED));
         model.addAttribute("deliveredCount", orderService.countOrdersByStatus(OrderStatus.DELIVERED));
-        
+
         return "orders";
     }
 
     @PostMapping("/add")
-    public String createOrder(@ModelAttribute Order order, 
-                            RedirectAttributes redirectAttributes,
-                            HttpSession session) {
-        if (session.getAttribute("validuser") == null) return "redirect:/";
-        
+    public String createOrder(@ModelAttribute Order order,
+            RedirectAttributes redirectAttributes,
+            HttpSession session) {
+        if (session.getAttribute("validuser") == null)
+            return "redirect:/";
+
         try {
-            // Fetch full objects
             Customer customer = customerService.getCustomerById(order.getCustomer().getId());
             Product product = productService.getProductById(order.getProduct().getId());
-            
+
             if (customer == null || product == null) {
                 redirectAttributes.addFlashAttribute("error", "Invalid customer or product selected");
                 return "redirect:/orders";
             }
-            
+
             order.setCustomer(customer);
             order.setProduct(product);
             order.setUnitPrice(product.getPrice());
             order.setOrderDate(LocalDate.now());
-            
+
             orderService.createOrder(order);
             redirectAttributes.addFlashAttribute("success", "Order created successfully!");
-            
+
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error creating order: " + e.getMessage());
         }
-        
+
         return "redirect:/orders";
     }
 
     @PostMapping("/update-status/{id}")
-    public String updateOrderStatus(@PathVariable Long id, 
-                                  @RequestParam OrderStatus status,
-                                  RedirectAttributes redirectAttributes,
-                                  HttpSession session) {
-        if (session.getAttribute("validuser") == null) return "redirect:/";
-        
+    public String updateOrderStatus(@PathVariable Long id,
+            @RequestParam OrderStatus status,
+            RedirectAttributes redirectAttributes,
+            HttpSession session) {
+        if (session.getAttribute("validuser") == null)
+            return "redirect:/";
+
         try {
             orderService.updateOrderStatus(id, status);
             redirectAttributes.addFlashAttribute("success", "Order status updated successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error updating order status: " + e.getMessage());
         }
-        
+
         return "redirect:/orders";
     }
 
     @GetMapping("/delete/{id}")
-    public String deleteOrder(@PathVariable Long id, 
-                            RedirectAttributes redirectAttributes,
-                            HttpSession session) {
-        if (session.getAttribute("validuser") == null) return "redirect:/";
-        
+    public String deleteOrder(@PathVariable Long id,
+            RedirectAttributes redirectAttributes,
+            HttpSession session) {
+        if (session.getAttribute("validuser") == null)
+            return "redirect:/";
+
         try {
             orderService.deleteOrder(id);
             redirectAttributes.addFlashAttribute("success", "Order deleted successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error deleting order: " + e.getMessage());
         }
-        
+
         return "redirect:/orders";
     }
 }
 
-// New Forecast Controller
-// Enhanced Forecast Controller with better error handling and debugging
 @Controller
 @RequestMapping("/forecasts")
- class ForecastController {
-    
+class ForecastController {
+
     @Autowired
     private ForecastService forecastService;
-    
+
     @Autowired
     private ProductService productService;
-    
+
     @GetMapping
     public String showForecasts(Model model, HttpSession session) {
         if (session.getAttribute("validuser") == null) {
             return "redirect:/";
         }
-        
+
         try {
-            // Get all products
             List<Product> products = productService.getAllProducts();
             Map<Integer, List<Forecast>> productForecasts = new HashMap<>();
-            
-            System.out.println("DEBUG: Found " + products.size() + " products");
-            
-            // Get existing forecasts for each product
+
             for (Product product : products) {
                 try {
                     List<Forecast> forecasts = forecastService.getForecastsByProduct(product.getId());
                     productForecasts.put(product.getId(), forecasts != null ? forecasts : new ArrayList<>());
-                    System.out.println("DEBUG: Product " + product.getName() + " has " + 
-                        (forecasts != null ? forecasts.size() : 0) + " forecasts");
                 } catch (Exception e) {
-                    System.err.println("Error getting forecasts for product " + product.getId() + ": " + e.getMessage());
                     productForecasts.put(product.getId(), new ArrayList<>());
                 }
             }
-            
-            // Calculate total forecasts
+
             int totalForecasts = productForecasts.values().stream()
-                .mapToInt(List::size)
-                .sum();
-            
-            System.out.println("DEBUG: Total forecasts across all products: " + totalForecasts);
-            
+                    .mapToInt(List::size)
+                    .sum();
+
             model.addAttribute("products", products);
             model.addAttribute("productForecasts", productForecasts);
             model.addAttribute("seasons", List.of("SPRING", "SUMMER", "AUTUMN", "WINTER"));
-            
-            // Add debug information to the model
             model.addAttribute("totalProducts", products.size());
             model.addAttribute("totalForecasts", totalForecasts);
-            
+
         } catch (Exception e) {
-            System.err.println("Error in showForecasts: " + e.getMessage());
-            e.printStackTrace();
             model.addAttribute("error", "Error loading forecasts: " + e.getMessage());
             model.addAttribute("products", new ArrayList<>());
             model.addAttribute("productForecasts", new HashMap<>());
             model.addAttribute("seasons", List.of("SPRING", "SUMMER", "AUTUMN", "WINTER"));
         }
-        
+
         return "forecasts";
     }
-    
+
     @PostMapping("/generate/{productId}")
     public String generateForecast(@PathVariable Integer productId,
-                                   RedirectAttributes redirectAttributes,
-                                   HttpSession session) {
+            RedirectAttributes redirectAttributes,
+            HttpSession session) {
         if (session.getAttribute("validuser") == null) {
             return "redirect:/";
         }
-        
+
         try {
-            // Validate product exists
             Product product = productService.getProductById(productId);
             if (product == null) {
                 redirectAttributes.addFlashAttribute("error", "Product not found!");
                 return "redirect:/forecasts";
             }
-            
-            System.out.println("DEBUG: Generating forecast for product: " + product.getName() + " (ID: " + productId + ")");
-            
-            // Generate forecast
+
             forecastService.generateForecast(productId);
-            
-            // Verify forecast was created
+
             List<Forecast> forecasts = forecastService.getForecastsByProduct(productId);
-            System.out.println("DEBUG: After generation, product has " + forecasts.size() + " forecasts");
-            
-            redirectAttributes.addFlashAttribute("success", 
-                "Forecast generated successfully for " + product.getName() + "! Generated " + forecasts.size() + " forecast periods.");
-                
+
+            redirectAttributes.addFlashAttribute("success",
+                    "Forecast generated successfully for " + product.getName() + "! Generated " + forecasts.size()
+                            + " forecast periods.");
+
         } catch (Exception e) {
-            System.err.println("Error generating forecast for product " + productId + ": " + e.getMessage());
-            e.printStackTrace();
-            redirectAttributes.addFlashAttribute("error", 
-                "Error generating forecast: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error",
+                    "Error generating forecast: " + e.getMessage());
         }
-        
+
         return "redirect:/forecasts";
     }
-    
+
     @PostMapping("/generate-all")
     public String generateAllForecasts(RedirectAttributes redirectAttributes,
-                                       HttpSession session) {
+            HttpSession session) {
         if (session.getAttribute("validuser") == null) {
             return "redirect:/";
         }
-        
+
         try {
-            // Get all products first
             List<Product> products = productService.getAllProducts();
-            
-            System.out.println("DEBUG: Starting generateAllForecasts for " + products.size() + " products");
-            
+
             if (products == null || products.isEmpty()) {
                 redirectAttributes.addFlashAttribute("error", "No products found to generate forecasts for!");
                 return "redirect:/forecasts";
             }
-            
+
             int successCount = 0;
             int errorCount = 0;
-            
-            // Generate forecasts for each product individually with error handling
+
             for (Product product : products) {
                 try {
-                    System.out.println("DEBUG: Generating forecast for product: " + product.getName() + " (ID: " + product.getId() + ")");
                     forecastService.generateForecast(product.getId());
                     successCount++;
                 } catch (Exception e) {
-                    System.err.println("ERROR: Failed to generate forecast for product " + product.getName() + ": " + e.getMessage());
                     errorCount++;
                 }
             }
-            
-            System.out.println("DEBUG: Forecast generation completed. Success: " + successCount + ", Errors: " + errorCount);
-            
+
             if (successCount > 0) {
-                redirectAttributes.addFlashAttribute("success", 
-                    "Forecasts generated! Success: " + successCount + " products" + 
-                    (errorCount > 0 ? ", Errors: " + errorCount + " products" : ""));
+                redirectAttributes.addFlashAttribute("success",
+                        "Forecasts generated! Success: " + successCount + " products" +
+                                (errorCount > 0 ? ", Errors: " + errorCount + " products" : ""));
             } else {
-                redirectAttributes.addFlashAttribute("error", 
-                    "No forecasts could be generated. Check if products have sufficient historical sales data.");
+                redirectAttributes.addFlashAttribute("error",
+                        "No forecasts could be generated. Check if products have sufficient historical sales data.");
             }
-                
+
         } catch (Exception e) {
-            System.err.println("Error generating all forecasts: " + e.getMessage());
-            e.printStackTrace();
-            redirectAttributes.addFlashAttribute("error", 
-                "Error generating forecasts: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error",
+                    "Error generating forecasts: " + e.getMessage());
         }
-        
+
         return "redirect:/forecasts";
-    }
-    
-    // Add a new endpoint to check system status
-    @GetMapping("/debug")
-    public String debugForecasts(Model model, HttpSession session) {
-        if (session.getAttribute("validuser") == null) {
-            return "redirect:/";
-        }
-        
-        List<Product> products = productService.getAllProducts();
-        Map<String, Object> debugInfo = new HashMap<>();
-        
-        debugInfo.put("totalProducts", products.size());
-        debugInfo.put("productDetails", products.stream().map(p -> 
-            "ID: " + p.getId() + ", Name: " + p.getName() + ", Stock: " + p.getQuantity()
-        ).collect(Collectors.toList()));
-        
-        // Check forecasts
-        int totalForecasts = 0;
-        for (Product product : products) {
-            List<Forecast> forecasts = forecastService.getForecastsByProduct(product.getId());
-            totalForecasts += forecasts.size();
-        }
-        debugInfo.put("totalForecasts", totalForecasts);
-        
-        model.addAttribute("debugInfo", debugInfo);
-        return "forecast-debug"; // You can create this simple debug template
     }
 }
 
-// ============ DATA INITIALIZER ============
 @Component
 class DataInitializer implements CommandLineRunner {
     @Autowired
@@ -1559,12 +2286,11 @@ class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        // Initialize default admin user if no users exist
         if (userRepository.count() == 0) {
             User adminUser = new User();
             adminUser.setUname("admin");
             adminUser.setEmail("admin@kapiltraders.com");
-            adminUser.setPassword("admin123"); // In a real app, hash this password
+            adminUser.setPassword("admin123");
             userRepository.save(adminUser);
 
             System.out.println("Created default admin user:");

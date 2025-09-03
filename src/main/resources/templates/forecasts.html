@@ -533,8 +533,9 @@
 
 
             <!-- No Forecast Data -->
-            <div th:unless="${productForecasts[product.id]} and !#lists.isEmpty(productForecasts[product.id])"
-                 style="text-align: center; padding: 40px; background: var(--background); border-radius: 12px; margin-top: 16px;">
+            <!-- <div th:unless="${productForecasts[product.id]} and !#lists.isEmpty(productForecasts[product.id])" -->
+             <div th:if="${productForecasts[product.id] != null and not #lists.isEmpty(productForecasts[product.id])}">…</div>
+                 <!-- style="text-align: center; padding: 40px; background: var(--background); border-radius: 12px; margin-top: 16px;"> -->
                 <div style="font-size: 2rem; margin-bottom: 12px;">📊</div>
                 <h4 style="color: var(--text-dark); margin-bottom: 8px;">No Forecast Available</h4>
                 <p style="color: var(--text-light); margin-bottom: 16px;">Generate forecasts to see demand predictions</p>

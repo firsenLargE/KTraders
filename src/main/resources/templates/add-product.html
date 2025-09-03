@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <title>Add Product - Kapil Traders</title>
@@ -113,7 +114,8 @@
             color: var(--danger);
         }
 
-        input, select {
+        input,
+        select {
             width: 100%;
             padding: 0.75rem;
             border: 1px solid var(--border);
@@ -123,7 +125,8 @@
             transition: all 0.2s ease;
         }
 
-        input:focus, select:focus {
+        input:focus,
+        select:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
@@ -308,6 +311,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="header">
         <a th:href="@{/products}" class="back-button">Back to Products</a>
@@ -322,7 +326,7 @@
         <form th:action="@{/add-product}" method="post" th:object="${product}" enctype="multipart/form-data">
             <div class="form-section">
                 <h3>Basic Details</h3>
-                
+
                 <div class="form-group">
                     <label for="name" class="required">Product Name</label>
                     <input type="text" id="name" th:field="*{name}" placeholder="Enter product name" required>
@@ -350,6 +354,9 @@
                             <option value="Medium">Medium</option>
                             <option value="Large">Large</option>
                             <option value="Extra Large">Extra Large</option>
+                            <option value="A3">160ml</option>
+                            <option value="A3">250ml</option>
+                            <option value="A3">330ml</option>
                             <option value="500ml">500ml</option>
                             <option value="1L">1L</option>
                             <option value="2L">2L</option>
@@ -358,6 +365,7 @@
                             <option value="1kg">1kg</option>
                             <option value="A4">A4</option>
                             <option value="A3">A3</option>
+
                             <option value="Others">Others</option>
                         </select>
                     </div>
@@ -366,7 +374,7 @@
 
             <div class="form-section">
                 <h3>Inventory & Pricing</h3>
-                
+
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="quantity" class="required">Quantity</label>
@@ -376,7 +384,8 @@
                     <div class="form-group">
                         <label for="price" class="required">Price (₹)</label>
                         <div class="input-icon">
-                            <input type="number" id="price" th:field="*{price}" min="0" step="0.01" placeholder="0.00" required>
+                            <input type="number" id="price" th:field="*{price}" min="0" step="0.01" placeholder="0.00"
+                                required>
                         </div>
                     </div>
                 </div>
@@ -389,7 +398,7 @@
 
             <div class="form-section">
                 <h3>Product Image</h3>
-                
+
                 <div class="form-group">
                     <label for="image" class="required">Product Image</label>
                     <div class="file-input-wrapper">
@@ -413,8 +422,8 @@
         // Add some interactivity for better UX
         const fileInput = document.getElementById('image');
         const fileInputWrapper = document.querySelector('.file-input-wrapper');
-        
-        fileInput.addEventListener('change', function(e) {
+
+        fileInput.addEventListener('change', function (e) {
             const fileName = e.target.files[0]?.name;
             if (fileName) {
                 const helpText = fileInputWrapper.querySelector('.file-input-help');
@@ -424,23 +433,24 @@
         });
 
         // Add drag and drop functionality
-        fileInput.addEventListener('dragover', function(e) {
+        fileInput.addEventListener('dragover', function (e) {
             e.preventDefault();
             this.style.borderColor = 'var(--primary)';
             this.style.backgroundColor = 'rgba(30, 64, 175, 0.1)';
         });
 
-        fileInput.addEventListener('dragleave', function(e) {
+        fileInput.addEventListener('dragleave', function (e) {
             e.preventDefault();
             this.style.borderColor = 'var(--border)';
             this.style.backgroundColor = 'var(--background)';
         });
 
-        fileInput.addEventListener('drop', function(e) {
+        fileInput.addEventListener('drop', function (e) {
             e.preventDefault();
             this.style.borderColor = 'var(--border)';
             this.style.backgroundColor = 'var(--background)';
         });
     </script>
 </body>
+
 </html>
