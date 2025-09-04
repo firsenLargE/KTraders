@@ -1,165 +1,437 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Reports - Kapil Traders</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        /* Reset some default styles */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+  <meta charset="UTF-8">
+  <title>Reports • Kapil Traders</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root{
+      --bg:#f6f8fb;
+      --panel:#ffffff;
+      --ink:#0f172a;
+      --muted:#6b7280;
+      --brand:#1e40af;
+      --brand2:#60a5fa;
+      --accent:#f59e0b;
+      --ok:#16a34a;
+      --shadow:0 18px 40px rgba(2,8,20,.08);
+      --radius:18px;
+      --border:#e5e7eb;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; padding:24px;
+      background:
+        radial-gradient(1300px 700px at 80% -300px,#e7edff,#f8fafc 60%),
+        var(--bg);
+      color:var(--ink);
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    }
 
-        body {
-            font-family: 'Inter', Arial, sans-serif;
-            background-color: #f5f7fa;
-            color: #333;
-            line-height: 1.6;
-            padding: 20px;
-        }
+    .head{
+      display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:20px;
+    }
+    .head .title{
+      display:flex; align-items:center; gap:14px;
+    }
+    .orb{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--brand),var(--brand2)); box-shadow:0 10px 28px rgba(30,64,175,.35)}
+    h1{margin:0;font-size:1.6rem;letter-spacing:.2px}
+    .sub{color:var(--muted);font-size:.95rem}
 
-        h1 {
-            text-align: center;
-            margin-bottom: 40px;
-            font-size: 2.5rem;
-            color: #1e3a8a;
-        }
+    .chips{
+      display:flex; gap:10px; flex-wrap:wrap;
+    }
+    .chip{
+      background:#fff; border:1px solid var(--border);
+      border-radius:999px; padding:.5rem .85rem; font-weight:600; font-size:.9rem;
+      box-shadow:0 6px 18px rgba(2,8,20,.06);
+    }
 
-        .charts-wrapper {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 40px;
-            justify-content: center;
-        }
+    .grid{
+      display:grid; gap:18px;
+      grid-template-columns: repeat(auto-fit,minmax(320px,1fr));
+    }
 
-        .chart-block {
-            background: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-            width: 500px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
+    .card{
+      background:var(--panel);
+      border:1px solid rgba(0,0,0,.06);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .card:hover{ transform: translateY(-3px); box-shadow:0 22px 50px rgba(2,8,20,.12) }
 
-        .chart-block:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 32px rgba(0,0,0,0.15);
-        }
+    .card h2{
+      margin:0 0 10px; font-size:1.1rem; letter-spacing:.2px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .toolbar{
+      display:flex; gap:8px; flex-wrap:wrap;
+    }
+    .btn{
+      border:1px solid var(--border);
+      background:linear-gradient(180deg,#fff,#f9fafb);
+      padding:.45rem .7rem; border-radius:10px; font-weight:600; font-size:.85rem;
+      display:inline-flex; align-items:center; gap:.4rem;
+      cursor:pointer;
+    }
+    .btn:hover{ box-shadow:0 8px 20px rgba(0,0,0,.08) }
 
-        .chart-block h2 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #111827;
-            font-size: 1.5rem;
-        }
+    .input{
+      border:1px solid var(--border); background:#fff;
+      border-radius:10px; padding:.5rem .7rem; font-size:.9rem; outline:none;
+    }
+    .input:focus{ box-shadow:0 0 0 4px rgba(147,197,253,.25); border-color:#93c5fd }
 
-        .chart-container {
-            position: relative;
-            width: 100%;
-            height: 400px;
-        }
+    .kpis{
+      display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-bottom:18px;
+    }
+    .kpi{
+      background:#fff; border:1px solid var(--border);
+      border-radius:16px; padding:14px; box-shadow:var(--shadow);
+      display:flex; align-items:center; gap:12px;
+    }
+    .kpi .dot{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;color:#fff;font-weight:800}
+    .kpi .num{font-size:1.5rem;font-weight:800}
+    .muted{color:var(--muted)}
+    .canvas-wrap{ position:relative; width:100%; height:420px }
 
-        @media (max-width: 1100px) {
-            .chart-block {
-                width: 100%;
-            }
-        }
-    </style>
+    @media (max-width:900px){
+      body{padding:18px}
+      .kpis{ grid-template-columns:1fr }
+    }
+    .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  text-decoration: none;
+  transition: all 0.25s ease-in-out;
+  cursor: pointer;
+}
+
+/* Outline primary (blue theme) */
+.btn-outline-primary {
+  color: #1e40af;
+  border-color: #1e40af;
+  background-color: transparent;
+}
+
+.btn-outline-primary:hover {
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.btn-outline-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+}
+
+/* Smaller button style */
+.btn-sm {
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+  </style>
 </head>
 <body>
-    <h1>Reports</h1>
 
-    <div class="charts-wrapper">
-        <div class="chart-block">
-            <h2>Products Quantity</h2>
-            <div class="chart-container">
-                <canvas id="productChart"></canvas>
-            </div>
-        </div>
+  <!-- Header -->
+  <div class="head">
+    <div class="title">
+      <div class="orb"></div>
+      <div>
+        <h1>Reports</h1>
+        <div class="sub">Visual summary of stock and category distribution</div>
+      </div>
+    </div>
+    <div class="chips">
+      <div class="chip">📦 <span id="chipTotalProducts">0</span> Products</div>
+      <div class="chip">🧮 <span id="chipTotalQty">0</span> Units</div>
+      <div class="chip">🏷️ <span id="chipCategories">0</span> Categories</div>
+      <a th:href="@{/dashboard}" class="btn btn-outline-primary btn-sm">
+  ← Back to Dashboard
+</a>
 
-        <div class="chart-block">
-            <h2>Category Distribution</h2>
-            <div class="chart-container">
-                <canvas id="categoryChart"></canvas>
-            </div>
-        </div>
+    </div>
+  </div>
+
+  <!-- KPI Row -->
+  <div class="kpis">
+    <div class="kpi">
+      <div class="dot" style="background:linear-gradient(135deg,#2563eb,#0ea5e9)">P</div>
+      <div>
+        <div class="num" id="kpiProducts">0</div>
+        <div class="muted">Total Products</div>
+      </div>
+    </div>
+    <div class="kpi">
+      <div class="dot" style="background:linear-gradient(135deg,#22c55e,#16a34a)">Σ</div>
+      <div>
+        <div class="num" id="kpiUnits">0</div>
+        <div class="muted">Total Quantity</div>
+      </div>
+    </div>
+    <div class="kpi">
+      <div class="dot" style="background:linear-gradient(135deg,#f59e0b,#d97706)">#</div>
+      <div>
+        <div class="num" id="kpiCats">0</div>
+        <div class="muted">Unique Categories</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="grid">
+
+    <!-- Products Quantity -->
+    <div class="card">
+      <h2>
+        Products by Quantity
+        <span class="toolbar">
+          <input id="searchBar" class="input" placeholder="Filter…" />
+          <button class="btn" id="sortByName">A–Z</button>
+          <button class="btn" id="sortByQty">Qty ↓</button>
+          <button class="btn" id="resetBar">Reset</button>
+          <button class="btn" id="downloadBar">⬇ PNG</button>
+        </span>
+      </h2>
+      <div class="canvas-wrap">
+        <canvas id="productChart"></canvas>
+      </div>
     </div>
 
- <script th:inline="javascript">
-    /*<![CDATA[*/
-    // Products Quantity Chart Data
-    const productNames = /*[[${productNames}]]*/ [];
-    const productQuantities = /*[[${productQuantities}]]*/ [];
+    <!-- Category Distribution -->
+    <div class="card">
+      <h2>
+        Category Distribution
+        <span class="toolbar">
+          <button class="btn" id="toggleDonut">Donut</button>
+          <button class="btn" id="downloadPie">⬇ PNG</button>
+        </span>
+      </h2>
+      <div class="canvas-wrap">
+        <canvas id="categoryChart"></canvas>
+      </div>
+    </div>
 
-    // Category Distribution Chart Data
-    const categoryLabels = /*[[${categoryCounts.keySet()}]]*/ [];
-    const categoryValues = /*[[${categoryCounts.values()}]]*/ [];
+  </div>
 
-    // Products Quantity Bar Chart
+  <!-- Thymeleaf data -->
+  <script th:inline="javascript">
+  /*<![CDATA[*/
+  const productNames      = /*[[${productNames}]]*/ [];
+  const productQuantities = /*[[${productQuantities}]]*/ [];
+  const categoryLabels    = /*[[${categoryCounts.keySet()}]]*/ [];
+  const categoryValues    = /*[[${categoryCounts.values()}]]*/ [];
+  /*]]>*/
+  </script>
+
+  <script>
+    
+    // --- Helpers ---
+    const sum = arr => (arr||[]).reduce((a,b)=>a+(+b||0),0);
+    const fmt = n => (n??0).toLocaleString('en-IN');
+
+    // KPIs & chips
+    const totals = {
+      products: (productNames||[]).length,
+      units: sum(productQuantities||[]),
+      cats: (categoryLabels||[]).length
+    };
+    document.getElementById('chipTotalProducts').textContent = fmt(totals.products);
+    document.getElementById('chipTotalQty').textContent      = fmt(totals.units);
+    document.getElementById('chipCategories').textContent    = fmt(totals.cats);
+    document.getElementById('kpiProducts').textContent       = fmt(totals.products);
+    document.getElementById('kpiUnits').textContent          = fmt(totals.units);
+    document.getElementById('kpiCats').textContent           = fmt(totals.cats);
+
+    // Animated counters (subtle)
+    const animateNum = (el, end, dur=700) => {
+      const start = 0, t0 = performance.now();
+      const step = (t) => {
+        const k = Math.min(1,(t-t0)/dur);
+        el.textContent = fmt(Math.round(start + (end-start)*(0.5 - Math.cos(Math.PI*k)/2)));
+        if (k<1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+    ['kpiProducts','kpiUnits','kpiCats'].forEach((id,i)=>{
+      const val = [totals.products, totals.units, totals.cats][i];
+      animateNum(document.getElementById(id), val, 900 + i*120);
+    });
+
+    // Gradient factory
+    function barGradient(ctx, area){
+      const g = ctx.createLinearGradient(0, area.bottom, 0, area.top);
+      g.addColorStop(0,'rgba(30,58,138,.15)');
+      g.addColorStop(.3,'rgba(37,99,235,.35)');
+      g.addColorStop(1,'rgba(14,165,233,.85)');
+      return g;
+    }
+    function piePalette(n){
+      const base = [
+        '#60a5fa','#a78bfa','#34d399','#fbbf24','#f87171',
+        '#22d3ee','#f472b6','#f59e0b','#c4b5fd','#93c5fd',
+        '#86efac','#fda4af'
+      ];
+      const out = [];
+      for(let i=0;i<n;i++) out.push(base[i%base.length]);
+      return out;
+    }
+
+    // Bar chart (with dynamic gradient, filter & sort)
     const ctx1 = document.getElementById('productChart').getContext('2d');
-    const productChart = new Chart(ctx1, {
-        type: 'bar',
-        data: {
-            labels: productNames,
-            datasets: [{
-                label: 'Quantity',
-                data: productQuantities,
-                backgroundColor: 'rgba(30, 58, 138, 0.7)',
-                borderColor: 'rgba(30, 58, 138, 1)',
-                borderWidth: 1,
-                borderRadius: 6
-            }]
+    let barConfig = {
+      type:'bar',
+      data:{
+        labels:[...productNames],
+        datasets:[{
+          label:'Quantity',
+          data:[...productQuantities],
+          borderWidth:1,
+          borderRadius:8,
+          borderColor:'rgba(30,58,138,1)',
+          backgroundColor:(ctx)=>{
+            const {chart, chartArea} = ctx;
+            if(!chartArea) return 'rgba(14,165,233,.7)';
+            return barGradient(chart.ctx, chartArea);
+          }
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false},
+          tooltip:{mode:'index',intersect:false,callbacks:{
+            label:(i)=>` ${i.dataset.label}: ${fmt(i.parsed.y)}`
+          }}
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: { mode: 'index', intersect: false }
-            },
-            scales: { 
-                y: { beginAtZero: true, grid: { color: '#e5e7eb' } },
-                x: { grid: { color: '#e5e7eb' } }
-            }
+        scales:{
+          y:{beginAtZero:true, grid:{color:'#e5e7eb'}},
+          x:{grid:{display:false}}
         }
-    });
+      }
+    };
+    const productChart = new Chart(ctx1, barConfig);
 
-    // Category Distribution Pie Chart
+    // Pie/Donut with center label plugin
+    const centerTextPlugin = {
+      id:'centerText',
+      afterDatasetsDraw(chart, args, pluginOptions){
+        if(!pluginOptions?.show) return;
+        const {ctx, chartArea:{width, height}} = chart;
+        ctx.save();
+        ctx.fillStyle = '#0f172a';
+        ctx.font = '600 16px Inter, system-ui, sans-serif';
+        ctx.textAlign='center';
+        ctx.fillText(`${fmt(sum(chart.data.datasets[0].data))} units`, chart.getDatasetMeta(0).data[0].x, chart.getDatasetMeta(0).data[0].y);
+        ctx.restore();
+      }
+    };
+    Chart.register(centerTextPlugin);
+
     const ctx2 = document.getElementById('categoryChart').getContext('2d');
+    let isDonut = false;
     const categoryChart = new Chart(ctx2, {
-        type: 'pie',
-        data: {
-            labels: categoryLabels,
-            datasets: [{
-                data: categoryValues,
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.7)',
-                    'rgba(54, 162, 235, 0.7)',
-                    'rgba(255, 206, 86, 0.7)',
-                    'rgba(75, 192, 192, 0.7)',
-                    'rgba(153, 102, 255, 0.7)',
-                    'rgba(255, 159, 64, 0.7)',
-                    'rgba(201, 203, 207, 0.7)'
-                ],
-                borderColor: '#fff',
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: { padding: 20, boxWidth: 20 }
-                }
-            }
+      type:'pie',
+      data:{
+        labels:[...categoryLabels],
+        datasets:[{
+          data:[...categoryValues],
+          backgroundColor: piePalette(categoryLabels.length),
+          borderColor:'#fff', borderWidth:2,
+          hoverOffset:8
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{ position:'bottom', labels:{ padding:16, boxWidth:16 } },
+          centerText:{ show:false }
         }
+      }
     });
-    /*]]>*/
-</script>
 
+    // --- Toolbar actions ---
+    const original = {
+      names:[...productNames],
+      qty:[...productQuantities]
+    };
+
+    // filter
+    document.getElementById('searchBar').addEventListener('input', (e)=>{
+      const q = e.target.value.trim().toLowerCase();
+      let labels = [...original.names];
+      let data = [...original.qty];
+      if(q){
+        const filtered = labels.map((n,i)=>({n, v:data[i]})).filter(x =>
+          (x.n||'').toLowerCase().includes(q)
+        );
+        labels = filtered.map(x=>x.n);
+        data = filtered.map(x=>x.v);
+      }
+      productChart.data.labels = labels;
+      productChart.data.datasets[0].data = data;
+      productChart.update();
+    });
+
+    // sort by name
+    document.getElementById('sortByName').addEventListener('click', ()=>{
+      const pairs = productChart.data.labels.map((n,i)=>({n, v:productChart.data.datasets[0].data[i]}))
+        .sort((a,b)=>a.n.localeCompare(b.n));
+      productChart.data.labels = pairs.map(p=>p.n);
+      productChart.data.datasets[0].data = pairs.map(p=>p.v);
+      productChart.update();
+    });
+
+    // sort by qty desc
+    document.getElementById('sortByQty').addEventListener('click', ()=>{
+      const pairs = productChart.data.labels.map((n,i)=>({n, v:productChart.data.datasets[0].data[i]}))
+        .sort((a,b)=>b.v-a.v);
+      productChart.data.labels = pairs.map(p=>p.n);
+      productChart.data.datasets[0].data = pairs.map(p=>p.v);
+      productChart.update();
+    });
+
+    // reset
+    document.getElementById('resetBar').addEventListener('click', ()=>{
+      productChart.data.labels = [...original.names];
+      productChart.data.datasets[0].data = [...original.qty];
+      document.getElementById('searchBar').value='';
+      productChart.update();
+    });
+
+    // download helpers
+    const downloadPNG = (chart, name='chart.png')=>{
+      const a = document.createElement('a');
+      a.href = chart.toBase64Image('image/png', 1);
+      a.download = name;
+      a.click();
+    }
+    document.getElementById('downloadBar').addEventListener('click', ()=>downloadPNG(productChart, 'products-quantity.png'));
+    document.getElementById('downloadPie').addEventListener('click', ()=>downloadPNG(categoryChart, 'categories-distribution.png'));
+
+    // donut toggle
+    document.getElementById('toggleDonut').addEventListener('click', ()=>{
+      isDonut = !isDonut;
+      categoryChart.options.cutout = isDonut ? '55%' : 0;
+      categoryChart.options.plugins.centerText.show = isDonut;
+      categoryChart.update();
+    });
+  </script>
 </body>
 </html>

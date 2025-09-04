@@ -1,673 +1,481 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Budget Optimizer - Kapil Traders</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Budget-Constrained Replenishment</title>
 
-        .navbar {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
+  <!-- Bootstrap + Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
 
-        .navbar-brand {
-            color: white !important;
-            font-weight: bold;
-            font-size: 1.5rem;
-        }
+  <style>
+    :root{
+      --card-radius:16px;
+      --shadow-soft: 0 8px 24px rgba(0,0,0,.06);
+    }
+    [data-bs-theme="dark"]{
+      --shadow-soft: 0 8px 24px rgba(0,0,0,.35);
+    }
 
-        .container-main {
-            margin-top: 2rem;
-        }
+    body{ background: linear-gradient(180deg,#f7f8fb 0%,#f2f4f8 100%); }
+    [data-bs-theme="dark"] body{ background: radial-gradient(1200px 600px at 50% -200px,#0b1220,#0a0f1a 70%); }
 
-        .card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            margin-bottom: 2rem;
-        }
+    .page-head{
+      backdrop-filter: blur(6px);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(0,0,0,.05);
+    }
 
-        .card-header {
-            background: rgba(255, 255, 255, 0.1);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            border-radius: 15px 15px 0 0 !important;
-        }
+    .card{
+      border: 1px solid rgba(0,0,0,.06);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow-soft);
+    }
 
-        .btn-primary {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            border: none;
-            border-radius: 25px;
-            padding: 10px 25px;
-            transition: all 0.3s ease;
-        }
+    .table thead th{
+      font-size: .8rem;
+      letter-spacing:.04em;
+      text-transform: uppercase;
+      color: var(--bs-secondary);
+      position: sticky; top: 0;
+      background: var(--bs-body-bg);
+      z-index: 1;
+    }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
+    .row-select:hover{ background: rgba(13,110,253,.06); }
+    [data-bs-theme="dark"] .row-select:hover{ background: rgba(13,110,253,.12); }
 
-        .btn-secondary {
-            background: linear-gradient(45deg, #6c757d, #495057);
-            border: none;
-            border-radius: 25px;
-            padding: 10px 25px;
-        }
+    .row-select.selected{ outline: 2px solid rgba(13,110,253,.35); outline-offset: -2px; }
 
-        .form-control,
-        .form-select {
-            border-radius: 10px;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            padding: 12px 15px;
-        }
+    .currency{ font-variant-numeric: tabular-nums; }
+    .muted{ color: var(--bs-secondary); }
 
-        .form-control:focus,
-        .form-select:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-        }
+    .skeleton{
+      animation: pulse 1.1s ease-in-out infinite;
+      background: linear-gradient(90deg, rgba(0,0,0,.06), rgba(0,0,0,.12), rgba(0,0,0,.06));
+      height: .9rem; border-radius: 6px;
+    }
+    @keyframes pulse{ 0%{background-position:-100px 0} 100%{background-position:100px 0} }
 
-        .stats-card {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            border-radius: 15px;
-            padding: 20px;
-            text-align: center;
-            margin-bottom: 1rem;
-        }
-
-        .stats-number {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
-
-        .result-card {
-            background: rgba(40, 167, 69, 0.1);
-            border: 2px solid #28a745;
-            border-radius: 15px;
-            padding: 20px;
-            margin-top: 20px;
-            display: none;
-        }
-
-        .result-summary {
-            background: linear-gradient(45deg, #28a745, #20c997);
-            color: white;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-
-        .product-item {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .product-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .loading-spinner {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .error-alert {
-            display: none;
-        }
-
-        .progress-bar {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-        }
-
-        .badge {
-            border-radius: 20px;
-        }
-
-        .table {
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .table thead th {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-        }
-
-        .table tbody tr:nth-child(even) {
-            background: rgba(102, 126, 234, 0.05);
-        }
-
-        @media (max-width: 768px) {
-            .container-main {
-                margin-top: 1rem;
-            }
-
-            .card {
-                margin-bottom: 1rem;
-            }
-
-            .stats-number {
-                font-size: 1.5rem;
-            }
-        }
-    </style>
+    .chip{
+      border-radius: 999px; padding:.25rem .6rem; font-size:.8rem;
+      background: rgba(13,110,253,.08); color:#0d6efd;
+    }
+    .progress{ height:.6rem; }
+  </style>
 </head>
-
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container">
-            <a class="navbar-brand" href="/dashboard">
-                <i class="fas fa-chart-line me-2"></i>
-                Kapil Traders - Budget Optimizer
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link text-white" href="/dashboard">
-                    <i class="fas fa-arrow-left me-1"></i>
-                    Back to Dashboard
-                </a>
-            </div>
+  <div class="container-xxl py-4">
+
+    <!-- Header -->
+    <div class="page-head d-flex align-items-center justify-content-between p-3 mb-4">
+      <div class="d-flex align-items-center gap-3">
+        <i class="bi bi-box-seam fs-4 text-primary"></i>
+        <div>
+          <h4 class="mb-0 fw-semibold">Budget-Constrained Replenishment</h4>
+          <div class="small muted">Plan optimal purchase quantities under a fixed budget</div>
         </div>
-    </nav>
-
-    <div class="container container-main">
-        <!-- Statistics Row -->
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="stats-card">
-                    <div class="stats-number" id="totalProducts">0</div>
-                    <div>Total Products</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stats-card">
-                    <div class="stats-number" id="avgPrice">₹0</div>
-                    <div>Avg Price</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stats-card">
-                    <div class="stats-number" id="totalValue">₹0</div>
-                    <div>Total Inventory</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stats-card">
-                    <div class="stats-number" id="categoriesCount">0</div>
-                    <div>Categories</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <!-- Optimization Controls -->
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-sliders-h me-2"></i>
-                            Optimization Settings
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <form id="optimizerForm">
-                            <div class="mb-3">
-                                <label for="budget" class="form-label">Budget (₹)</label>
-                                <input type="number" class="form-control" id="budget" name="budget"
-                                    placeholder="Enter your budget" min="1" max="1000000" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="maxItems" class="form-label">Max Items</label>
-                                <input type="number" class="form-control" id="maxItems" name="maxItems" value="5"
-                                    min="1" max="50" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="category" class="form-label">Category Filter</label>
-                                <select class="form-select" id="category" name="category">
-                                    <option value="">All Categories</option>
-                                    <option value="Electronics">Electronics</option>
-                                    <option value="Premium">Premium</option>
-                                    <option value="Bestseller">Bestseller</option>
-                                    <option value="Gadgets">Gadgets</option>
-                                    <option value="Clothing">Clothing</option>
-                                    <option value="Books">Books</option>
-                                    <option value="Home">Home</option>
-                                </select>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col-6">
-                                    <label for="minPrice" class="form-label">Min Price (₹)</label>
-                                    <input type="number" class="form-control" id="minPrice" name="minPrice"
-                                        placeholder="Min" min="0">
-                                </div>
-                                <div class="col-6">
-                                    <label for="maxPrice" class="form-label">Max Price (₹)</label>
-                                    <input type="number" class="form-control" id="maxPrice" name="maxPrice"
-                                        placeholder="Max" min="0">
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="minStock" class="form-label">Min Stock</label>
-                                <input type="number" class="form-control" id="minStock" name="minStock"
-                                    placeholder="Minimum stock level" min="0">
-                            </div>
-
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary" id="optimizeBtn">
-                                    <i class="fas fa-magic me-2"></i>
-                                    Optimize Selection
-                                </button>
-                                <button type="button" class="btn btn-secondary" id="resetBtn">
-                                    <i class="fas fa-redo me-2"></i>
-                                    Reset Filters
-                                </button>
-                            </div>
-                        </form>
-
-                        <!-- Loading Spinner -->
-                        <div class="loading-spinner" id="loadingSpinner">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Optimizing...</span>
-                            </div>
-                            <div class="mt-2">Finding optimal product selection...</div>
-                        </div>
-
-                        <!-- Error Alert -->
-                        <div class="alert alert-danger error-alert" id="errorAlert">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <span id="errorMessage"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Results Display -->
-            <div class="col-md-8">
-                <!-- Results Card -->
-                <div class="result-card" id="resultCard">
-                    <div class="result-summary" id="resultSummary">
-                        <!-- Summary will be populated here -->
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <div class="h4 mb-0" id="selectedItemsCount">0</div>
-                                <small class="text-muted">Selected Items</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <div class="h4 mb-0" id="totalCostDisplay">₹0</div>
-                                <small class="text-muted">Total Cost</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <div class="h4 mb-0" id="remainingBudgetDisplay">₹0</div>
-                                <small class="text-muted">Remaining Budget</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <div class="h4 mb-0" id="efficiencyDisplay">0%</div>
-                                <small class="text-muted">Budget Used</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Budget Utilization</label>
-                        <div class="progress">
-                            <div class="progress-bar" id="budgetProgress" role="progressbar" style="width: 0%"
-                                aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                            </div>
-                        </div>
-                    </div>
-
-                    <h6 class="mt-4 mb-3">
-                        <i class="fas fa-list me-2"></i>
-                        Selected Products
-                    </h6>
-                    <div id="selectedProductsList">
-                        <!-- Selected products will be populated here -->
-                    </div>
-                </div>
-
-                <!-- Available Products Table -->
-                <div class="card" id="productsTableCard">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-boxes me-2"></i>
-                            Available Products
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover" id="productsTable">
-                                <thead>
-                                    <tr>
-                                        <th>Product</th>
-                                        <th>Category</th>
-                                        <th>Price</th>
-                                        <th>Stock</th>
-                                        <th>Value</th>
-                                        <th>Efficiency</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="productsTableBody">
-                                    <!-- Products will be loaded here -->
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="text-center" id="productsLoading">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading products...</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button id="themeToggle" class="btn btn-outline-secondary btn-sm" title="Toggle theme">
+          <i class="bi bi-moon-stars" id="themeIcon"></i>
+        </button>
+        <a href="/dashboard" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-arrow-left-short me-1"></i> Back to Dashboard
+        </a>
+      </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        let allProducts = [];
+    <div class="row g-4">
+      <!-- LEFT: Controls -->
+      <div class="col-lg-4">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <h6 class="mb-0">Plan Purchases</h6>
+              <span class="chip"><i class="bi bi-robot me-1"></i>assistant</span>
+            </div>
 
-        // Initialize page
-        document.addEventListener('DOMContentLoaded', function () {
-            loadStatistics();
-            loadProducts();
-            setupEventListeners();
-        });
+            <div class="mb-3">
+              <label class="form-label">Budget (₹)</label>
+              <div class="input-group">
+                <span class="input-group-text">₹</span>
+                <input id="budgetInput" type="number" min="0" class="form-control" value="50000" />
+              </div>
+              <div class="form-text">Tip: use round numbers (e.g. 10000, 25000).</div>
+            </div>
 
-        function setupEventListeners() {
-            // Form submission
-            document.getElementById('optimizerForm').addEventListener('submit', handleOptimization);
+            <div class="mb-3">
+              <label class="form-label">Strategy</label>
+              <select id="strategySelect" class="form-select">
+                <option value="ROUND_ROBIN" selected>Round-robin (balanced)</option>
+                <option value="LOW_STOCK_FIRST">Low stock first (avoid stockout)</option>
+                <option value="BEST_VALUE">Best value (per rupee)</option>
+              </select>
+              <div class="form-text">
+                Round-robin spreads spend; Low stock first fills biggest gaps to min; Best value prioritizes (gap + category weight) per ₹.
+              </div>
+            </div>
 
-            // Reset button
-            document.getElementById('resetBtn').addEventListener('click', resetFilters);
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" id="persistCheck" />
+              <label class="form-check-label" for="persistCheck">Save plan to history</label>
+            </div>
 
-            // Real-time budget validation
-            document.getElementById('budget').addEventListener('input', validateBudget);
-        }
+            <div class="d-grid">
+              <button id="generateBtn" class="btn btn-primary">
+                <span class="btn-label"><i class="bi bi-lightning-charge me-1"></i>Generate Plan</span>
+                <span class="btn-spin d-none spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              </button>
+            </div>
 
-        async function loadStatistics() {
-            try {
-                const response = await fetch('/api/statistics');
-                if (!response.ok) throw new Error('Failed to load statistics');
+            <hr class="my-4" />
 
-                const stats = await response.json();
+            <div class="small text-uppercase text-muted fw-semibold mb-2">Selection</div>
+            <ul class="small text-muted ps-3">
+              <li>If you select products, only those are considered.</li>
+              <li>If you select none, all eligible products are considered.</li>
+              <li>Items already at/over max-level are skipped.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
 
-                document.getElementById('totalProducts').textContent = stats.totalProducts || 0;
-                document.getElementById('avgPrice').textContent = '₹' + (stats.avgPrice || 0).toLocaleString();
-                document.getElementById('totalValue').textContent = '₹' + (stats.totalValue || 0).toLocaleString();
-                document.getElementById('categoriesCount').textContent = stats.categoriesCount || 0;
-            } catch (error) {
-                console.error('Error loading statistics:', error);
-                showError('Failed to load statistics');
-            }
-        }
-
-        async function loadProducts() {
-            try {
-                const response = await fetch('/api/products');
-                if (!response.ok) throw new Error('Failed to load products');
-
-                allProducts = await response.json();
-                populateProductsTable(allProducts);
-
-                document.getElementById('productsLoading').style.display = 'none';
-            } catch (error) {
-                console.error('Error loading products:', error);
-                showError('Failed to load products');
-                document.getElementById('productsLoading').style.display = 'none';
-            }
-        }
-
-        function populateProductsTable(products) {
-            const tbody = document.getElementById('productsTableBody');
-            tbody.innerHTML = '';
-
-            if (products.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No products available</td></tr>';
-                return;
-            }
-
-            products.forEach(product => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>
-                        <strong>${product.name}</strong>
-                        <small class="d-block text-muted">ID: ${product.id}</small>
-                    </td>
-                    <td>
-                        <span class="badge bg-secondary">${product.category}</span>
-                    </td>
-                    <td>₹${product.price.toLocaleString()}</td>
-                    <td>
-                        <span class="badge ${product.stock > 10 ? 'bg-success' : product.stock > 5 ? 'bg-warning' : 'bg-danger'}">
-                            ${product.stock}
-                        </span>
-                    </td>
-                    <td>${product.value}</td>
-                    <td>
-                        <span class="badge bg-info">${product.ratio}</span>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        async function handleOptimization(event) {
-            event.preventDefault();
-
-            const formData = new FormData(event.target);
-            const budget = parseInt(formData.get('budget'));
-
-            if (!budget || budget < 1) {
-                showError('Please enter a valid budget amount');
-                return;
-            }
-
-            // Debug logging
-            console.log('=== FRONTEND DEBUG ===');
-            console.log('Budget entered:', budget);
-            console.log('Max items:', formData.get('maxItems'));
-            for (let [key, value] of formData.entries()) {
-                console.log(`${key}: ${value}`);
-            }
-            console.log('==================');
-
-            showLoading(true);
-            hideError();
-            document.getElementById('resultCard').style.display = 'none';
-
-            try {
-                const params = new URLSearchParams();
-                for (let [key, value] of formData.entries()) {
-                    if (value) params.append(key, value);
-                }
-
-                console.log('Sending params:', params.toString());
-
-                const response = await fetch('/optimize', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: params
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Optimization failed: ${response.status}`);
-                }
-
-                const result = await response.json();
-                console.log('Received result:', result);
-                displayResults(result);
-
-            } catch (error) {
-                console.error('Optimization error:', error);
-                showError('Optimization failed. Please try again with different parameters.');
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        function displayResults(result) {
-            if (result.empty || result.selectedProducts.length === 0) {
-                showError('No products found within your budget and criteria. Try increasing your budget or adjusting filters.');
-                return;
-            }
-
-            // Update summary
-            document.getElementById('resultSummary').innerHTML = `
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="mb-1">Optimization Complete!</h5>
-                        <p class="mb-0">${result.summary || 'Successfully selected products within budget'}</p>
-                    </div>
-                    <div class="text-end">
-                        <i class="fas fa-check-circle fa-2x"></i>
-                    </div>
+      <!-- RIGHT: Products -->
+      <div class="col-lg-8">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex flex-wrap align-items-center justify-content-between">
+              <h6 class="mb-3 mb-md-0">Current Products</h6>
+              <div class="d-flex gap-2">
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text"><i class="bi bi-search"></i></span>
+                  <input id="searchBox" class="form-control" placeholder="Search name or category" />
                 </div>
-            `;
+                <button id="refreshBtn" class="btn btn-outline-secondary btn-sm">
+                  <i class="bi bi-arrow-clockwise"></i>
+                </button>
+              </div>
+            </div>
 
-            // Update metrics
-            document.getElementById('selectedItemsCount').textContent = result.totalItems;
-            document.getElementById('totalCostDisplay').textContent = '₹' + result.totalCost.toLocaleString();
-            document.getElementById('remainingBudgetDisplay').textContent = '₹' + result.remainingBudget.toLocaleString();
-            document.getElementById('efficiencyDisplay').textContent = result.efficiencyPercent.toFixed(1) + '%';
+            <div class="table-responsive mt-3">
+              <table class="table table-sm align-middle">
+                <thead>
+                  <tr>
+                    <th style="width:36px">
+                      <input type="checkbox" id="selectAll" class="form-check-input" title="Select all"/>
+                    </th>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th class="text-end">Price</th>
+                    <th class="text-end">Stock</th>
+                    <th class="text-end">Score</th>
+                    <th class="text-end">Value/₹</th>
+                  </tr>
+                </thead>
+                <tbody id="productsBody"></tbody>
+              </table>
+            </div>
 
-            // Update progress bar
-            const progressBar = document.getElementById('budgetProgress');
-            progressBar.style.width = result.efficiencyPercent + '%';
-            progressBar.textContent = result.efficiencyPercent.toFixed(1) + '%';
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <div class="small muted">
+                <span id="selectedCount" class="badge text-bg-primary me-1">0</span> selected
+              </div>
+              <div class="d-flex gap-2">
+                <button class="btn btn-link btn-sm" id="clearSelectionBtn">Clear selection</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-            // Display selected products
-            const productsList = document.getElementById('selectedProductsList');
-            productsList.innerHTML = '';
+    <!-- PLAN -->
+    <div class="card mt-4">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <h6 class="mb-0">Purchase Plan</h6>
+          <div class="d-flex align-items-center gap-2" id="badgesRow" style="display:none">
+            <span class="badge bg-success-subtle border text-success" id="badgeBudget">Budget: ₹0</span>
+            <span class="badge bg-warning-subtle border text-warning" id="badgeRemaining">Remaining: ₹0</span>
+            <span class="badge bg-primary-subtle border text-primary" id="badgeStrategy">Strategy: –</span>
+          </div>
+        </div>
 
-            result.selectedProducts.forEach((product, index) => {
-                const productDiv = document.createElement('div');
-                productDiv.className = 'product-item';
-                productDiv.innerHTML = `
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="mb-1">${product.name}</h6>
-                            <small class="text-muted">
-                                <span class="badge bg-secondary me-1">${product.category}</span>
-                                Stock: ${product.stock}
-                            </small>
-                        </div>
-                        <div class="text-end">
-                            <div class="h6 mb-0 text-success">₹${product.price.toLocaleString()}</div>
-                        <small class="text-muted">
-                        Value: ₹${product.value.toLocaleString()} |
-                        Ratio: ${(product.price > 0 ? (product.value / product.price) : 0).toFixed(2)}
-                        </small>
-                        </div>
-                    </div>
-                `;
-                productsList.appendChild(productDiv);
-            });
+        <div class="progress mb-3 d-none" id="spendBarWrap" aria-hidden="true">
+          <div id="spendBar" class="progress-bar" role="progressbar" style="width:0%" aria-valuemin="0" aria-valuemax="100">0%</div>
+        </div>
 
-            // Show results card
-            document.getElementById('resultCard').style.display = 'block';
+        <div id="planSummary" class="small muted">
+          No plan yet. Enter your budget and click <b>Generate Plan</b>.
+        </div>
 
-            // Scroll to results
-            document.getElementById('resultCard').scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
+        <div class="table-responsive mt-2">
+          <table class="table table-sm" id="planTable" style="display:none">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th class="text-end">Units</th>
+                <th class="text-end">Unit Price</th>
+                <th class="text-end">Line Cost</th>
+              </tr>
+            </thead>
+            <tbody id="planBody"></tbody>
+            <tfoot>
+              <tr class="fw-semibold">
+                <td>Total</td>
+                <td class="text-end" id="planTotalUnits">0</td>
+                <td></td>
+                <td class="text-end currency" id="planTotalCost">₹0</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1080">
+      <div id="appToast" class="toast align-items-center text-bg-danger border-0" role="alert">
+        <div class="d-flex">
+          <div class="toast-body" id="toastMsg">Something went wrong.</div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    /* ---------------------- Theme ---------------------- */
+    const root = document.documentElement;
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+
+    (function initTheme(){
+      const saved = localStorage.getItem('kapil.theme') || 'light';
+      document.documentElement.setAttribute('data-bs-theme', saved);
+      themeIcon.className = saved === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+    })();
+
+    themeToggle.addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-bs-theme') || 'light';
+      const next = cur === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-bs-theme', next);
+      localStorage.setItem('kapil.theme', next);
+      themeIcon.className = next === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+    });
+
+    /* ---------------------- Helpers ---------------------- */
+    const fmtINR = n => '₹' + (n ?? 0).toLocaleString('en-IN');
+
+    function toast(msg){
+      document.getElementById('toastMsg').textContent = msg;
+      new bootstrap.Toast(document.getElementById('appToast')).show();
+    }
+
+    function rowSkeletons(rows=6){
+      return Array.from({length:rows}).map(() => `
+        <tr>
+          <td><div class="skeleton" style="width:18px;height:18px;border-radius:4px"></div></td>
+          <td><div class="skeleton" style="width:36px"></div></td>
+          <td><div class="skeleton" style="width:180px"></div></td>
+          <td><div class="skeleton" style="width:120px"></div></td>
+          <td class="text-end"><div class="skeleton ms-auto" style="width:60px"></div></td>
+          <td class="text-end"><div class="skeleton ms-auto" style="width:60px"></div></td>
+          <td class="text-end"><div class="skeleton ms-auto" style="width:60px"></div></td>
+          <td class="text-end"><div class="skeleton ms-auto" style="width:60px"></div></td>
+        </tr>
+      `).join('');
+    }
+
+    const PRODUCTS = { data: [] };
+
+    /* ---------------------- Load + Render products ---------------------- */
+    async function loadProducts() {
+      const tbody = document.getElementById('productsBody');
+      tbody.innerHTML = rowSkeletons();
+      try {
+        const resp = await fetch('/api/products', { credentials: 'same-origin' });
+        if (!resp.ok) throw new Error('Failed to load products');
+        PRODUCTS.data = await resp.json();
+        renderProducts(PRODUCTS.data);
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-danger">Failed to load products.</td></tr>`;
+        toast('Could not load products.');
+      }
+    }
+
+    function escapeHtml(s){ return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+    function renderProducts(rows){
+      const tbody = document.getElementById('productsBody');
+      tbody.innerHTML = '';
+      rows.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.className = 'row-select';
+        tr.innerHTML = `
+          <td><input type="checkbox" class="form-check-input product-check" value="${r.id}"></td>
+          <td>${r.id}</td>
+          <td>${escapeHtml(r.name)}</td>
+          <td>${escapeHtml(r.category ?? '')}</td>
+          <td class="text-end currency">${fmtINR(r.price)}</td>
+          <td class="text-end">${r.stock}</td>
+          <td class="text-end">${r.value}</td>
+          <td class="text-end">${r.ratio}</td>
+        `;
+        // click row to toggle
+        tr.addEventListener('click', (ev) => {
+          if (ev.target.tagName === 'INPUT') return;
+          const chk = tr.querySelector('.product-check');
+          chk.checked = !chk.checked;
+          tr.classList.toggle('selected', chk.checked);
+          updateSelectedCount();
+        });
+        tr.querySelector('.product-check').addEventListener('change', (e)=>{
+          tr.classList.toggle('selected', e.target.checked);
+          updateSelectedCount();
+        });
+        tbody.appendChild(tr);
+      });
+      updateSelectedCount();
+    }
+
+    // Selection helpers
+    function selectedIds(){
+      return Array.from(document.querySelectorAll('.product-check:checked')).map(cb => cb.value);
+    }
+    function updateSelectedCount(){
+      document.getElementById('selectedCount').textContent = selectedIds().length;
+    }
+    document.addEventListener('change', (e) => {
+      if (e.target.id === 'selectAll'){
+        document.querySelectorAll('.product-check').forEach(cb => {
+          cb.checked = e.target.checked;
+          cb.closest('tr')?.classList.toggle('selected', e.target.checked);
+        });
+        updateSelectedCount();
+      }
+    });
+    document.getElementById('clearSelectionBtn').addEventListener('click', ()=>{
+      document.getElementById('selectAll').checked = false;
+      document.querySelectorAll('.product-check').forEach(cb => {
+        cb.checked = false;
+        cb.closest('tr')?.classList.remove('selected');
+      });
+      updateSelectedCount();
+    });
+
+    // Search
+    document.getElementById('searchBox').addEventListener('input', (e)=>{
+      const q = e.target.value.trim().toLowerCase();
+      if (!q) { renderProducts(PRODUCTS.data); return; }
+      const filtered = PRODUCTS.data.filter(p =>
+        (p.name ?? '').toLowerCase().includes(q) ||
+        (p.category ?? '').toLowerCase().includes(q)
+      );
+      renderProducts(filtered);
+    });
+    document.getElementById('refreshBtn').addEventListener('click', loadProducts);
+
+    /* ---------------------- Plan generation ---------------------- */
+    const btn = document.getElementById('generateBtn');
+    btn.addEventListener('click', generatePlan);
+
+    async function generatePlan(){
+      const budget   = parseInt(document.getElementById('budgetInput').value || '0', 10);
+      const strategy = document.getElementById('strategySelect').value;
+      const persist  = document.getElementById('persistCheck').checked;
+
+      const selected = selectedIds(); // ["2","3",...]
+      const params = new URLSearchParams();
+      params.append('budget', String(budget));
+      params.append('strategy', strategy);
+      params.append('persist', persist ? 'true':'false');
+      selected.forEach(id => params.append('selectedIds', id));
+
+      setBtnLoading(true);
+      try{
+        const res = await fetch('/optimizer/plan', {
+          method:'POST',
+          headers:{ 'Content-Type':'application/x-www-form-urlencoded' },
+          body: params.toString(),
+          credentials: 'same-origin'
+        });
+        if (!res.ok){
+          toast(`Error generating plan (${res.status}).`);
+          return;
         }
+        const data = await res.json();
+        renderPlan(data);
+      }catch(err){
+        toast('Network error while generating plan.');
+      }finally{
+        setBtnLoading(false);
+      }
+    }
 
-        function resetFilters() {
-            document.getElementById('optimizerForm').reset();
-            document.getElementById('maxItems').value = '5';
-            document.getElementById('resultCard').style.display = 'none';
-            hideError();
-        }
+    function setBtnLoading(loading){
+      btn.disabled = loading;
+      btn.querySelector('.btn-label').classList.toggle('d-none', loading);
+      btn.querySelector('.btn-spin').classList.toggle('d-none', !loading);
+    }
 
-        function validateBudget() {
-            const budget = document.getElementById('budget').value;
-            const optimizeBtn = document.getElementById('optimizeBtn');
+    function renderPlan(plan){
+      const planTable = document.getElementById('planTable');
+      const planBody  = document.getElementById('planBody');
+      const sumEl     = document.getElementById('planSummary');
 
-            if (budget && parseInt(budget) > 0) {
-                optimizeBtn.disabled = false;
-            } else {
-                optimizeBtn.disabled = true;
-            }
-        }
+      if (!plan || !plan.items || plan.items.length === 0){
+        sumEl.innerHTML = `<span class="muted">No purchasable items with given constraints.</span>`;
+        planTable.style.display = 'none';
+        document.getElementById('badgesRow').style.display = 'none';
+        document.getElementById('spendBarWrap').classList.add('d-none');
+        return;
+      }
 
-        function showLoading(show) {
-            const spinner = document.getElementById('loadingSpinner');
-            const btn = document.getElementById('optimizeBtn');
+      planBody.innerHTML = '';
+      plan.items.forEach(it => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${escapeHtml(it.productName)} (#${it.productId})</td>
+          <td class="text-end">${it.units}</td>
+          <td class="text-end">${fmtINR(it.unitPrice)}</td>
+          <td class="text-end">${fmtINR(it.lineCost)}</td>
+        `;
+        planBody.appendChild(tr);
+      });
 
-            if (show) {
-                spinner.style.display = 'block';
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Optimizing...';
-            } else {
-                spinner.style.display = 'none';
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-magic me-2"></i>Optimize Selection';
-            }
-        }
+      document.getElementById('planTotalUnits').textContent = plan.totalUnits ?? 0;
+      document.getElementById('planTotalCost').textContent  = fmtINR(plan.totalCost ?? 0);
 
-        function showError(message) {
-            const errorAlert = document.getElementById('errorAlert');
-            const errorMessage = document.getElementById('errorMessage');
+      const spentPct = plan.requestedBudget > 0
+        ? Math.round(((plan.totalCost ?? 0) / plan.requestedBudget) * 100)
+        : 0;
 
-            errorMessage.textContent = message;
-            errorAlert.style.display = 'block';
+      sumEl.innerHTML = `Bought <b>${plan.totalUnits ?? 0}</b> units across <b>${plan.items.length}</b> products • Spent <b>${fmtINR(plan.totalCost ?? 0)}</b> (${spentPct}% of budget)`;
 
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-                hideError();
-            }, 5000);
-        }
+      // badges
+      document.getElementById('badgeBudget').textContent    = `Budget: ${fmtINR(plan.requestedBudget ?? 0)}`;
+      document.getElementById('badgeRemaining').textContent = `Remaining: ${fmtINR(plan.remaining ?? 0)}`;
+      document.getElementById('badgeStrategy').textContent  = `Strategy: ${plan.strategy ?? 'ROUND_ROBIN'}`;
 
-        function hideError() {
-            document.getElementById('errorAlert').style.display = 'none';
-        }
+      // progress bar
+      const barWrap = document.getElementById('spendBarWrap');
+      const bar = document.getElementById('spendBar');
+      bar.style.width = spentPct + '%';
+      bar.textContent = spentPct + '%';
+      barWrap.classList.remove('d-none');
 
-        // Format numbers with Indian currency format
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('en-IN', {
-                style: 'currency',
-                currency: 'INR',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            }).format(amount);
-        }
-    </script>
+      planTable.style.display = '';
+      document.getElementById('badgesRow').style.display = '';
+    }
+
+    // Initial load
+    loadProducts();
+  </script>
 </body>
-
 </html>

@@ -1,394 +1,286 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Dashboard - Kapil Traders</title>
-    <style>
-        :root {
-            --primary: #1e40af;
-            --primary-dark: #1e3a8a;
-            --success: #16a34a;
-            --success-dark: #15803d;
-            --warning: #b45309;
-            --warning-bg: #fef3c7;
-            --warning-border: #fde68a;
-            --text-dark: #1f2937;
-            --text-light: #6b7280;
-            --background: #f9fafb;
-            --white: #ffffff;
-            --border: #e5e7eb;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
-            --accent: #f59e0b;
-        }
+  <meta charset="UTF-8">
+  <title>Dashboard • Kapil Traders</title>
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <!-- Bootstrap + Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
 
-        body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: var(--background);
-            min-height: 100vh;
-            padding: 1.5rem;
-        }
+  <style>
+    :root{
+      --card-radius:16px;
+      --shadow-soft: 0 8px 24px rgba(0,0,0,.06);
+    }
+    [data-bs-theme="dark"]{
+      --shadow-soft: 0 8px 24px rgba(0,0,0,.35);
+    }
+    body{ background: linear-gradient(180deg,#f7f8fb 0%,#f2f4f8 100%); }
+    [data-bs-theme="dark"] body{ background: radial-gradient(1200px 600px at 50% -200px,#0b1220,#0a0f1a 70%); }
 
-        .navbar {
-            background: var(--text-dark);
-            color: var(--white);
-            padding: 1rem 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: -1.5rem -1.5rem 1.5rem;
-            box-shadow: var(--shadow);
-        }
+    .page-head{
+      backdrop-filter: blur(6px);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(0,0,0,.05);
+      padding: .75rem 1rem;
+    }
+    .brand{
+      display:flex; align-items:center; gap:.6rem;
+    }
+    .brand .logo{ width:34px; height:34px; border-radius:8px; display:grid; place-items:center;
+      background: linear-gradient(135deg,#0d6efd,#6ea8fe); color:#fff; font-weight:700;
+      box-shadow: var(--shadow-soft);
+    }
 
-        .navbar-brand {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+    .card{
+      border: 1px solid rgba(0,0,0,.06);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow-soft);
+    }
+    .stat-card .icon-wrap{
+      width:42px; height:42px; border-radius:10px; display:grid; place-items:center;
+      background: rgba(13,110,253,.08); color:#0d6efd;
+    }
+    .stat-card .stat-number{ font-size:1.8rem; font-weight:700; letter-spacing:.3px; }
+    .muted{ color: var(--bs-secondary); }
+    .currency{ font-variant-numeric: tabular-nums; }
 
-        .navbar-brand strong {
-            font-size: 1.25rem;
-            font-weight: 700;
-        }
+    .list-divider{ border-top: 1px dashed rgba(0,0,0,.12); }
+    .product-row:hover{ background: rgba(13,110,253,.05); }
+    [data-bs-theme="dark"] .product-row:hover{ background: rgba(13,110,253,.12); }
 
-        .navbar-welcome {
-            padding-left: 70px;
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--accent);
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(45deg, var(--accent), #facc15);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
-            animation: pulse 2s ease-in-out infinite;
-        }
+    .cta-gradient{
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      border: none;
+      color: #fff;
+    }
+    .cta-gradient:hover{
+      background: linear-gradient(135deg, #d97706, #b45309);
+      color:#fff;
+      transform: translateY(-1px);
+    }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
+    .badge-soft{
+      background: rgba(13,110,253,.08);
+      color:#0d6efd;
+    }
 
-        .navbar-links {
-            display: flex;
-            gap: 0.5rem;
-        }
+    .alert-soft{
+      background: rgba(255,193,7,.12);
+      border: 1px solid rgba(255,193,7,.3);
+      color: #b58100;
+    }
 
-        .navbar a {
-            color: var(--white);
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 0.375rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: background-color 0.2s ease;
-        }
-
-        .navbar a:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .navbar .optimizer-link {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            border-radius: 0.375rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .navbar .optimizer-link:hover {
-            background: linear-gradient(135deg, #d97706, #b45309);
-            transform: translateY(-1px);
-        }
-
-        .navbar .optimizer-link::before {
-            content: '🧠';
-            margin-right: 0.25rem;
-        }
-
-        h2 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-bottom: 1.5rem;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: var(--white);
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            text-align: center;
-            box-shadow: var(--shadow);
-            transition: transform 0.2s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-2px);
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-card div:last-child {
-            font-size: 0.875rem;
-            color: var(--text-light);
-        }
-
-        .recent-products {
-            background: var(--white);
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            box-shadow: var(--shadow);
-        }
-
-        .recent-products h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--text-dark);
-            margin-bottom: 1rem;
-        }
-
-        .product-item {
-            padding: 0.75rem 0;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .product-item:last-child {
-            border-bottom: none;
-        }
-
-        .product-item div {
-            font-size: 0.875rem;
-        }
-
-        .product-item strong {
-            font-weight: 600;
-            color: var(--text-dark);
-        }
-
-        .product-item small {
-            color: var(--text-light);
-        }
-
-        .low-stock {
-            color: #dc2626;
-            font-weight: 600;
-        }
-
-        .btn-container {
-            margin-top: 1.5rem;
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 0.375rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            text-decoration: none;
-            color: var(--white);
-            background: var(--primary);
-            transition: background-color 0.2s ease, transform 0.2s ease;
-            text-align: center;
-        }
-
-        .btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-1px);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn-success {
-            background: var(--success);
-        }
-
-        .btn-success:hover {
-            background: var(--success-dark);
-        }
-
-        .btn-optimizer {
-            background: linear-gradient(135deg, var(--warning), #d97706);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-optimizer:hover {
-            background: linear-gradient(135deg, #d97706, #b45309);
-        }
-
-        .btn-optimizer::before {
-            content: '🧠';
-            margin-right: 0.5rem;
-        }
-
-        .warning {
-            background: var(--warning-bg);
-            border: 1px solid var(--warning-border);
-            color: var(--warning);
-            padding: 1rem;
-            border-radius: 0.375rem;
-            margin-top: 1.5rem;
-            font-size: 0.875rem;
-        }
-
-        .warning strong {
-            font-weight: 600;
-        }
-
-        .feature-highlight {
-            background: linear-gradient(135deg, #fef3c7, #fde68a);
-            border: 2px solid var(--warning-border);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            margin-top: 2rem;
-            text-align: center;
-        }
-
-        .feature-highlight h3 {
-            color: var(--warning);
-            font-size: 1.25rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .feature-highlight p {
-            color: var(--text-dark);
-            margin-bottom: 1rem;
-            line-height: 1.6;
-        }
-
-        @media (max-width: 768px) {
-            .navbar {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .navbar-links {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-
-            .stats {
-                grid-template-columns: 1fr;
-            }
-
-            .btn-container {
-                flex-direction: column;
-            }
-        }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 1rem;
-            }
-
-            .navbar {
-                margin: -1rem -1rem 1rem;
-            }
-
-            h2 {
-                font-size: 1.25rem;
-            }
-
-            .recent-products h3 {
-                font-size: 1rem;
-            }
-        }
-    </style>
+    .section-title{
+      font-size: .95rem; letter-spacing:.04em; text-transform:uppercase; color:var(--bs-secondary);
+    }
+  </style>
 </head>
 <body>
-    <div class="navbar">
-        <div class="navbar-brand">
-            <strong>Kapil Traders</strong>
-            <span class="navbar-welcome">Welcome <span th:text="${session.validuser?.uname}"></span></span>
+  <div class="container-xxl py-4">
+    <!-- Top bar / Nav -->
+    <div class="page-head mb-4">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="brand">
+          <div class="logo">K</div>
+          <div>
+            <div class="fw-semibold">Kapil Traders</div>
+            <div class="small text-secondary">Welcome <span th:text="${session.validuser?.uname}">User</span></div>
+          </div>
         </div>
-        <div class="navbar-links">
-            <a th:href="@{/dashboard}">Dashboard</a>
-            <a th:href="@{/products}">Products</a>
-            <a th:href="@{/reports}">Reports</a>
-            <a th:href="@{/sales}">Sales</a>
-             <a th:href="@{/forecasts}">Forecaster</a>
-            <a th:href="@{/optimizer}" class="optimizer-link">Optimizer</a>
-            <a th:href="@{/logout}">Logout</a>
+        <div class="d-flex align-items-center gap-2">
+          <a th:href="@{/dashboard}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-speedometer me-1"></i>Dashboard</a>
+          <a th:href="@{/products}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-box-seam me-1"></i>Products</a>
+          <a th:href="@{/reports}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-graph-up me-1"></i>Reports</a>
+          <a th:href="@{/sales}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-receipt me-1"></i>Sales</a>
+          <a th:href="@{/forecasts}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-cloud-sun me-1"></i>Forecaster</a>
+          <a th:href="@{/optimizer}" class="btn btn-sm cta-gradient"><i class="bi bi-robot me-1"></i>Optimizer</a>
+          <a th:href="@{/logout}" class="btn btn-outline-danger btn-sm"><i class="bi bi-box-arrow-right me-1"></i>Logout</a>
+
+          <button id="themeToggle" class="btn btn-outline-secondary btn-sm" title="Toggle theme">
+            <i class="bi bi-moon-stars" id="themeIcon"></i>
+          </button>
         </div>
+      </div>
     </div>
 
-    <h2>Dashboard</h2>
-    
-    <div class="stats">
-        <div class="stat-card">
-            <div class="stat-number" th:text="${totalProducts} ?: 0">0</div>
-            <div>Total Products</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number" th:text="${lowStockProducts} ?: 0">0</div>
-            <div>Low Stock Items</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number" th:text="'₹' + ${#numbers.formatDecimal(totalValue ?: 0, 0, 2)}">₹0.00</div>
-            <div>Total Value</div>
-        </div>
-    </div>
-
-    <div class="recent-products">
-        <h3>Recent Products</h3>
-        <div th:if="${recentProducts != null and #lists.size(recentProducts) > 0}">
-            <div th:each="product : ${recentProducts}" class="product-item">
+    <!-- Content -->
+    <div class="row g-4">
+      <!-- Stats -->
+      <div class="col-12">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="card stat-card">
+              <div class="card-body d-flex align-items-center gap-3">
+                <div class="icon-wrap"><i class="bi bi-box2"></i></div>
                 <div>
-                    <strong th:text="${product.name}">Product Name</strong><br>
-                    <small th:text="${product.category} + ' - ' + ${product.size}">Category - Size</small>
+                  <div class="stat-number" th:text="${totalProducts} ?: 0">0</div>
+                  <div class="muted">Total Products</div>
                 </div>
-                <div>
-                    <span th:class="${product.quantity < 10} ? 'low-stock' : ''" 
-                          th:text="${product.quantity} + ' units'">0 units</span><br>
-                    <small th:text="'₹' + ${#numbers.formatDecimal(product.price, 0, 2)}">₹0.00</small>
+                <div class="ms-auto">
+                  <span class="badge badge-soft">Inventory</span>
                 </div>
+              </div>
             </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card stat-card">
+              <div class="card-body d-flex align-items-center gap-3">
+                <div class="icon-wrap" style="background:rgba(220,53,69,.12); color:#dc3545;"><i class="bi bi-exclamation-triangle"></i></div>
+                <div>
+                  <div class="stat-number" th:text="${lowStockProducts} ?: 0">0</div>
+                  <div class="muted">Low Stock Items (&lt;10)</div>
+                </div>
+                <div class="ms-auto">
+                  <span class="badge text-bg-danger-subtle border">Restock</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card stat-card">
+              <div class="card-body d-flex align-items-center gap-3">
+                <div class="icon-wrap" style="background:rgba(25,135,84,.12); color:#198754;"><i class="bi bi-currency-rupee"></i></div>
+                <div>
+                  <div class="stat-number currency" th:text="'₹' + ${#numbers.formatDecimal(totalValue ?: 0, 0, 2)}">₹0.00</div>
+                  <div class="muted">Total Inventory Value</div>
+                </div>
+                <div class="ms-auto">
+                  <span class="badge text-bg-success-subtle border">Value</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div th:if="${recentProducts == null or #lists.size(recentProducts) == 0}">
-            <p>No products found. Add some products to get started!</p>
-        </div>
-        <div class="btn-container">
-            <a th:href="@{/add-product}" class="btn btn-success">Add New Product</a>
-            <a th:href="@{/products}" class="btn">View All Products</a>
-            <a th:href="@{/optimizer}" class="btn btn-optimizer">Optimize Selection</a>
-        </div>
-    </div>
+      </div><!-- /Stats -->
 
-    <div class="feature-highlight">
-        <h3>🧠 New Feature: AI-Powered Product Optimizer</h3>
-        <p>Use advanced knapsack algorithms to optimize your product selection for maximum value, profit, or inventory turnover within capacity constraints. Perfect for planning shipments, storage allocation, or budget optimization!</p>
-        <a th:href="@{/optimizer}" class="btn btn-optimizer">Try the Optimizer</a>
-    </div>
+      <!-- Recent Products + Quick Actions -->
+      <div class="col-lg-7">
+        <div class="card h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <div>
+                <div class="section-title">Recent Products</div>
+                <div class="small muted">Latest items you added/updated</div>
+              </div>
+              <a th:href="@{/products}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-list-ul me-1"></i>View All
+              </a>
+            </div>
 
-    <div th:if="${lowStockProducts > 0}" class="warning">
-        <strong>Warning:</strong> <span th:text="${lowStockProducts}"></span> product(s) have low stock (less than 10 units)!
+            <div th:if="${recentProducts != null and #lists.size(recentProducts) > 0}">
+              <div class="list-group list-group-flush">
+                <div th:each="product : ${recentProducts}" class="list-group-item px-0 product-row">
+                  <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-3">
+                      <div class="rounded-3 border d-inline-flex align-items-center justify-content-center" style="width:42px;height:42px;">
+                        <i class="bi bi-box-seam"></i>
+                      </div>
+                      <div>
+                        <div class="fw-semibold" th:text="${product.name}">Product Name</div>
+                        <div class="small text-secondary">
+                          <span th:text="${product.category} ?: '—'">Category</span>
+                          <span class="text-secondary">•</span>
+                          <span th:text="${product.size} ?: '—'">Size</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="text-end">
+                      <div>
+                        <span th:class="${product.quantity < 10} ? 'badge text-bg-danger' : 'badge text-bg-secondary'">
+                          <span th:text="${product.quantity} ?: 0">0</span> units
+                        </span>
+                      </div>
+                      <div class="small muted currency" th:text="'₹' + ${#numbers.formatDecimal(product.price, 0, 2)}">₹0.00</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div th:if="${recentProducts == null or #lists.size(recentProducts) == 0}" class="text-center py-4">
+              <div class="text-secondary mb-2"><i class="bi bi-inboxes"></i></div>
+              <div class="fw-semibold mb-1">No products found</div>
+              <div class="muted mb-3">Add some products to get started.</div>
+              <a th:href="@{/add-product}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Add Product</a>
+            </div>
+
+            <hr class="list-divider my-3"/>
+
+            <div class="d-flex flex-wrap gap-2">
+              <a th:href="@{/add-product}" class="btn btn-success">
+                <i class="bi bi-plus-circle me-1"></i>Add New Product
+              </a>
+              <a th:href="@{/products}" class="btn btn-outline-primary">
+                <i class="bi bi-boxes me-1"></i>View All Products
+              </a>
+              <a th:href="@{/optimizer}" class="btn cta-gradient">
+                <i class="bi bi-robot me-1"></i>Optimize Selection
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature highlight + Alerts -->
+      <div class="col-lg-5">
+        <div class="card mb-4">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <div class="section-title">AI-Powered Optimizer</div>
+                <div class="small muted">Plan purchases under budget with smart strategies</div>
+              </div>
+              <i class="bi bi-cpu fs-3 text-primary"></i>
+            </div>
+            <p class="mt-3 mb-3">
+              Use <b>Round-robin</b> for balanced replenishment, <b>Low stock first</b> to avoid
+              stockouts, or <b>Best value</b> to maximize utility per rupee. Perfect for budgeting and
+              reorder planning.
+            </p>
+            <a th:href="@{/optimizer}" class="btn cta-gradient w-100">
+              <i class="bi bi-lightning-charge me-1"></i>Try the Optimizer
+            </a>
+          </div>
+        </div>
+
+        <div th:if="${lowStockProducts > 0}" class="alert alert-soft mb-0" role="alert">
+          <div class="d-flex">
+            <div class="me-2"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <div>
+              <strong>Heads up:</strong>
+              <span th:text="${lowStockProducts}">0</span> product(s) have low stock (&lt; 10 units).
+              Consider running the optimizer or creating purchase orders.
+            </div>
+          </div>
+        </div>
+        <div th:if="${lowStockProducts == 0}" class="alert alert-success-subtle border mt-0" role="alert">
+          <i class="bi bi-check-circle me-1"></i> All stocks look healthy right now.
+        </div>
+      </div>
     </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Theme toggle (persists with localStorage), matching optimizer page
+    (function initTheme(){
+      const saved = localStorage.getItem('kapil.theme') || 'light';
+      document.documentElement.setAttribute('data-bs-theme', saved);
+      document.getElementById('themeIcon').className = saved === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+    })();
+
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-bs-theme') || 'light';
+      const next = cur === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-bs-theme', next);
+      localStorage.setItem('kapil.theme', next);
+      document.getElementById('themeIcon').className = next === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+    });
+  </script>
 </body>
 </html>
