@@ -29,6 +29,7 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
 import java.util.ArrayList;
+
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.math.BigDecimal;
@@ -614,12 +615,24 @@ class SimpleKnapsackProduct {
         this.value = calculateProductValue(product);
     }
 
-    private int calculateProductValue(Product product) {
-        int baseValue = this.price;
-        int stockBonus = Math.min(this.stock * 2, baseValue / 4);
-        int categoryBonus = getCategoryBonus(product.getCategory(), baseValue);
-        return baseValue + stockBonus + categoryBonus;
+  private int calculateProductValue(Product product) {
+    int stock = this.stock;
+    int stockBonus = Math.min(stock, 50); // more stock = slightly better
+    int categoryBonus = getCategoryBonus(product.getCategory());
+    return stockBonus + categoryBonus;
+}
+
+private int getCategoryBonus(String category) {
+    if (category == null) return 0;
+    switch (category.toLowerCase()) {
+        case "electronics": return 80;
+        case "premium":     return 60;
+        case "bestseller":  return 50;
+        case "gadgets":     return 30;
+        default:            return 10;
     }
+}
+
 
     private int getCategoryBonus(String category, int baseValue) {
         if (category == null)
@@ -638,9 +651,21 @@ class SimpleKnapsackProduct {
                 return 0;
         }
     }
+
+    // NEW: quantity chosen by optimizer
+    private int selectedQuantity = 0;
+
+    public int getSelectedQuantity() {
+        return selectedQuantity;
+    }
+
+    public void setSelectedQuantity(int selectedQuantity) {
+        this.selectedQuantity = selectedQuantity;
+    }
+
 }
 
- class SimpleKnapsackResult {
+class SimpleKnapsackResult {
     private List<SimpleKnapsackProduct> selectedProducts = new ArrayList<>();
     private int totalCost = 0;
     private int totalValue = 0;
@@ -649,6 +674,12 @@ class SimpleKnapsackProduct {
     private double efficiencyPercent = 0.0;
     private boolean empty = false;
     private int originalBudget;
+
+    // NEW: optional metadata bag (e.g., totalUnits)
+    private Map<String, Object> meta = new HashMap<>();
+
+    // NEW: Optional catalog for UI (so /optimize can send product list if desired)
+    private List<Map<String, Object>> allProducts;
 
     // Getters
     public List<SimpleKnapsackProduct> getSelectedProducts() {
@@ -718,11 +749,28 @@ class SimpleKnapsackProduct {
 
     // Summary method
     public String getSummary() {
-        return String.format("Selected %d items for ₹%,d (%.1f%% of budget used)",
-                totalItems, totalCost, efficiencyPercent);
+        return String.format("Selected %d items for ₹%,d (%.1f%% of budget used)", totalItems, totalCost,
+                efficiencyPercent);
+    }
+
+    // NEW: meta accessors (fixes setMeta undefined)
+    public Map<String, Object> getMeta() {
+        return meta;
+    }
+
+    public void setMeta(Map<String, Object> meta) {
+        this.meta = meta;
+    }
+
+    // NEW: allProducts accessors (fixes setAllProducts undefined)
+    public List<Map<String, Object>> getAllProducts() {
+        return allProducts;
+    }
+
+    public void setAllProducts(List<Map<String, Object>> allProducts) {
+        this.allProducts = allProducts;
     }
 }
-
 
 @Repository
 interface UserRepository extends org.springframework.data.jpa.repository.JpaRepository<User, Long> {
@@ -730,7 +778,7 @@ interface UserRepository extends org.springframework.data.jpa.repository.JpaRepo
 
     User findByEmail(String email);
 
-    boolean existsByEmail(String email);
+    boolean existsByEmail(String email); // ← semicolon here
 }
 
 @Repository
@@ -1245,158 +1293,150 @@ class ForecastServiceImpl implements ForecastService {
     }
 }
 
-    @Service
-    class SimpleKnapsackServiceImpl implements SimpleKnapsackService {
+// Replace your existing SimpleKnapsackServiceImpl with this corrected version
 
-        @Override
-        public SimpleKnapsackResult findBestProducts(List<Product> products, int budget, int maxItems) {
-            List<SimpleKnapsackProduct> availableProducts = products.stream()
-                    .filter(product -> product.getPrice() != null && product.getPrice() > 0)
-                    .filter(product -> product.getQuantity() != null && product.getQuantity() > 0)
-                    .map(SimpleKnapsackProduct::new)
-                    .collect(Collectors.toList());
+@Service
 
-            if (availableProducts.isEmpty()) {
-                SimpleKnapsackResult emptyResult = new SimpleKnapsackResult();
-                emptyResult.setEmpty(true);
-                return emptyResult;
-            }
+class SimpleKnapsackServiceImpl implements SimpleKnapsackService {
 
-            return runBudgetUtilizationKnapsack(availableProducts, budget, maxItems);
-        }
-
-    private SimpleKnapsackResult runBudgetUtilizationKnapsack(List<SimpleKnapsackProduct> products, int budget, int maxItems) {
-    int n = products.size();
-
-    if (n == 0 || budget <= 0 || maxItems <= 0) {
-        SimpleKnapsackResult emptyResult = new SimpleKnapsackResult();
-        emptyResult.setEmpty(true);
-        emptyResult.setOriginalBudget(budget);
-        return emptyResult;
+    // helper chunk for binary-splitting bounded items
+    private static final class Chunk {
+        int productIdx;
+        int units;
+        int w;
+        int v;
     }
 
-    // dp[b][k] = max value achievable with budget b and up to k items
-    int[][] dp = new int[budget + 1][maxItems + 1];
-    boolean[][][] chosen = new boolean[n + 1][budget + 1][maxItems + 1];
+    @Override
+    public SimpleKnapsackResult findBestProducts(List<Product> products, int budget, int maxItems) {
+        SimpleKnapsackResult empty = new SimpleKnapsackResult();
+        empty.setEmpty(true);
+        empty.setOriginalBudget(Math.max(0, budget));
+        empty.setRemainingBudget(Math.max(0, budget));
 
-    for (int i = 1; i <= n; i++) {
-        SimpleKnapsackProduct current = products.get(i - 1);
+        if (budget <= 0 || products == null || products.isEmpty())
+            return empty;
 
-        for (int b = budget; b >= current.price; b--) {
-            for (int k = 1; k <= maxItems; k++) {
-                int newValue = dp[b - current.price][k - 1] + current.value;
+        List<SimpleKnapsackProduct> items = products.stream()
+                .filter(p -> p.getPrice() != null && p.getPrice() > 0)
+                .filter(p -> p.getQuantity() != null && p.getQuantity() > 0)
+                .map(SimpleKnapsackProduct::new)
+                .collect(Collectors.toList());
+        if (items.isEmpty())
+            return empty;
 
-                if (newValue > dp[b][k]) {
-                    dp[b][k] = newValue;
-                    chosen[i][b][k] = true;
+        final int maxCols = 5000;
+        int scale = Math.max(1, (int) Math.ceil(budget / (double) maxCols));
+        int cap = Math.max(1, budget / scale);
+
+        List<Chunk> chunks = new ArrayList<>();
+        for (int i = 0; i < items.size(); i++) {
+            SimpleKnapsackProduct it = items.get(i);
+            int stock = Math.max(0, it.stock);
+            int unitPrice = Math.max(1, it.price);
+            int unitValue = Math.max(0, it.value);
+            if (stock == 0)
+                continue;
+
+            int k = 1;
+            int rem = stock;
+            while (k <= rem) {
+                addChunk(chunks, i, k, unitPrice, unitValue, scale);
+                rem -= k;
+                k <<= 1;
+            }
+            if (rem > 0)
+                addChunk(chunks, i, rem, unitPrice, unitValue, scale);
+        }
+        if (chunks.isEmpty())
+            return empty;
+
+        int n = chunks.size();
+        int[][] dp = new int[n + 1][cap + 1];
+        byte[][] take = new byte[n + 1][cap + 1];
+
+        for (int i = 1; i <= n; i++) {
+            Chunk ch = chunks.get(i - 1);
+            for (int c = 0; c <= cap; c++) {
+                int best = dp[i - 1][c];
+                byte tk = 0;
+                if (ch.w <= c) {
+                    int cand = dp[i - 1][c - ch.w] + ch.v;
+                    if (cand > best) {
+                        best = cand;
+                        tk = 1;
+                    }
                 }
+                dp[i][c] = best;
+                take[i][c] = tk;
             }
         }
-    }
 
-    // Find the best solution
-    int bestValue = 0;
-    int bestBudget = 0;
-    int bestItems = 0;
-    for (int b = 0; b <= budget; b++) {
-        for (int k = 0; k <= maxItems; k++) {
-            if (dp[b][k] > bestValue) {
-                bestValue = dp[b][k];
-                bestBudget = b;
-                bestItems = k;
+        int c = cap;
+        int[] qty = new int[items.size()];
+        for (int i = n; i >= 1; i--) {
+            if (take[i][c] == 1) {
+                Chunk ch = chunks.get(i - 1);
+                qty[ch.productIdx] += ch.units;
+                c -= ch.w;
             }
         }
-    }
 
-    // Backtrack to find selected products
-    List<SimpleKnapsackProduct> selectedProducts = new ArrayList<>();
-    int b = bestBudget;
-    int k = bestItems;
+        List<SimpleKnapsackProduct> picked = new ArrayList<>();
+        int totalCost = 0, totalValue = 0, totalUnits = 0;
 
-    for (int i = n; i > 0 && k > 0; i--) {
-        if (b >= products.get(i - 1).price && chosen[i][b][k]) {
-            SimpleKnapsackProduct product = products.get(i - 1);
-            product.selected = true;
-            selectedProducts.add(product);
-            b -= product.price;
-            k--;
+        for (int i = 0; i < items.size(); i++) {
+            int q = qty[i];
+            if (q <= 0)
+                continue;
+            SimpleKnapsackProduct it = items.get(i);
+            int lineCost = q * it.price;
+
+            if (totalCost + lineCost > budget) {
+                int canBuy = (budget - totalCost) / it.price;
+                if (canBuy <= 0)
+                    continue;
+                q = Math.min(q, canBuy);
+                lineCost = q * it.price;
+            }
+            it.setSelectedQuantity(q);
+            it.selected = true;
+            picked.add(it);
+
+            totalCost += lineCost;
+            totalValue += q * it.value;
+            totalUnits += q;
+
+            if (totalCost >= budget)
+                break;
         }
+
+        SimpleKnapsackResult r = new SimpleKnapsackResult();
+        r.setSelectedProducts(picked);
+        r.setTotalCost(totalCost);
+        r.setTotalValue(totalValue);
+        r.setTotalItems(picked.size());
+        r.setRemainingBudget(Math.max(0, budget - totalCost));
+        r.setOriginalBudget(budget);
+        r.setEfficiencyPercent(budget > 0 ? (totalCost * 100.0 / budget) : 0.0);
+        r.setEmpty(picked.isEmpty());
+
+        Map<String, Object> meta = new HashMap<>();
+        meta.put("totalUnits", totalUnits);
+        r.setMeta(meta);
+        r.setAllProducts(convertProductsToJsonFormat(products));
+        return r;
+        
     }
 
-    return buildResult(selectedProducts, budget);
-}
-
-
-
-        private SimpleKnapsackResult buildResult(List<SimpleKnapsackProduct> selectedProducts, int originalBudget) {
-        SimpleKnapsackResult result = new SimpleKnapsackResult();
-        
-        int totalCost = selectedProducts.stream().mapToInt(p -> p.price).sum();
-        int totalValue = selectedProducts.stream().mapToInt(p -> p.value).sum();
-        
-        result.setSelectedProducts(selectedProducts);
-        result.setTotalCost(totalCost);
-        result.setTotalValue(totalValue);
-        result.setTotalItems(selectedProducts.size());
-        result.setRemainingBudget(originalBudget - totalCost);
-        result.setOriginalBudget(originalBudget);
-        
-        // Calculate efficiency percentage
-        double efficiencyPercent = originalBudget > 0 ? ((double) totalCost / originalBudget * 100) : 0.0;
-        result.setEfficiencyPercent(efficiencyPercent);
-        
-        // Mark as empty if no products selected
-        result.setEmpty(selectedProducts.isEmpty());
-        
-        return result;
+    private static void addChunk(List<Chunk> list, int productIdx, int units, int unitPrice, int unitValue, int scale) {
+        Chunk ch = new Chunk();
+        ch.productIdx = productIdx;
+        ch.units = units;
+        ch.w = Math.max(1, (units * unitPrice) / scale);
+        ch.v = units * unitValue;
+        list.add(ch);
     }
-
-
-
-
-
-
-//debug
-public void debugKnapsack(List<SimpleKnapsackProduct> products, int budget, int maxItems) {
-    System.out.println("=== KNAPSACK DEBUG ===");
-    System.out.println("Budget: " + budget);
-    System.out.println("Max Items: " + maxItems);
-    System.out.println("Available Products: " + products.size());
-    
-    // Sort by efficiency ratio for debugging
-    products.sort((a, b) -> Double.compare((double)b.value/b.price, (double)a.value/a.price));
-    
-    System.out.println("Top 10 most efficient products:");
-    for (int i = 0; i < Math.min(10, products.size()); i++) {
-        SimpleKnapsackProduct p = products.get(i);
-        double ratio = (double)p.value / p.price;
-        System.out.printf("%d. %s - Price: %d, Value: %d, Ratio: %.2f%n", 
-            i+1, p.name, p.price, p.value, ratio);
-    }
-    
-    // Simple greedy selection for comparison
-    System.out.println("\nGreedy selection (for comparison):");
-    int greedyBudget = budget;
-    int greedyItems = 0;
-    int greedyCost = 0;
-    int greedyValue = 0;
-    
-    for (SimpleKnapsackProduct p : products) {
-        if (greedyBudget >= p.price && greedyItems < maxItems) {
-            greedyBudget -= p.price;
-            greedyCost += p.price;
-            greedyValue += p.value;
-            greedyItems++;
-            System.out.printf("Selected: %s (Price: %d, Value: %d)%n", p.name, p.price, p.value);
-        }
-        if (greedyItems >= maxItems) break;
-    }
-    
-    System.out.printf("Greedy Result: %d items, Cost: %d, Value: %d, Remaining: %d%n", 
-        greedyItems, greedyCost, greedyValue, greedyBudget);
-    System.out.println("=== END DEBUG ===");
-}
-
 
     @Override
     public List<Map<String, Object>> convertProductsToJsonFormat(List<Product> products) {
