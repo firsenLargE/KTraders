@@ -342,6 +342,7 @@
                             <option value="Nepal Ice Brewery">Nepal Ice Brewery</option>
                             <option value="Wai Wai Noodles">Wai Wai Noodles</option>
                             <option value="Current Noodle">Current Noodles</option>
+                            <option value="Reliable Pvt. Ltd.">Reliable Pvt. Ltd.</option>
                             <option value="Others">Others</option>
                         </select>
                     </div>
@@ -415,42 +416,46 @@
         </form>
     </div>
 
-    <script>
-        // Set today's date as default
-        document.getElementById('date').value = new Date().toISOString().split('T')[0];
+   <script>
+    // Limit date to today or earlier
+    const today = new Date().toISOString().split('T')[0];
+    const dateInput = document.getElementById('date');
+    dateInput.value = today;        // default to today
+    dateInput.setAttribute('max', today); // prevent future dates
 
-        // Add some interactivity for better UX
-        const fileInput = document.getElementById('image');
-        const fileInputWrapper = document.querySelector('.file-input-wrapper');
+    // File input feedback
+    const fileInput = document.getElementById('image');
+    const fileInputWrapper = document.querySelector('.file-input-wrapper');
 
-        fileInput.addEventListener('change', function (e) {
-            const fileName = e.target.files[0]?.name;
-            if (fileName) {
-                const helpText = fileInputWrapper.querySelector('.file-input-help');
-                helpText.textContent = `Selected: ${fileName}`;
-                helpText.style.color = 'var(--success)';
-            }
-        });
+    fileInput.addEventListener('change', function (e) {
+        const fileName = e.target.files[0]?.name;
+        if (fileName) {
+            const helpText = fileInputWrapper.querySelector('.file-input-help');
+            helpText.textContent = `Selected: ${fileName}`;
+            helpText.style.color = 'var(--success)';
+        }
+    });
 
-        // Add drag and drop functionality
-        fileInput.addEventListener('dragover', function (e) {
-            e.preventDefault();
-            this.style.borderColor = 'var(--primary)';
-            this.style.backgroundColor = 'rgba(30, 64, 175, 0.1)';
-        });
+    // Drag & drop styling
+    fileInput.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        this.style.borderColor = 'var(--primary)';
+        this.style.backgroundColor = 'rgba(30, 64, 175, 0.1)';
+    });
 
-        fileInput.addEventListener('dragleave', function (e) {
-            e.preventDefault();
-            this.style.borderColor = 'var(--border)';
-            this.style.backgroundColor = 'var(--background)';
-        });
+    fileInput.addEventListener('dragleave', function (e) {
+        e.preventDefault();
+        this.style.borderColor = 'var(--border)';
+        this.style.backgroundColor = 'var(--background)';
+    });
 
-        fileInput.addEventListener('drop', function (e) {
-            e.preventDefault();
-            this.style.borderColor = 'var(--border)';
-            this.style.backgroundColor = 'var(--background)';
-        });
-    </script>
+    fileInput.addEventListener('drop', function (e) {
+        e.preventDefault();
+        this.style.borderColor = 'var(--border)';
+        this.style.backgroundColor = 'var(--background)';
+    });
+</script>
+
 </body>
 
 </html>

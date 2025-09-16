@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><title>Monthly Sales</title></head>
+<body>
+<h2 th:text="'Monthly Sales - ' + ${ym}">Monthly Sales</h2>
+
+<p>
+  <a th:href="@{'/reports/sales/monthly.pdf'(year=${ym.year}, month=${ym.monthValue})}">Download PDF</a>
+</p>
+
+<table border="1" cellpadding="6" cellspacing="0">
+  <thead>
+  <tr>
+    <th>Product</th><th>Qty</th><th>Net</th><th>VAT (13%)</th><th>Gross</th><th>Avg Price</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="r : ${rows}">
+    <td th:text="${r.productName}">name</td>
+    <td th:text="${r.qty}">0</td>
+    <td th:text="${#numbers.formatDecimal(r.net, 1, 'POINT', 2, 'POINT')}">0.00</td>
+    <td th:text="${#numbers.formatDecimal(r.vat, 1, 'POINT', 2, 'POINT')}">0.00</td>
+    <td th:text="${#numbers.formatDecimal(r.gross, 1, 'POINT', 2, 'POINT')}">0.00</td>
+    <td th:text="${r.qty != null && r.qty > 0 ? #numbers.formatDecimal(r.net / r.qty, 1, 'POINT', 2, 'POINT') : '0.00'}">0.00</td>
+  </tr>
+  </tbody>
+</table>
+</body>
+</html>

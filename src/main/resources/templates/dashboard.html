@@ -260,14 +260,47 @@
           <i class="bi bi-check-circle me-1"></i> All stocks look healthy right now.
         </div>
       </div>
-    </div>
+    </div><!-- /Content grid -->
+
+    <!-- New Reports & Management Section -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <div class="section-title mb-2">Reports & Management</div>
+            <div class="list-group">
+              <a th:href="@{/reports/cash}" class="list-group-item list-group-item-action">
+                <i class="bi bi-cash-coin me-2 text-success"></i> Cash Ledger
+              </a>
+              <a th:href="@{/inventory/movements/1}" class="list-group-item list-group-item-action">
+                <i class="bi bi-box-arrow-left me-2 text-primary"></i> Stock Movements (example for product 1)
+              </a>
+              <a th:href="@{/reports/sales/daily}" class="list-group-item list-group-item-action">
+                <i class="bi bi-calendar-day me-2 text-info"></i> Daily Sales Report
+              </a>
+
+              <!-- Fixed: use controller-provided currentYear & currentMonth -->
+              <a th:href="@{/reports/sales/monthly(year=${currentYear}, month=${currentMonth})}"
+                 class="list-group-item list-group-item-action">
+                <i class="bi bi-calendar-month me-2 text-info"></i> Monthly Sales Report
+              </a>
+
+              <a th:href="@{/inventory/breakage}" class="list-group-item list-group-item-action">
+                <i class="bi bi-exclamation-octagon me-2 text-danger"></i> Breakage & Leakage
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /Reports & Management -->
+
   </div>
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    // Theme toggle (persists with localStorage), matching optimizer page
+    // Theme toggle (persists with localStorage)
     (function initTheme(){
       const saved = localStorage.getItem('kapil.theme') || 'light';
       document.documentElement.setAttribute('data-bs-theme', saved);

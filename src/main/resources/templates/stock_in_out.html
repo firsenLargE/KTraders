@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Movements</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 20px;
+            padding-bottom: 40px;
+        }
+        .header-container {
+            background: linear-gradient(135deg, #6c5ce7 0%, #8e44ad 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            border: none;
+        }
+        .card-header {
+            background-color: #f1f2f6;
+            border-bottom: 1px solid #e9ecef;
+            font-weight: 600;
+            padding: 15px 20px;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        .table th {
+            background-color: #6c5ce7;
+            color: white;
+        }
+        .badge-direction {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .badge-inward {
+            background-color: #22c55e;
+            color: white;
+        }
+        .badge-outward {
+            background-color: #ef4444;
+            color: white;
+        }
+        .badge-reference {
+            background-color: #a29bfe;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .btn-primary {
+            background-color: #6c5ce7;
+            border-color: #6c5ce7;
+        }
+        .btn-primary:hover {
+            background-color: #5649c0;
+            border-color: #5649c0;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #6c5ce7;
+            box-shadow: 0 0 0 0.25rem rgba(108, 92, 231, 0.25);
+        }
+        .stats-card {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        .stats-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #6c5ce7;
+        }
+        .stats-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #dee2e6;
+        }
+    </style>
+</head>
+<body class="container mt-4">
+    <!-- Header -->
+    <div class="header-container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1><i class="bi bi-box-seam-fill me-2"></i>Stock Movements</h1>
+                <p class="mb-0">Track and manage product stock movements</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a th:href="@{/dashboard}" class="btn btn-light">
+                    <i class="bi bi-grid-fill me-1"></i> Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="stats-number" id="totalRecords">0</div>
+                <div class="stats-label">Total Records</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="stats-number" id="inwardMovements">0</div>
+                <div class="stats-label">Inward Movements</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="stats-number" id="outwardMovements">0</div>
+                <div class="stats-label">Outward Movements</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Record Form -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-plus-circle-fill me-2"></i>Add New Stock Movement
+        </div>
+        <div class="card-body">
+            <form th:action="@{/inventory/movements}" method="post">
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Product ID</label>
+                        <input type="number" name="product.id" class="form-control" required min="1" placeholder="Enter product ID"/>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" name="quantity" class="form-control" required min="0.01" step="0.01" placeholder="Qty"/>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Direction</label>
+                        <select name="direction" class="form-select">
+                            <option value="INWARD">Inward</option>
+                            <option value="OUTWARD">Outward</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Reference</label>
+                        <input type="text" name="reference" class="form-control" placeholder="Reference (optional)"/>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label">Reason</label>
+                        <input type="text" name="reason" class="form-control" placeholder="Reason for movement (optional)"/>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-plus-lg me-1"></i> Add Movement
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Records Table -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-list-check me-2"></i>Records</span>
+            <span class="badge bg-primary rounded-pill" id="recordCount">0</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="movementsTable">
+                    <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Product</th>
+                        <th>Direction</th>
+                        <th>Quantity</th>
+                        <th>Reference</th>
+                        <th>Reason</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="m : ${rows}" th:attr="data-direction=${m.direction ?: ''}">
+                        <td th:text="${m.occurredAt != null} ? ${#temporals.format(m.occurredAt, 'yyyy-MM-dd HH:mm')} : 'N/A'"></td>
+                        <td th:text="${m.product?.name ?: 'N/A'}"></td>
+                        <td>
+                            <span th:switch="${m.direction}" class="badge-direction">
+                                <span th:case="'INWARD'" class="badge-inward">Inward</span>
+                                <span th:case="'OUTWARD'" class="badge-outward">Outward</span>
+                                <span th:case="*" class="badge bg-secondary" th:text="${m.direction ?: 'N/A'}"></span>
+                            </span>
+                        </td>
+                        <td><span class="badge bg-secondary" th:text="${m.quantity != null} ? ${m.quantity} : '0'"></span></td>
+                        <td>
+                            <span class="badge-reference" th:if="${m.reference}" th:text="${m.reference}"></span>
+                            <span th:unless="${m.reference}" class="text-muted">—</span>
+                        </td>
+                        <td th:text="${m.reason ?: '—'}"></td>
+                    </tr>
+                    <tr th:if="${rows == null or #lists.isEmpty(rows)}">
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <h5>No stock movements found</h5>
+                                <p class="text-muted">Add your first stock movement using the form above.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Initialize stats
+        (function initMovementsUI() {
+            const table = document.getElementById('movementsTable');
+            const bodyRows = Array.from(table.querySelectorAll('tbody tr'))
+                .filter(tr => !tr.querySelector('td[colspan]')); // Ignore "No records" row
+            const totalRecords = document.getElementById('totalRecords');
+            const inwardMovements = document.getElementById('inwardMovements');
+            const outwardMovements = document.getElementById('outwardMovements');
+            const recordCount = document.getElementById('recordCount');
+
+            // Calculate stats
+            const total = bodyRows.length;
+            const inward = bodyRows.filter(tr => tr.getAttribute('data-direction') === 'INWARD').length;
+            const outward = bodyRows.filter(tr => tr.getAttribute('data-direction') === 'OUTWARD').length;
+
+            // Update stats
+            totalRecords.textContent = total;
+            inwardMovements.textContent = inward;
+            outwardMovements.textContent = outward;
+            recordCount.textContent = total;
+        })();
+    </script>
+</body>
+</html>
