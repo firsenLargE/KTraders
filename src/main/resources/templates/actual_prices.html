@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Actual (Factory) Costs</title>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 24px; }
+    h2 { margin-bottom: 8px; }
+    .toolbar { margin: 12px 0 18px; display: flex; gap: 12px; align-items: center; }
+    .toolbar input[type="search"] { padding: 6px 10px; min-width: 260px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    th { background: #f5f7fa; text-align: left; }
+    tr:nth-child(even) { background: #fafbfd; }
+    .right { text-align: right; }
+    .num { width: 120px; text-align: right; }
+    .muted { color: #666; font-size: 12px; }
+    .actions { margin-top: 16px; display: flex; gap: 10px; align-items: center; }
+    .btn { padding: 8px 14px; border: 1px solid #0d6efd; background: #0d6efd; color: #fff; cursor: pointer; border-radius: 4px; }
+    .btn.secondary { background: #fff; color: #0d6efd; }
+    .badge { display:inline-block; padding:2px 8px; font-size:12px; border-radius:999px; background:#eef2ff; color:#3730a3; }
+    .changed { outline: 2px solid #22c55e; background: #f0fff4; }
+    .sticky { position: sticky; top: 0; background: #f5f7fa; z-index: 1; }
+  </style>
+</head>
+<body>
+
+  <h2>Actual (Factory) Costs</h2>
+  <div class="muted">Set or update per-unit factory cost. Leave blank to skip an item.</div>
+
+  <div class="toolbar">
+    <form th:action="@{/products/actual-prices}" method="get" style="display:flex; gap:8px; align-items:center;">
+      <input type="search" name="q" placeholder="Filter by product name or category…" oninput="filterRows(this.value)" />
+      <span class="badge" id="visibleCount">0 shown</span>
+    </form>
+    <div style="margin-left:auto;">
+      
+       <a th:href="@{/dashboard}" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-speedometer2 me-1"></i> Dashboard
+        </a>
+    </div>
+  </div>
+
+  <form th:action="@{/products/actual-prices}" method="post" id="actualCostForm">
+    <!-- Include if Spring Security CSRF is enabled -->
+    <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
+
+    <table id="productsTable">
+      <thead>
+        <tr>
+          <th class="sticky">Product</th>
+          <th class="sticky">Category</th>
+          <th class="sticky right">Qty</th>
+          <th class="sticky right">Show Price</th>
+          <th class="sticky right">Current Actual</th>
+          <th class="sticky right">New Actual (edit)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="p : ${products}" data-row
+            th:attr="data-name=${p.name},data-cat=${p.category}">
+          <td>
+            <div th:text="${p.name}">Name</div>
+            <div class="muted" th:text="${#strings.isEmpty(p.supplier) ? '' : 'Supplier: ' + p.supplier}"></div>
+          </td>
+          <td th:text="${p.category} ?: '-'">-</td>
+          <td class="right" th:text="${p.quantity} ?: 0">0</td>
+          <td class="right" th:text="${#numbers.formatDecimal(p.price?:0,1,'POINT',2,'POINT')}">0.00</td>
+          <td class="right" th:text="${p.actualPrice != null ? #numbers.formatDecimal(p.actualPrice,1,'POINT',2,'POINT') : '—'}">—</td>
+          <td class="right">
+            <input class="num" type="number" step="0.01" min="0"
+                   th:name="${'actualPrice_' + p.id}"
+                   th:placeholder="${p.actualPrice != null ? p.actualPrice : 'e.g. ' + (p.price!=null? #numbers.formatDecimal(p.price,1,'POINT',2,'POINT') : '0.00')}"
+                   oninput="markChanged(this)" />
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="actions">
+      <a th:href="@{/products/show-prices}" class="muted">↩ Back to Show Prices</a>
+      <button type="submit" class="btn">Save changes</button>
+      <button type="button" class="btn secondary" onclick="resetChanges()">Reset</button>
+      <span class="muted" id="changedCount">0 fields changed</span>
+    </div>
+  </form>
+
+  <script>
+    // Simple client-side helpers (no frameworks)
+    function markChanged(el) {
+      if (el.value && el.value.trim() !== '') {
+        el.classList.add('changed');
+      } else {
+        el.classList.remove('changed');
+      }
+      updateChangedCount();
+    }
+    function resetChanges() {
+      document.querySelectorAll('#productsTable input.num').forEach(i => { i.value = ''; i.classList.remove('changed'); });
+      updateChangedCount();
+    }
+    function updateChangedCount() {
+      const n = document.querySelectorAll('#productsTable input.num.changed').length;
+      document.getElementById('changedCount').textContent = n + ' fields changed';
+    }
+    function filterRows(q) {
+      q = (q || '').toLowerCase();
+      let shown = 0;
+      document.querySelectorAll('tr[data-row]').forEach(tr => {
+        const name = (tr.dataset.name || '').toLowerCase();
+        const cat  = (tr.dataset.cat || '').toLowerCase();
+        const match = !q || name.includes(q) || cat.includes(q);
+        tr.style.display = match ? '' : 'none';
+        if (match) shown++;
+      });
+      document.getElementById('visibleCount').textContent = shown + ' shown';
+    }
+    // init counts
+    window.addEventListener('DOMContentLoaded', () => {
+      filterRows('');
+      updateChangedCount();
+    });
+  </script>
+</body>
+</html>
