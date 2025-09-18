@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: kapil-traders
+    env: docker
+    plan: free
+    region: singapore        # good latency for Nepal; change if you want
+    dockerfilePath: Dockerfile
+    autoDeploy: true
+    healthCheckPath: /
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: JAVA_TOOL_OPTIONS
+        value: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
