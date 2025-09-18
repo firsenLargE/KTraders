@@ -1,8 +1,16 @@
+# Exclude runtime/data stuff from image build
+pgdata
+uploads
+
+# Maven/IDE/build noise
 target/
-.git/
-.gitignore
-README*
-*.iml
+.gradle/
+.out/
+**/*.iml
 .idea/
 .vscode/
-uploads/
+*.log
+
+# Git
+.git/
+.gitignore
