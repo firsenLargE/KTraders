@@ -127,6 +127,18 @@
                 <input type="text" class="form-control" th:field="*{address}" />
               </div>
 
+              <div class="mb-3">
+                <label class="form-label fw-semibold">PAN Number</label>
+                <input type="text" class="form-control" th:field="*{panNumber}" placeholder="e.g., ABCDE1234F" />
+                <div class="form-text muted">Optional, used for tax invoices.</div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">VAT Number</label>
+                <input type="text" class="form-control" th:field="*{vatNumber}" placeholder="e.g., VAT123456789" />
+                <div class="form-text muted">Optional, used for tax invoices.</div>
+              </div>
+
               <div class="d-flex align-items-center justify-content-end gap-2">
                 <a th:href="@{/customers}" class="btn btn-outline-secondary">
                   <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
