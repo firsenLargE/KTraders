@@ -1,31 +1,30 @@
 package com.example.demo;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // Serve uploaded images from uploads directory
-        registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:uploads/");
-        
-        // Serve static resources
-        registry.addResourceHandler("/static/**")
-                .addResourceLocations("classpath:/static/");
-                
-        registry.addResourceHandler("/css/**")
-                .addResourceLocations("classpath:/static/css/");
-                
-        registry.addResourceHandler("/js/**")
-                .addResourceLocations("classpath:/static/js/");
-                
-        registry.addResourceHandler("/images/**")
-                .addResourceLocations("classpath:/static/images/");
+        // Serve files from configurable directory
+        String location = "file:" + uploadDir + (uploadDir.endsWith("/") ? "" : "/");
+        registry.addResourceHandler("/uploads/**").addResourceLocations(location);
+    }
+
+    // Optional: ensure directory exists at boot
+    @jakarta.annotation.PostConstruct
+    public void ensureUploadDir() throws Exception {
+        Path p = Path.of(uploadDir);
+        if (!Files.exists(p)) Files.createDirectories(p);
     }
 }
