@@ -22,6 +22,8 @@ public class PurchaseController {
     
     @Autowired
     private ProductService productService;
+    private static final List<String> PAYMENT_METHODS = java.util.Arrays.asList("Cash Deposit", "IPS", "Check Deposit");
+
 
     @GetMapping
     public String listPurchases(@RequestParam(required = false) String supplier,
@@ -86,7 +88,9 @@ public class PurchaseController {
         if (session.getAttribute("validuser") == null) return "redirect:/";
         
         model.addAttribute("purchase", new Purchase());
-        model.addAttribute("products", productService.getAllProducts());
+        model.addAttribute("products", productService.getAllProducts());  
+        model.addAttribute("paymentMethods", PAYMENT_METHODS);
+
         return "add-purchase";
     }
 
@@ -115,6 +119,8 @@ public class PurchaseController {
         
         model.addAttribute("purchase", purchase);
         model.addAttribute("products", productService.getAllProducts());
+        model.addAttribute("paymentMethods", PAYMENT_METHODS);
+
         return "edit-purchase";
     }
 
@@ -234,6 +240,52 @@ public class PurchaseController {
         model.addAttribute("distinctSuppliers", distinctSuppliers);
         model.addAttribute("distinctProducts", distinctProducts);
         
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         return "monthly-purchase-report";
     }
 

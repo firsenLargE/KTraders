@@ -10,11 +10,14 @@ import org.springframework.lang.NonNull;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    @org.springframework.beans.factory.annotation.Value("${app.upload.base-dir:uploads}")
+    private String uploadBaseDir;
+
     @Override
     public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
-        // Serve uploaded images from uploads directory
+        // Serve uploaded images from configured uploads directory
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:uploads/");
+                .addResourceLocations("file:" + uploadBaseDir + "/");
         
         // Serve static resources
         registry.addResourceHandler("/static/**")

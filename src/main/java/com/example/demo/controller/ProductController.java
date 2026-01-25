@@ -79,18 +79,49 @@ public class ProductController {
         return "add-product";
     }
 
+    @org.springframework.beans.factory.annotation.Value("${app.upload.base-dir:uploads}")
+    private String uploadBaseDir;
+
+    @org.springframework.beans.factory.annotation.Value("${app.upload.thumbnail.width:400}")
+    private int thumbnailWidth;
+
+    @org.springframework.beans.factory.annotation.Value("${app.upload.thumbnail.height:400}")
+    private int thumbnailHeight;
+
     @PostMapping("/add-product")
     public String addProduct(@ModelAttribute Product product, @RequestParam("imageFile") MultipartFile imageFile,
                              RedirectAttributes ra, HttpSession session) {
         if (session.getAttribute("validuser") == null) return "redirect:/";
         try {
             if (product.getDate() == null) product.setDate(LocalDate.now());
-            String uploadDir = "uploads/"; File uploadPath = new File(uploadDir); if (!uploadPath.exists()) uploadPath.mkdirs();
+
+            // create per-date subfolder (YYYY/MM)
+            LocalDate d = LocalDate.now();
+            String year = String.valueOf(d.getYear());
+            String month = String.format("%02d", d.getMonthValue());
+            Path baseDir = Paths.get(uploadBaseDir);
+            Path targetDir = baseDir.resolve(year).resolve(month);
+            Files.createDirectories(targetDir);
+
             if (!imageFile.isEmpty()) {
-                String fileName = System.currentTimeMillis() + "_" + imageFile.getOriginalFilename();
-                Path filePath = Paths.get(uploadDir, fileName);
+                // unique filename
+                String original = Paths.get(imageFile.getOriginalFilename()).getFileName().toString();
+                String fileName = System.currentTimeMillis() + "_" + original.replaceAll("[^A-Za-z0-9._-]", "_");
+                Path filePath = targetDir.resolve(fileName);
                 Files.copy(imageFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-                product.setImagePath("/uploads/" + fileName);
+
+                // generate thumbnail
+                try {
+                    Path thumbPath = targetDir.resolve("thumb_" + fileName);
+                    net.coobird.thumbnailator.Thumbnails.of(filePath.toFile())
+                            .size(thumbnailWidth, thumbnailHeight)
+                            .toFile(thumbPath.toFile());
+                } catch (Exception ex) {
+                    // thumbnail generation failure should not block upload
+                    ex.printStackTrace();
+                }
+
+                product.setImagePath("/uploads/" + year + "/" + month + "/" + fileName);
             }
             productService.addProduct(product);
             ra.addFlashAttribute("success", "Product added!");
