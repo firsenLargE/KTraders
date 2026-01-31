@@ -14,21 +14,27 @@ import java.util.List;
 
 @Service
 public class PurchaseServiceImpl implements PurchaseService {
-    
+
     @Autowired
     private PurchaseRepository purchaseRepository;
-    
+
     @Autowired
     private ProductService productService;
 
     @Override
     @Transactional
     public void addPurchase(Purchase purchase) {
-        // Update product stock when adding purchase
+        // Update product stock and actual price when adding purchase
         Product product = purchase.getProduct();
         if (product != null) {
             Integer currentStock = product.getQuantity() != null ? product.getQuantity() : 0;
             product.setQuantity(currentStock + purchase.getQuantity());
+
+            // Sync the factory price (unitCost) to the product's actualPrice for profit
+            // calculations
+            if (purchase.getUnitCost() != null) {
+                product.setActualPrice(purchase.getUnitCost().doubleValue());
+            }
             productService.updateProduct(product);
         }
         purchaseRepository.save(purchase);
@@ -51,10 +57,21 @@ public class PurchaseServiceImpl implements PurchaseService {
         if (existingPurchase != null) {
             // Adjust product stock if quantity changed
             Product product = purchase.getProduct();
-            if (product != null && existingPurchase.getQuantity() != purchase.getQuantity()) {
-                Integer stockDifference = purchase.getQuantity() - existingPurchase.getQuantity();
-                Integer currentStock = product.getQuantity() != null ? product.getQuantity() : 0;
-                product.setQuantity(currentStock + stockDifference);
+            if (product != null) {
+                // Handle quantity change
+                if (!existingPurchase.getQuantity().equals(purchase.getQuantity())) {
+                    Integer stockDifference = purchase.getQuantity() - existingPurchase.getQuantity();
+                    Integer currentStock = product.getQuantity() != null ? product.getQuantity() : 0;
+                    product.setQuantity(currentStock + stockDifference);
+                }
+
+                // Update actualPrice if unit cost changed
+                if (purchase.getUnitCost() != null &&
+                        (existingPurchase.getUnitCost() == null
+                                || existingPurchase.getUnitCost().compareTo(purchase.getUnitCost()) != 0)) {
+                    product.setActualPrice(purchase.getUnitCost().doubleValue());
+                }
+
                 productService.updateProduct(product);
             }
         }

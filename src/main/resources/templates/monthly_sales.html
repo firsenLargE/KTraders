@@ -1,81 +1,100 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head><title>Monthly Sales</title></head>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: common_head('Monthly Sales')}"></head>
+
 <body>
-<h2 th:text="'Monthly Sales - ' + ${ym}">Monthly Sales</h2>
+  <div class="container-xxl py-4">
+    <div th:replace="~{fragments :: navbar}"></div>
 
-<p>
-  <a th:href="@{'/reports/sales/monthly.pdf'(year=${ym.year}, month=${ym.monthValue})}">Download PDF</a>
-</p>
+    <div class="card shadow-sm mb-4">
+      <div class="card-body d-flex align-items-center justify-content-between p-4 flex-wrap gap-3">
+        <div>
+          <h4 class="mb-1 fw-bold" th:text="'Monthly Performance - ' + ${ym}">Monthly Sales</h4>
+          <div class="text-secondary small">Analysis of daily sales and profit trends</div>
+        </div>
+        <div class="d-flex gap-2">
+          <div class="stat-pill">
+            <div class="small text-secondary">Total Revenue</div>
+            <div class="fw-bold fs-5" th:text="'₹' + ${#numbers.formatDecimal(totalRevenue, 1, 'COMMA', 2, 'POINT')}">
+              ₹0.00</div>
+          </div>
+          <div class="stat-pill border-start ps-3">
+            <div class="small text-secondary">Monthly P/L</div>
+            <div class="fw-bold fs-5" th:classappend="${totalPL >= 0 ? 'text-success' : 'text-danger'}"
+              th:text="'₹' + ${#numbers.formatDecimal(totalPL, 1, 'COMMA', 2, 'POINT')}">₹0.00</div>
+          </div>
+          <a th:href="@{'/reports/sales/monthly.pdf'(year=${ym.year}, month=${ym.monthValue})}"
+            class="btn btn-primary d-flex align-items-center">
+            <i class="bi bi-file-earmark-pdf me-2"></i>PDF
+          </a>
+        </div>
+      </div>
+    </div>
 
-<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;min-width:900px;">
-  <thead>
-  <tr>
-    <th>Product</th>
-    <th>Qty</th>
-    <th>Net</th>
-    <th>VAT (13%)</th>
-    <th>Gross</th>
-    <th>Avg Price</th>
-    <th>Unit Cost</th>
-    <th>Profit / Loss</th>
-  </tr>
-  </thead>
-  <tbody>
-  <tr th:each="r : ${rows}">
-    <td th:text="${r.productName}">name</td>
-    <td th:text="${r.qty}">0</td>
-    <td th:text="${#numbers.formatDecimal(r.net, 1, 'POINT', 2, 'POINT')}">0.00</td>
-    <td th:text="${#numbers.formatDecimal(r.vat, 1, 'POINT', 2, 'POINT')}">0.00</td>
-    <td th:text="${#numbers.formatDecimal(r.gross, 1, 'POINT', 2, 'POINT')}">0.00</td>
+    <div class="card shadow-sm border-0 overflow-hidden">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="bg-light">
+            <tr>
+              <th class="ps-4">Transaction Date</th>
+              <th>Product Details</th>
+              <th class="text-center">Qty</th>
+              <th class="text-center">Result</th>
+              <th class="text-end pe-4">Profit / Loss</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="r : ${rows}">
+              <td class="ps-4 fw-medium text-dark" th:text="${r.date}">2026-01-01</td>
+              <td>
+                <div class="fw-semibold" th:text="${r.productName}">Product</div>
+                <div class="text-secondary smaller"
+                  th:text="'Rev: ₹' + ${#numbers.formatDecimal(r.totalRevenue, 1, 'COMMA', 2, 'POINT')}">Rev: ₹0.00
+                </div>
+              </td>
+              <td class="text-center fw-medium" th:text="${r.qty}">0</td>
+              <td class="text-center">
+                <span th:if="${r.profitLossAmount >= 0}"
+                  class="badge text-bg-success-subtle border border-success-subtle text-success rounded-pill px-3">
+                  Profit
+                </span>
+                <span th:if="${r.profitLossAmount < 0}"
+                  class="badge text-bg-danger-subtle border border-danger-subtle text-danger rounded-pill px-3">
+                  Loss
+                </span>
+              </td>
+              <td class="text-end pe-4 fw-bold"
+                th:classappend="${r.profitLossAmount >= 0 ? 'text-success' : 'text-danger'}"
+                th:text="'₹' + ${#numbers.formatDecimal(r.profitLossAmount, 1, 'COMMA', 2, 'POINT')}">₹0.00</td>
+            </tr>
+          </tbody>
+          <tfoot class="bg-light-subtle border-top mt-2">
+            <tr>
+              <td colspan="2" class="ps-4 fw-bold py-3">MONTHLY CUMULATIVE</td>
+              <td class="text-center fw-bold" th:text="${totalQty}">0</td>
+              <td></td>
+              <td class="text-end pe-4 fw-bold fs-5" th:classappend="${totalPL >= 0 ? 'text-success' : 'text-danger'}"
+                th:text="'₹' + ${#numbers.formatDecimal(totalPL, 1, 'COMMA', 2, 'POINT')}">₹0.00</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
 
-    <!-- Avg Price = net / qty -->
-    <td th:text="${
-          (r.qty!=null && r.qty>0 && r.net!=null)
-          ? #numbers.formatDecimal(r.net / r.qty, 1, 'POINT', 2, 'POINT')
-          : '0.00'}">0.00</td>
+  <style>
+    .stat-pill {
+      min-width: 140px;
+    }
 
-    <!-- Actual Unit Cost (from product.actualPrice fallback price) -->
-    <td th:text="${r.actualUnitCost!=null ? #numbers.formatDecimal(r.actualUnitCost, 1, 'POINT', 2, 'POINT') : '-'}">-</td>
+    .smaller {
+      font-size: 0.75rem;
+    }
+  </style>
 
-    <!-- Profit/Loss with color and % -->
-    <td>
-      <span th:with="
-              pl=${r.profitLoss!=null ? r.profitLoss : 0},
-              avg=${(r.qty!=null && r.qty>0 && r.net!=null) ? (r.net / r.qty) : 0},
-              cost=${r.actualUnitCost!=null ? r.actualUnitCost : 0},
-              marginPct=${avg>0 ? ((avg-cost)/avg)*100 : 0}
-            "
-            th:classappend="${pl>=0} ? 'pl-pos' : 'pl-neg' "
-            th:text="${#numbers.formatDecimal(pl, 1, 'POINT', 2, 'POINT')}">0.00</span>
-      <small style="opacity:.8" th:if="${r.actualUnitCost!=null}">
-        (<span th:text="${#numbers.formatDecimal(marginPct, 1, 'POINT', 1, 'POINT')}">0.0</span>%)
-      </small>
-    </td>
-  </tr>
-  </tbody>
-
-  <!-- Totals -->
-  <tfoot>
-  <tr style="font-weight:bold;background:#fafafa;">
-    <td>Total</td>
-    <td th:text="${totalQty}">0</td>
-    <td th:text="${#numbers.formatDecimal(totalNet, 1, 'POINT', 2, 'POINT')}">0.00</td>
-    <td th:text="${#numbers.formatDecimal(totalVat, 1, 'POINT', 2, 'POINT')}">0.00</td>
-    <td th:text="${#numbers.formatDecimal(totalGross, 1, 'POINT', 2, 'POINT')}">0.00</td>
-    <td th:text="${#numbers.formatDecimal(avgPriceOverall, 1, 'POINT', 2, 'POINT')}">0.00</td>
-    <td th:text="${#numbers.formatDecimal(avgCostOverall, 1, 'POINT', 2, 'POINT')}">0.00</td>
-    <td>
-      <span th:classappend="${totalPL>=0} ? 'pl-pos' : 'pl-neg'"
-            th:text="${#numbers.formatDecimal(totalPL, 1, 'POINT', 2, 'POINT')}">0.00</span>
-    </td>
-  </tr>
-  </tfoot>
-</table>
-
-<style>
-  .pl-pos { color: #137333; font-weight: 600; } /* green */
-  .pl-neg { color: #c5221f; font-weight: 600; } /* red */
-</style>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <div th:replace="~{fragments :: theme_script}"></div>
 </body>
+
 </html>

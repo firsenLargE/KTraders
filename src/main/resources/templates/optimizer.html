@@ -1,509 +1,341 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Budget-Constrained Replenishment</title>
 
-  <!-- Bootstrap + Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+<head th:replace="~{fragments :: common_head('AI Budget Optimizer')}"></head>
 
-  <style>
-    :root{
-      --card-radius:16px;
-      --shadow-soft: 0 8px 24px rgba(0,0,0,.06);
-    }
-    [data-bs-theme="dark"]{
-      --shadow-soft: 0 8px 24px rgba(0,0,0,.35);
-    }
-
-    body{ background: linear-gradient(180deg,#f7f8fb 0%,#f2f4f8 100%); }
-    [data-bs-theme="dark"] body{ background: radial-gradient(1200px 600px at 50% -200px,#0b1220,#0a0f1a 70%); }
-
-    .page-head{
-      backdrop-filter: blur(6px);
-      border-radius: var(--card-radius);
-      box-shadow: var(--shadow-soft);
-      border: 1px solid rgba(0,0,0,.05);
-    }
-
-    .card{
-      border: 1px solid rgba(0,0,0,.06);
-      border-radius: var(--card-radius);
-      box-shadow: var(--shadow-soft);
-    }
-
-    .table thead th{
-      font-size: .8rem;
-      letter-spacing:.04em;
-      text-transform: uppercase;
-      color: var(--bs-secondary);
-      position: sticky; top: 0;
-      background: var(--bs-body-bg);
-      z-index: 1;
-    }
-
-    .row-select:hover{ background: rgba(13,110,253,.06); }
-    [data-bs-theme="dark"] .row-select:hover{ background: rgba(13,110,253,.12); }
-
-    .row-select.selected{ outline: 2px solid rgba(13,110,253,.35); outline-offset: -2px; }
-    .table-success { transition: background-color .2s ease; }
-
-    .currency{ font-variant-numeric: tabular-nums; }
-    .muted{ color: var(--bs-secondary); }
-
-    .skeleton{
-      animation: pulse 1.1s ease-in-out infinite;
-      background: linear-gradient(90deg, rgba(0,0,0,.06), rgba(0,0,0,.12), rgba(0,0,0,.06));
-      height: .9rem; border-radius: 6px;
-    }
-    @keyframes pulse{ 0%{background-position:-100px 0} 100%{background-position:100px 0} }
-
-    .chip{
-      border-radius: 999px; padding:.25rem .6rem; font-size:.8rem;
-      background: rgba(13,110,253,.08); color:#0d6efd;
-    }
-    .progress{ height:.6rem; }
-  </style>
-</head>
 <body>
   <div class="container-xxl py-4">
+    <div th:replace="~{fragments :: navbar}"></div>
 
     <!-- Header -->
-    <div class="page-head d-flex align-items-center justify-content-between p-3 mb-4">
-      <div class="d-flex align-items-center gap-3">
-        <i class="bi bi-box-seam fs-4 text-primary"></i>
-        <div>
-          <h4 class="mb-0 fw-semibold">Budget-Constrained Replenishment</h4>
-          <div class="small muted">Plan optimal purchase quantities under a fixed budget</div>
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="page-head">
+          <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+              <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-2">
+                <i class="bi bi-robot fs-4"></i>
+              </div>
+              <div>
+                <h1 class="h4 mb-0 fw-bold">AI Budget Optimizer</h1>
+                <div class="text-secondary small">Smart procurement planning under constraints</div>
+              </div>
+            </div>
+            <div class="d-flex gap-2">
+              <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">
+                <i class="bi bi-cpu me-1"></i> Advanced Algorithms
+              </span>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="d-flex align-items-center gap-2">
-        <button id="themeToggle" class="btn btn-outline-secondary btn-sm" title="Toggle theme">
-          <i class="bi bi-moon-stars" id="themeIcon"></i>
-        </button>
-        <a href="/dashboard" class="btn btn-outline-secondary btn-sm">
-          <i class="bi bi-arrow-left-short me-1"></i> Back to Dashboard
-        </a>
       </div>
     </div>
 
     <div class="row g-4">
-      <!-- LEFT: Controls -->
+      <!-- Controls Column -->
       <div class="col-lg-4">
-        <div class="card">
+        <div class="card border-0 shadow-sm sticky-top" style="top: 2rem; z-index: 10;">
           <div class="card-body">
-            <div class="d-flex align-items-center justify-content-between mb-2">
-              <h6 class="mb-0">Plan Purchases</h6>
-              <span class="chip"><i class="bi bi-robot me-1"></i>assistant</span>
-            </div>
+            <h6 class="text-uppercase text-secondary fw-bold small mb-4 tracking-wider">Configuration</h6>
 
-            <div class="mb-3">
-              <label class="form-label">Budget (₹)</label>
-              <div class="input-group">
-                <span class="input-group-text">₹</span>
-                <input id="budgetInput" type="number" min="1" class="form-control" value="50000" required />
+            <div class="mb-4">
+              <label class="form-label small text-uppercase fw-bold text-secondary">Available Budget</label>
+              <div class="input-group input-group-lg shadow-sm">
+                <span class="input-group-text bg-white border-0 text-secondary">₹</span>
+                <input id="budgetInput" type="number" min="1" class="form-control border-0 fw-bold" value="50000" />
               </div>
-              <div class="form-text">Tip: use round numbers (e.g. 10000, 25000).</div>
             </div>
 
-            <div class="mb-3">
-              <label class="form-label">Strategy</label>
-              <select id="strategySelect" class="form-select">
-                <option value="ROUND_ROBIN">Round-robin (balanced)</option>
-                <option value="LOW_STOCK_FIRST">Low stock first (avoid stockout)</option>
-                <option value="BEST_VALUE" selected>Best value (Top-3 per ₹)</option>
+            <div class="mb-4">
+              <label class="form-label small text-uppercase fw-bold text-secondary">Purchase Strategy</label>
+              <select id="strategySelect" class="form-select border-0 bg-light py-2 px-3 fw-semibold">
+                <option value="ROUND_ROBIN">Balanced (Round-Robin)</option>
+                <option value="LOW_STOCK_FIRST">Critical (Low Stock First)</option>
+                <option value="BEST_VALUE" selected>Strategic (Best Value/₹)</option>
               </select>
-              <div class="form-text">
-                Round-robin spreads spend; Low stock first fills biggest gaps to min; Best value prioritizes the Top-3 (gap+category)/₹.
+              <div class="extra-small text-muted mt-2 lh-sm">
+                Focus on diversity, preventing stockouts, or maximizing ROI based on category weights.
               </div>
             </div>
 
-            <div class="form-check mb-3">
-              <input class="form-check-input" type="checkbox" id="persistCheck" />
-              <label class="form-check-label" for="persistCheck">Save plan to history</label>
+            <div class="form-check form-switch mb-4">
+              <input class="form-check-input" type="checkbox" id="persistCheck" checked>
+              <label class="form-check-label small fw-bold text-secondary" for="persistCheck">PERSIST PLAN TO
+                HISTORY</label>
             </div>
 
-            <div class="d-grid">
-              <button id="generateBtn" class="btn btn-primary" disabled>
-                <span class="btn-label"><i class="bi bi-lightning-charge me-1"></i>Generate Plan</span>
-                <span class="btn-spin d-none spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <div class="d-grid shadow-sm">
+              <button id="generateBtn" class="btn btn-primary py-3 fw-bold">
+                <span class="btn-label"><i class="bi bi-lightning-charge-fill me-2"></i> GENERATE OPTIMAL PLAN</span>
+                <span class="btn-spin d-none spinner-border spinner-border-sm" role="status"></span>
               </button>
             </div>
-
-            <hr class="my-4" />
-
-            <div class="small text-uppercase text-muted fw-semibold mb-2">Selection</div>
-            <ul class="small text-muted ps-3">
-              <li>If you select products, only those are considered.</li>
-              <li>If you select none, all eligible products are considered.</li>
-              <li>Items already at/over max-level are skipped.</li>
-            </ul>
           </div>
         </div>
       </div>
 
-      <!-- RIGHT: Products -->
+      <!-- Products Selection -->
       <div class="col-lg-8">
-        <div class="card">
-          <div class="card-body">
-            <div class="d-flex flex-wrap align-items-center justify-content-between">
-              <h6 class="mb-3 mb-md-0">Current Products</h6>
+        <div class="card border-0 shadow-sm overflow-hidden mb-4">
+          <div class="card-header bg-white border-0 py-3 px-4">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <h6 class="mb-0 fw-bold">Candidate Products</h6>
+                <div class="extra-small text-secondary"><span id="selectedCount">0</span> items manually pinned</div>
+              </div>
               <div class="d-flex gap-2">
-                <div class="input-group input-group-sm">
-                  <span class="input-group-text"><i class="bi bi-search"></i></span>
-                  <input id="searchBox" class="form-control" placeholder="Search name or category" />
-                </div>
-                <button id="refreshBtn" class="btn btn-outline-secondary btn-sm" title="Reload products">
-                  <i class="bi bi-arrow-clockwise"></i>
-                </button>
+                <input id="searchBox" class="form-control form-control-sm bg-light border-0"
+                  placeholder="Filter candidates..." />
+                <button id="refreshBtn" class="btn btn-light btn-sm border-0"><i
+                    class="bi bi-arrow-clockwise"></i></button>
+              </div>
+            </div>
+          </div>
+          <div class="table-responsive" style="max-height: 500px;">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="bg-light sticky-top" style="z-index: 5;">
+                <tr>
+                  <th class="ps-4 py-3" style="width: 40px;">
+                    <input type="checkbox" id="selectAll" class="form-check-input" />
+                  </th>
+                  <th class="py-3 small text-uppercase fw-bold text-secondary">Product</th>
+                  <th class="py-3 small text-uppercase fw-bold text-secondary text-end">Price</th>
+                  <th class="py-3 small text-uppercase fw-bold text-secondary text-end">Stock</th>
+                  <th class="pe-4 py-3 small text-uppercase fw-bold text-secondary text-end">Ratio</th>
+                </tr>
+              </thead>
+              <tbody id="productsBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Plan Results -->
+        <div id="planContainer" class="card border-0 shadow-sm d-none">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="fw-bold mb-0">Optimization Results</h5>
+              <div id="badgesRow" class="d-flex gap-2">
+                <span class="badge bg-primary bg-opacity-10 text-primary border-0 py-2 px-3"
+                  id="badgeStrategy">Status</span>
+                <span class="badge bg-success bg-opacity-10 text-success border-0 py-2 px-3"
+                  id="badgeRemaining">Remaining</span>
               </div>
             </div>
 
-            <div class="table-responsive mt-3">
-              <table class="table table-sm align-middle">
-                <thead>
+            <!-- Progress Bar -->
+            <div class="mb-4" id="spendBarWrap">
+              <div class="d-flex justify-content-between extra-small text-uppercase fw-bold text-secondary mb-1">
+                <span>Budget Utilized</span>
+                <span id="spendPctText">0%</span>
+              </div>
+              <div class="progress" style="height: 10px;">
+                <div id="spendBar" class="progress-bar bg-primary rounded" role="progressbar" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div id="planSummary" class="bg-light rounded p-3 mb-4 small text-secondary"></div>
+
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <thead class="bg-light bg-opacity-50">
                   <tr>
-                    <th style="width:36px">
-                      <input type="checkbox" id="selectAll" class="form-check-input" title="Select all"/>
-                    </th>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Category</th>
-                    <th class="text-end">Price</th>
-                    <th class="text-end">Stock</th>
-                    <th class="text-end">Score</th>
-                    <th class="text-end">Value/₹</th>
+                    <th class="ps-3 py-2 small text-uppercase fw-bold text-secondary">Items to Purchase</th>
+                    <th class="py-2 small text-uppercase fw-bold text-secondary text-end">Units</th>
+                    <th class="py-2 small text-uppercase fw-bold text-secondary text-end">Unit Price</th>
+                    <th class="pe-3 py-2 small text-uppercase fw-bold text-secondary text-end">Line Cost</th>
                   </tr>
                 </thead>
-                <tbody id="productsBody"></tbody>
+                <tbody id="planBody"></tbody>
+                <tfoot class="bg-light bg-opacity-25 fw-bold">
+                  <tr>
+                    <td class="ps-3 py-3">GRAND TOTAL</td>
+                    <td id="planTotalUnits" class="text-end py-3">—</td>
+                    <td class="py-3"></td>
+                    <td id="planTotalCost" class="pe-3 text-end py-3">—</td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
-
-            <div class="d-flex justify-content-between align-items-center mt-2">
-              <div class="small muted">
-                <span id="selectedCount" class="badge text-bg-primary me-1">0</span> selected
-              </div>
-              <div class="d-flex gap-2">
-                <button class="btn btn-link btn-sm" id="clearSelectionBtn">Clear selection</button>
-              </div>
-            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- PLAN -->
-    <div class="card mt-4">
-      <div class="card-body">
-        <div class="d-flex align-items-center justify-content-between mb-2">
-          <h6 class="mb-0">Purchase Plan</h6>
-          <div class="d-flex align-items-center gap-2" id="badgesRow" style="display:none">
-            <span class="badge bg-success-subtle border text-success" id="badgeBudget">Budget: ₹0</span>
-            <span class="badge bg-warning-subtle border text-warning" id="badgeRemaining">Remaining: ₹0</span>
-            <span class="badge bg-primary-subtle border text-primary" id="badgeStrategy">Strategy: –</span>
-          </div>
-        </div>
-
-        <div class="progress mb-3 d-none" id="spendBarWrap" aria-hidden="true">
-          <div id="spendBar" class="progress-bar" role="progressbar" style="width:0%" aria-valuemin="0" aria-valuemax="100">0%</div>
-        </div>
-
-        <div id="planSummary" class="small muted">
-          No plan yet. Enter your budget and click <b>Generate Plan</b>.
-        </div>
-
-        <div class="table-responsive mt-2">
-          <table class="table table-sm" id="planTable" style="display:none">
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th class="text-end">Units</th>
-                <th class="text-end">Unit Price</th>
-                <th class="text-end">Line Cost</th>
-              </tr>
-            </thead>
-            <tbody id="planBody"></tbody>
-            <tfoot>
-              <tr class="fw-semibold">
-                <td>Total</td>
-                <td class="text-end" id="planTotalUnits">0</td>
-                <td></td>
-                <td class="text-end currency" id="planTotalCost">₹0</td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Toast -->
-    <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1080">
-      <div id="appToast" class="toast align-items-center text-bg-danger border-0" role="alert">
+    <!-- Toast UI -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+      <div id="appToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive"
+        aria-atomic="true">
         <div class="d-flex">
-          <div class="toast-body" id="toastMsg">Something went wrong.</div>
+          <div class="toast-body" id="toastMsg"></div>
           <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
         </div>
       </div>
     </div>
-  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    /* ---------------------- Theme ---------------------- */
-    const themeToggle = document.getElementById('themeToggle');
-    const themeIcon = document.getElementById('themeIcon');
-    (function initTheme(){
-      const saved = localStorage.getItem('kapil.theme') || 'light';
-      document.documentElement.setAttribute('data-bs-theme', saved);
-      themeIcon.className = saved === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
-    })();
-    themeToggle.addEventListener('click', () => {
-      const cur = document.documentElement.getAttribute('data-bs-theme') || 'light';
-      const next = cur === 'light' ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-bs-theme', next);
-      localStorage.setItem('kapil.theme', next);
-      themeIcon.className = next === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
-    });
+    <div th:replace="~{fragments :: theme_script}"></div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    /* ---------------------- Helpers ---------------------- */
-    const fmtINR = n => '₹' + (n ?? 0).toLocaleString('en-IN');
-    function toast(msg){
-      document.getElementById('toastMsg').textContent = msg;
-      new bootstrap.Toast(document.getElementById('appToast')).show();
-    }
-    function rowSkeletons(rows=6){
-      return Array.from({length:rows}).map(() => `
-        <tr>
-          <td><div class="skeleton" style="width:18px;height:18px;border-radius:4px"></div></td>
-          <td><div class="skeleton" style="width:36px"></div></td>
-          <td><div class="skeleton" style="width:180px"></div></td>
-          <td><div class="skeleton" style="width:120px"></div></td>
-          <td class="text-end"><div class="skeleton ms-auto" style="width:60px"></div></td>
-          <td class="text-end"><div class="skeleton ms-auto" style="width:60px"></div></td>
-          <td class="text-end"><div class="skeleton ms-auto" style="width:60px"></div></td>
-          <td class="text-end"><div class="skeleton ms-auto" style="width:60px"></div></td>
-        </tr>
-      `).join('');
-    }
-    function escapeHtml(s){ return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+    <script>
+      /* --- Helpers & State --- */
+      const fmt = n => '₹' + (n ?? 0).toLocaleString('en-IN');
+      const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+      const PRODUCTS = { data: [] };
 
-    const PRODUCTS = { data: [] };
-
-    /* ---------------------- Load + Render products ---------------------- */
-    async function loadProducts() {
-      const tbody = document.getElementById('productsBody');
-      tbody.innerHTML = rowSkeletons();
-      try {
-        const resp = await fetch('/api/products', { credentials: 'same-origin' });
-        if (!resp.ok) throw new Error('Failed to load products');
-        PRODUCTS.data = await resp.json();
-        renderProducts(PRODUCTS.data);
-      } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-danger">Failed to load products.</td></tr>`;
-        toast('Could not load products.');
+      function toast(msg) {
+        document.getElementById('toastMsg').textContent = msg;
+        bootstrap.Toast.getOrCreateInstance(document.getElementById('appToast')).show();
       }
-    }
 
-    function renderProducts(rows){
-      const tbody = document.getElementById('productsBody');
-      tbody.innerHTML = '';
-      rows.forEach(r => {
-        const tr = document.createElement('tr');
-        tr.className = 'row-select';
-        tr.innerHTML = `
-          <td><input type="checkbox" class="form-check-input product-check" value="${r.id}"></td>
-          <td>${r.id}</td>
-          <td>${escapeHtml(r.name)}</td>
-          <td>${escapeHtml(r.category ?? '')}</td>
-          <td class="text-end currency">${fmtINR(r.price)}</td>
-          <td class="text-end">${r.stock}</td>
-          <td class="text-end">${r.value}</td>
-          <td class="text-end">${r.ratio}</td>
-        `;
-        // click row to toggle
-        tr.addEventListener('click', (ev) => {
-          if (ev.target.tagName === 'INPUT') return;
-          const chk = tr.querySelector('.product-check');
-          chk.checked = !chk.checked;
-          tr.classList.toggle('selected', chk.checked);
-          updateSelectedCount();
-        });
-        tr.querySelector('.product-check').addEventListener('change', (e)=>{
-          tr.classList.toggle('selected', e.target.checked);
-          updateSelectedCount();
-        });
-        tbody.appendChild(tr);
-      });
-      updateSelectedCount();
-    }
+      function toggleLoading(loading) {
+        const btn = document.getElementById('generateBtn');
+        btn.disabled = loading;
+        btn.querySelector('.btn-label').classList.toggle('d-none', loading);
+        btn.querySelector('.btn-spin').classList.toggle('d-none', !loading);
+      }
 
-    // Selection helpers
-    function selectedIds(){
-      return Array.from(document.querySelectorAll('.product-check:checked')).map(cb => cb.value);
-    }
-    function updateSelectedCount(){
-      document.getElementById('selectedCount').textContent = selectedIds().length;
-    }
-    document.addEventListener('change', (e) => {
-      if (e.target.id === 'selectAll'){
+      /* --- Product Loading & Selection --- */
+      async function loadProducts() {
+        const tbody = document.getElementById('productsBody');
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-5"><div class="spinner-border text-primary opacity-50"></div></td></tr>';
+        try {
+          const resp = await fetch('/api/products');
+          if (!resp.ok) throw new Error();
+          PRODUCTS.data = await resp.json();
+          renderProducts(PRODUCTS.data);
+        } catch (e) {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-danger">Failed to load core data.</td></tr>';
+        }
+      }
+
+      function renderProducts(rows) {
+        const tbody = document.getElementById('productsBody');
+        tbody.innerHTML = rows.map(r => `
+          <tr class="row-select cursor-pointer" data-id="${r.id}">
+            <td class="ps-4"><input type="checkbox" class="form-check-input product-check" value="${r.id}"></td>
+            <td>
+              <div class="fw-bold">${escapeHtml(r.name)}</div>
+              <div class="extra-small text-uppercase text-secondary">${escapeHtml(r.category || 'Other')}</div>
+            </td>
+            <td class="text-end fw-semibold text-secondary">${fmt(r.price)}</td>
+            <td class="text-end"><span class="badge bg-light text-dark border">${r.stock}</span></td>
+            <td class="pe-4 text-end text-primary fw-bold">${r.ratio}</td>
+          </tr>
+        `).join('');
+
+        // Selection Logic
+        tbody.querySelectorAll('tr').forEach(tr => {
+          tr.onclick = (e) => {
+            if (e.target.type === 'checkbox') return;
+            const cb = tr.querySelector('input');
+            cb.checked = !cb.checked;
+            tr.classList.toggle('bg-primary', cb.checked);
+            tr.classList.toggle('bg-opacity-10', cb.checked);
+            updateSelection();
+          };
+          tr.querySelector('input').onchange = () => {
+            tr.classList.toggle('bg-primary', tr.querySelector('input').checked);
+            tr.classList.toggle('bg-opacity-10', tr.querySelector('input').checked);
+            updateSelection();
+          }
+        });
+      }
+
+      function updateSelection() {
+        const count = document.querySelectorAll('.product-check:checked').length;
+        document.getElementById('selectedCount').textContent = count;
+      }
+
+      document.getElementById('selectAll').onchange = (e) => {
         document.querySelectorAll('.product-check').forEach(cb => {
           cb.checked = e.target.checked;
-          cb.closest('tr')?.classList.toggle('selected', e.target.checked);
+          const tr = cb.closest('tr');
+          if (tr) {
+            tr.classList.toggle('bg-primary', e.target.checked);
+            tr.classList.toggle('bg-opacity-10', e.target.checked);
+          }
         });
-        updateSelectedCount();
-      }
-    });
-    document.getElementById('clearSelectionBtn').addEventListener('click', ()=>{
-      document.getElementById('selectAll').checked = false;
-      document.querySelectorAll('.product-check').forEach(cb => {
-        cb.checked = false;
-        cb.closest('tr')?.classList.remove('selected');
-      });
-      updateSelectedCount();
-    });
-
-    // Search
-    document.getElementById('searchBox').addEventListener('input', (e)=>{
-      const q = e.target.value.trim().toLowerCase();
-      if (!q) { renderProducts(PRODUCTS.data); return; }
-      const filtered = PRODUCTS.data.filter(p =>
-        (p.name ?? '').toLowerCase().includes(q) ||
-        (p.category ?? '').toLowerCase().includes(q)
-      );
-      renderProducts(filtered);
-    });
-    document.getElementById('refreshBtn').addEventListener('click', loadProducts);
-
-    /* ---------------------- Plan generation ---------------------- */
-    const btn = document.getElementById('generateBtn');
-    const budgetEl = document.getElementById('budgetInput');
-    budgetEl.addEventListener('input', () => {
-      btn.disabled = !(parseInt(budgetEl.value || '0', 10) > 0);
-    });
-    btn.disabled = !(parseInt(budgetEl.value || '0', 10) > 0);
-
-    btn.addEventListener('click', generatePlan);
-
-    async function generatePlan(){
-      const budget   = parseInt(document.getElementById('budgetInput').value || '0', 10);
-      const strategy = document.getElementById('strategySelect').value;
-      const persist  = document.getElementById('persistCheck').checked;
-
-      if (!(budget > 0)){
-        toast('Enter a budget greater than 0.');
-        return;
+        updateSelection();
       }
 
-      const selected = selectedIds(); // ["2","3",...]
-      const params = new URLSearchParams();
-      params.append('budget', String(budget));
-      params.append('strategy', strategy);
-      params.append('persist', persist ? 'true':'false');
-      selected.forEach(id => params.append('selectedIds', id));
+      /* --- Planning Logic --- */
+      document.getElementById('generateBtn').onclick = async () => {
+        const budget = parseInt(document.getElementById('budgetInput').value);
+        if (!budget || budget <= 0) return toast('Invalid budget amount');
 
-      setBtnLoading(true);
-      try{
-        const res = await fetch('/optimizer/plan', {
-          method:'POST',
-          headers:{ 'Content-Type':'application/x-www-form-urlencoded' },
-          body: params.toString(),
-          credentials: 'same-origin'
-        });
-        if (res.status === 401) { toast('Please log in first.'); return; }
-        if (!res.ok){
-          toast(`Error generating plan (${res.status}).`);
+        const params = new URLSearchParams();
+        params.append('budget', budget);
+        params.append('strategy', document.getElementById('strategySelect').value);
+        params.append('persist', document.getElementById('persistCheck').checked);
+        document.querySelectorAll('.product-check:checked').forEach(cb => params.append('selectedIds', cb.value));
+
+        toggleLoading(true);
+        try {
+          const res = await fetch('/optimizer/plan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params
+          });
+          if (!res.ok) throw new Error();
+          const data = await res.json();
+          renderPlan(data, budget);
+        } catch (e) {
+          toast('Plan generation failed. Check server logs.');
+        } finally {
+          toggleLoading(false);
+        }
+      }
+
+      function renderPlan(plan, budget) {
+        const container = document.getElementById('planContainer');
+        const body = document.getElementById('planBody');
+        container.classList.remove('d-none');
+
+        if (!plan.items?.length) {
+          body.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-muted">No efficient plan found for these constraints.</td></tr>';
           return;
         }
-        const data = await res.json();
-        renderPlan(data);
-      }catch(err){
-        toast('Network error while generating plan.');
-      }finally{
-        setBtnLoading(false);
-      }
-    }
 
-    function setBtnLoading(loading){
-      btn.disabled = loading;
-      btn.querySelector('.btn-label').classList.toggle('d-none', loading);
-      btn.querySelector('.btn-spin').classList.toggle('d-none', !loading);
-    }
+        body.innerHTML = plan.items.map(it => `
+          <tr>
+            <td class="ps-3">
+              <div class="fw-bold text-dark">${escapeHtml(it.productName)}</div>
+              <div class="extra-small text-secondary">#${it.productId}</div>
+            </td>
+            <td class="text-end fw-bold">${it.units}</td>
+            <td class="text-end text-secondary small">${fmt(it.unitPrice)}</td>
+            <td class="pe-3 text-end fw-bold text-primary">${fmt(it.lineCost)}</td>
+          </tr>
+        `).join('');
 
-    function renderPlan(plan){
-      const planTable = document.getElementById('planTable');
-      const planBody  = document.getElementById('planBody');
-      const sumEl     = document.getElementById('planSummary');
+        document.getElementById('planTotalUnits').textContent = plan.totalUnits;
+        document.getElementById('planTotalCost').textContent = fmt(plan.totalCost);
+        document.getElementById('badgeStrategy').textContent = plan.strategy.replace(/_/g, ' ');
+        document.getElementById('badgeRemaining').textContent = 'Left: ' + fmt(plan.remaining);
 
-      // clear previous row highlighting
-      document.querySelectorAll('#productsBody tr').forEach(tr => tr.classList.remove('table-success'));
-
-      if (!plan || !plan.items || plan.items.length === 0){
-        sumEl.innerHTML = `<span class="muted">No purchasable items with given constraints (budget too low, or all selected at cap).</span>`;
-        planTable.style.display = 'none';
-        document.getElementById('badgesRow').style.display = 'none';
-        document.getElementById('spendBarWrap').classList.add('d-none');
-        return;
-      }
-
-      // highlight purchased rows in product table
-      const purchasedIds = new Set((plan.items || []).map(it => String(it.productId)));
-      document.querySelectorAll('#productsBody tr').forEach(tr => {
-        const idCell = tr.children[1]; // ID column
-        if (idCell && purchasedIds.has(idCell.textContent.trim())) {
-          tr.classList.add('table-success');
-        }
-      });
-
-      planBody.innerHTML = '';
-      plan.items.forEach(it => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${escapeHtml(it.productName)} (#${it.productId})</td>
-          <td class="text-end">${it.units}</td>
-          <td class="text-end">${fmtINR(it.unitPrice)}</td>
-          <td class="text-end">${fmtINR(it.lineCost)}</td>
+        const pct = Math.round((plan.totalCost / budget) * 100);
+        document.getElementById('spendBar').style.width = pct + '%';
+        document.getElementById('spendPctText').textContent = pct + '%';
+        document.getElementById('planSummary').innerHTML = `
+          Allocated <span class="fw-bold text-dark">${plan.items.length}</span> products 
+          within a <span class="fw-bold text-dark">${fmt(budget)}</span> cap. 
+          Efficiency: <span class="fw-bold text-primary">${pct}%</span>.
         `;
-        planBody.appendChild(tr);
-      });
 
-      const totalUnits = plan.totalUnits ?? 0;
-      const totalCost  = plan.totalCost ?? 0;
-      const requested  = plan.requestedBudget ?? 0;
-      const spentPct   = requested > 0 ? Math.round((totalCost / requested) * 100) : 0;
+        container.scrollIntoView({ behavior: 'smooth' });
+      }
 
-      // Summary with BEST_VALUE hint
-      const hint = (plan.strategy === 'BEST_VALUE')
-        ? ' • <span class="text-primary">Top-3 best-value products were prioritized.</span>'
-        : '';
-      sumEl.innerHTML = `Bought <b>${totalUnits}</b> units across <b>${plan.items.length}</b> products • Spent <b>${fmtINR(totalCost)}</b> (${spentPct}% of budget)${hint}`;
-
-      // badges
-      document.getElementById('badgeBudget').textContent    = `Budget: ${fmtINR(requested)}`;
-      document.getElementById('badgeRemaining').textContent = `Remaining: ${fmtINR(plan.remaining ?? 0)}`;
-      document.getElementById('badgeStrategy').textContent  = `Strategy: ${plan.strategy ?? 'ROUND_ROBIN'}`;
-      document.getElementById('badgesRow').style.display = '';
-
-      // progress bar
-      const barWrap = document.getElementById('spendBarWrap');
-      const bar = document.getElementById('spendBar');
-      bar.style.width = spentPct + '%';
-      bar.textContent = spentPct + '%';
-      barWrap.classList.remove('d-none');
-
-      // totals
-      document.getElementById('planTotalUnits').textContent = totalUnits;
-      document.getElementById('planTotalCost').textContent  = fmtINR(totalCost);
-
-      planTable.style.display = '';
-
-      // scroll into view for visibility
-      document.querySelector('.card.mt-4')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    // Initial load
-    loadProducts();
-  </script>
+      /* --- Init --- */
+      document.getElementById('searchBox').oninput = (e) => {
+        const q = e.target.value.toLowerCase();
+        const filtered = PRODUCTS.data.filter(p =>
+          p.name.toLowerCase().includes(q) || (p.category || '').toLowerCase().includes(q)
+        );
+        renderProducts(filtered);
+      };
+      document.getElementById('refreshBtn').onclick = loadProducts;
+      loadProducts();
+    </script>
+  </div>
 </body>
+
 </html>

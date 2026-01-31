@@ -1,25 +1,100 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <title>Edit Product - Kapil Traders</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
-        .navbar { background: #343a40; color: white; padding: 15px; margin: -20px -20px 20px -20px; }
-        .navbar a { color: white; text-decoration: none; margin-right: 20px; padding: 8px 15px; border-radius: 3px; }
-        .navbar a:hover { background: #495057; }
-        .form-container { background: white; padding: 30px; border-radius: 5px; max-width: 600px; margin: 0 auto; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 3px; box-sizing: border-box; }
-        .btn { padding: 12px 30px; border: none; border-radius: 3px; cursor: pointer; text-decoration: none; display: inline-block; }
-        .btn-primary { background: #007bff; color: white; }
-        .btn-primary:hover { background: #0056b3; }
-        .btn-secondary { background: #6c757d; color: white; }
-        .btn-secondary:hover { background: #5a6268; }
-        .form-actions { display: flex; gap: 10px; justify-content: center; margin-top: 30px; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .navbar {
+            background: #343a40;
+            color: white;
+            padding: 15px;
+            margin: -20px -20px 20px -20px;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin-right: 20px;
+            padding: 8px 15px;
+            border-radius: 3px;
+        }
+
+        .navbar a:hover {
+            background: #495057;
+        }
+
+        .form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 5px;
+            max-width: 600px;
+            margin: 0 auto;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 30px;
+        }
     </style>
 </head>
+
 <body>
     <div class="navbar">
         <strong>Kapil Traders</strong> - Welcome <span th:text="${session.validuser?.uname}"></span>
@@ -33,50 +108,55 @@
 
     <div class="form-container">
         <h2>Edit Product</h2>
-        
+
         <form th:action="@{/edit-product/{id}(id=${product.id})}" method="post" th:object="${product}">
             <div class="form-group">
                 <label for="name">Product Name *</label>
                 <input type="text" id="name" th:field="*{name}" required>
             </div>
-            
+
             <div class="form-group">
                 <label for="category">Category *</label>
                 <select id="category" th:field="*{category}" required>
-                        <option value="">Select Category</option>
-                           <option value="">Select Category</option>
-                            <option value="Bottlers Nepal">Bottlers Nepal</option>
-                            <option value="Dapcha Bhimsen">Dapcha Bhimsen</option>
-                            <option value="C.G. Brewery">Nepal Ice Brewery</option>
-                            <option value="C.G. Foods And Industries">C.G. Foods And Industries</option>
-                            <option value="Current Noodle">Current Noodles</option>
-                            <option value="Manthali Agro Forestry">Manthali Agro Forestry</option>
-                            <option value="Reliable Pvt. Ltd.">Reliable Pvt. Ltd.</option>
-                            <option value="Agro Thai Food">Agro Thai Food</option>
-                            <option value="Others">Others</option>
+                    <option value="">Select Category</option>
+                    <option value="">Select Category</option>
+                    <option value="Bottlers Nepal">Bottlers Nepal</option>
+                    <option value="Dapcha Bhimsen">Dapcha Bhimsen</option>
+                    <option value="C.G. Brewery">Nepal Ice Brewery</option>
+                    <option value="C.G. Foods And Industries">C.G. Foods And Industries</option>
+                    <option value="Current Noodle">Current Noodles</option>
+                    <option value="Manthali Agro Forestry">Manthali Agro Forestry</option>
+                    <option value="Reliable Pvt. Ltd.">Reliable Pvt. Ltd.</option>
+                    <option value="Agro Thai Food">Agro Thai Food</option>
+                    <option value="Others">Others</option>
                 </select>
             </div>
-            
+
             <div class="form-group">
                 <label for="size">Size/Description *</label>
                 <input type="text" id="size" th:field="*{size}" placeholder="e.g., Large, 15-inch, A4" required>
             </div>
-            
+
             <div class="form-group">
                 <label for="quantity">Quantity *</label>
                 <input type="number" id="quantity" th:field="*{quantity}" min="0" required>
             </div>
-            
+
             <div class="form-group">
-                <label for="price">Price ($) *</label>
+                <label for="price">Selling Price (₹) *</label>
                 <input type="number" id="price" th:field="*{price}" min="0" step="0.01" required>
             </div>
-            
+
+            <div class="form-group">
+                <label for="actualPrice">Cost Price (₹)</label>
+                <input type="number" id="actualPrice" th:field="*{actualPrice}" min="0" step="0.01">
+            </div>
+
             <div class="form-group">
                 <label for="date">Date Added</label>
                 <input type="date" id="date" th:field="*{date}">
             </div>
-            
+
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Update Product</button>
                 <a th:href="@{/products}" class="btn btn-secondary">Cancel</a>
@@ -84,4 +164,5 @@
         </form>
     </div>
 </body>
+
 </html>

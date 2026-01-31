@@ -2,33 +2,57 @@ package com.example.demo.dto;
 
 public class ProductSalesRow {
     private Integer productId;
-    private String  productName;
-    private Long    qty;
-    private Double  net;
-    private Double  vat;
-    private Double  gross;
+    private String productName;
+    private java.time.LocalDate date;
+    private Long qty;
+    private Double totalRevenue; // Replacing net/gross for clarity
 
     // enriched
-    private Double  actualUnitCost;
-    private Double  profitLoss;
+    private Double actualUnitCost;
+    private Double profitLossAmount;
 
-    public ProductSalesRow(Integer productId, String productName, Long qty, Double net, Double vat, Double gross) {
-        this.productId = productId; this.productName = productName; this.qty = qty;
-        this.net = net; this.vat = vat; this.gross = gross;
+    public ProductSalesRow(Integer productId, String productName, java.time.LocalDate date, Long qty,
+            Double totalRevenue) {
+        this.productId = productId;
+        this.productName = productName;
+        this.date = date;
+        this.qty = qty;
+        this.totalRevenue = totalRevenue;
     }
 
-    public Integer getProductId() { return productId; }
-    public String  getProductName() { return productName; }
-    public Long    getQty() { return qty; }
-    public Double  getNet() { return net; }
-    public Double  getVat() { return vat; }
-    public Double  getGross() { return gross; }
+    public Integer getProductId() {
+        return productId;
+    }
 
-    public Double getActualUnitCost() { return actualUnitCost; }
-    public void setActualUnitCost(Double actualUnitCost) { this.actualUnitCost = actualUnitCost; }
+    public String getProductName() {
+        return productName;
+    }
 
-    public Double getProfitLoss() { return profitLoss; }
-    public void setProfitLoss(Double profitLoss) { this.profitLoss = profitLoss; }
+    public java.time.LocalDate getDate() {
+        return date;
+    }
+
+    public Long getQty() {
+        return qty;
+    }
+
+    public Double getTotalRevenue() {
+        return totalRevenue;
+    }
+
+    public Double getActualUnitCost() {
+        return actualUnitCost;
+    }
+
+    public void setActualUnitCost(Double actualUnitCost) {
+        this.actualUnitCost = actualUnitCost;
+    }
+
+    public Double getProfitLossAmount() {
+        return profitLossAmount;
+    }
+
+    public void setProfitLossAmount(Double profitLossAmount) {
+        this.profitLossAmount = profitLossAmount;
+    }
 }
-
-

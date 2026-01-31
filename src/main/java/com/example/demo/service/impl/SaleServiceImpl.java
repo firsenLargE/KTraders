@@ -10,17 +10,74 @@ import java.util.List;
 
 @Service
 public class SaleServiceImpl implements SaleService {
-    @Autowired private SaleRepository saleRepository;
-    public void addSale(Sale sale) { saleRepository.save(sale); }
-    public List<Sale> getAllSales() { return saleRepository.findAll(); }
-    public Sale getSaleById(Integer id) { return saleRepository.findById(id).orElse(null); }
-    public List<Sale> getRecentSales(int days) { return saleRepository.findRecentSales(LocalDate.now().minusDays(days)); }
+    @Autowired
+    private SaleRepository saleRepository;
+    @Autowired
+    private com.example.demo.service.ProductService productService;
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void addSale(Sale sale) {
+        // Reduce product stock when sale is added
+        com.example.demo.entity.Product product = sale.getProduct();
+        if (product != null) {
+            Integer currentStock = product.getQuantity() != null ? product.getQuantity() : 0;
+            product.setQuantity(Math.max(0, currentStock - sale.getQuantity()));
+            productService.updateProduct(product);
+        }
+        saleRepository.save(sale);
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void updateSale(Sale sale) {
+        Sale existingSale = saleRepository.findById(sale.getId()).orElse(null);
+        if (existingSale != null) {
+            com.example.demo.entity.Product product = sale.getProduct();
+            if (product != null) {
+                // Adjust stock based on difference
+                Integer qtyDiff = sale.getQuantity() - existingSale.getQuantity();
+                Integer currentStock = product.getQuantity() != null ? product.getQuantity() : 0;
+                product.setQuantity(Math.max(0, currentStock - qtyDiff));
+                productService.updateProduct(product);
+            }
+        }
+        saleRepository.save(sale);
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void deleteSale(Integer id) {
+        Sale sale = saleRepository.findById(id).orElse(null);
+        if (sale != null) {
+            // Restore product stock when sale is deleted
+            com.example.demo.entity.Product product = sale.getProduct();
+            if (product != null) {
+                Integer currentStock = product.getQuantity() != null ? product.getQuantity() : 0;
+                product.setQuantity(currentStock + sale.getQuantity());
+                productService.updateProduct(product);
+            }
+        }
+        saleRepository.deleteById(id);
+    }
+
+    public List<Sale> getAllSales() {
+        return saleRepository.findAll();
+    }
+
+    public Sale getSaleById(Integer id) {
+        return saleRepository.findById(id).orElse(null);
+    }
+
+    public List<Sale> getRecentSales(int days) {
+        return saleRepository.findRecentSales(LocalDate.now().minusDays(days));
+    }
+
     public List<Sale> getSalesByProductAndDateRange(Integer productId, LocalDate startDate, LocalDate endDate) {
         return saleRepository.findByProductAndDateRange(productId, startDate, endDate);
     }
+
     public Long getTotalSalesQuantityForProduct(Integer productId, LocalDate startDate, LocalDate endDate) {
         return saleRepository.sumQuantityByProductAndDateRange(productId, startDate, endDate).orElse(0L);
     }
 }
-
-
