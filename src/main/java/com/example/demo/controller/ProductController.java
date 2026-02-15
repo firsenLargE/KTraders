@@ -115,12 +115,49 @@ public class ProductController {
     }
 
     @PostMapping("/edit-product/{id}")
-    public String updateProduct(@PathVariable Integer id, @ModelAttribute Product product, RedirectAttributes ra,
+    public String updateProduct(@PathVariable Integer id, @ModelAttribute Product product,
+            @RequestParam("imageFile") MultipartFile imageFile, RedirectAttributes ra,
             HttpSession session) {
         if (session.getAttribute("validuser") == null)
             return "redirect:/";
         try {
             product.setId(id);
+
+            // Handle image update if a new file is provided
+            if (!imageFile.isEmpty()) {
+                // create per-date subfolder (YYYY/MM) - using current date for new upload
+                LocalDate d = LocalDate.now();
+                String year = String.valueOf(d.getYear());
+                String month = String.format("%02d", d.getMonthValue());
+                Path baseDir = Paths.get(uploadBaseDir);
+                Path targetDir = baseDir.resolve(year).resolve(month);
+                Files.createDirectories(targetDir);
+
+                // unique filename
+                String original = Paths.get(imageFile.getOriginalFilename()).getFileName().toString();
+                String fileName = System.currentTimeMillis() + "_" + original.replaceAll("[^A-Za-z0-9._-]", "_");
+                Path filePath = targetDir.resolve(fileName);
+                Files.copy(imageFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+                // generate thumbnail
+                try {
+                    Path thumbPath = targetDir.resolve("thumb_" + fileName);
+                    net.coobird.thumbnailator.Thumbnails.of(filePath.toFile())
+                            .size(thumbnailWidth, thumbnailHeight)
+                            .toFile(thumbPath.toFile());
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+
+                product.setImagePath("/uploads/" + year + "/" + month + "/" + fileName);
+            } else {
+                // Preserve existing image path if no new file uploaded
+                Product existingProduct = productService.getProductById(id);
+                if (existingProduct != null) {
+                    product.setImagePath(existingProduct.getImagePath());
+                }
+            }
+
             productService.updateProduct(product);
             ra.addFlashAttribute("success", "Updated successfully!");
         } catch (Exception e) {

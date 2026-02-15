@@ -14,6 +14,8 @@ public class SaleServiceImpl implements SaleService {
     private SaleRepository saleRepository;
     @Autowired
     private com.example.demo.service.ProductService productService;
+    @Autowired
+    private com.example.demo.service.CashLedgerService cashLedgerService;
 
     @Override
     @org.springframework.transaction.annotation.Transactional
@@ -26,6 +28,17 @@ public class SaleServiceImpl implements SaleService {
             productService.updateProduct(product);
         }
         saleRepository.save(sale);
+
+        // Record Cash Transaction
+        com.example.demo.entity.CashTransaction tx = new com.example.demo.entity.CashTransaction();
+        tx.setType(com.example.demo.entity.CashTransaction.Type.IN);
+        tx.setAmount(java.math.BigDecimal.valueOf(sale.getTotalPrice()));
+        tx.setPaymentMethod(com.example.demo.entity.CashTransaction.PaymentMethod.CASH);
+        tx.setReference("SALE:" + sale.getId());
+        tx.setCounterparty(sale.getCustomer() != null ? sale.getCustomer().getName() : "Walk-in Customer");
+        tx.setOccurredAt(sale.getDate() != null ? sale.getDate().atStartOfDay() : java.time.LocalDateTime.now());
+        tx.setNotes("Sale of " + (sale.getProduct() != null ? sale.getProduct().getName() : "Item"));
+        cashLedgerService.record(tx);
     }
 
     @Override
@@ -43,6 +56,19 @@ public class SaleServiceImpl implements SaleService {
             }
         }
         saleRepository.save(sale);
+
+        // Update Cash Transaction
+        cashLedgerService.deleteByReference("SALE:" + sale.getId());
+
+        com.example.demo.entity.CashTransaction tx = new com.example.demo.entity.CashTransaction();
+        tx.setType(com.example.demo.entity.CashTransaction.Type.IN);
+        tx.setAmount(java.math.BigDecimal.valueOf(sale.getTotalPrice()));
+        tx.setPaymentMethod(com.example.demo.entity.CashTransaction.PaymentMethod.CASH);
+        tx.setReference("SALE:" + sale.getId());
+        tx.setCounterparty(sale.getCustomer() != null ? sale.getCustomer().getName() : "Walk-in Customer");
+        tx.setOccurredAt(sale.getDate() != null ? sale.getDate().atStartOfDay() : java.time.LocalDateTime.now());
+        tx.setNotes("Sale of " + (sale.getProduct() != null ? sale.getProduct().getName() : "Item"));
+        cashLedgerService.record(tx);
     }
 
     @Override
@@ -58,6 +84,7 @@ public class SaleServiceImpl implements SaleService {
                 productService.updateProduct(product);
             }
         }
+        cashLedgerService.deleteByReference("SALE:" + id);
         saleRepository.deleteById(id);
     }
 

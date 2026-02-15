@@ -21,6 +21,9 @@ public class PurchaseServiceImpl implements PurchaseService {
     @Autowired
     private ProductService productService;
 
+    @Autowired
+    private com.example.demo.service.CashLedgerService cashLedgerService;
+
     @Override
     @Transactional
     public void addPurchase(Purchase purchase) {
@@ -38,6 +41,18 @@ public class PurchaseServiceImpl implements PurchaseService {
             productService.updateProduct(product);
         }
         purchaseRepository.save(purchase);
+
+        // Record Cash Transaction (OUT)
+        com.example.demo.entity.CashTransaction tx = new com.example.demo.entity.CashTransaction();
+        tx.setType(com.example.demo.entity.CashTransaction.Type.OUT);
+        tx.setAmount(purchase.getTotalCost());
+        tx.setPaymentMethod(com.example.demo.entity.CashTransaction.PaymentMethod.CASH);
+        tx.setReference("PURCHASE:" + purchase.getId());
+        tx.setCounterparty(purchase.getSupplier());
+        tx.setOccurredAt(purchase.getPurchaseDate() != null ? purchase.getPurchaseDate().atStartOfDay()
+                : java.time.LocalDateTime.now());
+        tx.setNotes("Purchase: " + purchase.getInvoiceNumber());
+        cashLedgerService.record(tx);
     }
 
     @Override
@@ -51,6 +66,7 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
 
     @Override
+
     @Transactional
     public void updatePurchase(Purchase purchase) {
         Purchase existingPurchase = purchaseRepository.findById(purchase.getId()).orElse(null);
@@ -76,6 +92,20 @@ public class PurchaseServiceImpl implements PurchaseService {
             }
         }
         purchaseRepository.save(purchase);
+
+        // Update Cash Transaction (OUT)
+        cashLedgerService.deleteByReference("PURCHASE:" + purchase.getId());
+
+        com.example.demo.entity.CashTransaction tx = new com.example.demo.entity.CashTransaction();
+        tx.setType(com.example.demo.entity.CashTransaction.Type.OUT);
+        tx.setAmount(purchase.getTotalCost());
+        tx.setPaymentMethod(com.example.demo.entity.CashTransaction.PaymentMethod.CASH);
+        tx.setReference("PURCHASE:" + purchase.getId());
+        tx.setCounterparty(purchase.getSupplier());
+        tx.setOccurredAt(purchase.getPurchaseDate() != null ? purchase.getPurchaseDate().atStartOfDay()
+                : java.time.LocalDateTime.now());
+        tx.setNotes("Purchase: " + purchase.getInvoiceNumber());
+        cashLedgerService.record(tx);
     }
 
     @Override
@@ -91,6 +121,7 @@ public class PurchaseServiceImpl implements PurchaseService {
                 productService.updateProduct(product);
             }
         }
+        cashLedgerService.deleteByReference("PURCHASE:" + id);
         purchaseRepository.deleteById(id);
     }
 

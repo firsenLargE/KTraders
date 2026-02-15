@@ -12,7 +12,11 @@ import java.util.*;
 @Service
 public class CashLedgerService {
     private final CashTransactionRepository repo;
-    @Autowired CashLedgerService(CashTransactionRepository repo) { this.repo = repo; }
+
+    @Autowired
+    CashLedgerService(CashTransactionRepository repo) {
+        this.repo = repo;
+    }
 
     public static class Result {
         public List<CashTransaction> rows;
@@ -27,34 +31,41 @@ public class CashLedgerService {
         return repo.findByOccurredAtBetween(from.atStartOfDay(), to.plusDays(1).atStartOfDay());
     }
 
-    public CashTransaction record(CashTransaction tx) { return repo.save(tx); }
+    public CashTransaction record(CashTransaction tx) {
+        return repo.save(tx);
+    }
+
+    @Transactional
+    public void deleteByReference(String reference) {
+        repo.deleteByReference(reference);
+    }
 
     @Transactional(readOnly = true)
     public Result view(LocalDate from, LocalDate to,
-                Set<CashTransaction.Type> types,
-                Set<CashTransaction.PaymentMethod> methods,
-                Boolean settledOnly) {
+            Set<CashTransaction.Type> types,
+            Set<CashTransaction.PaymentMethod> methods,
+            Boolean settledOnly) {
         List<CashTransaction> all = repo.findByOccurredAtBetween(from.atStartOfDay(), to.plusDays(1).atStartOfDay());
         List<CashTransaction> filtered = all.stream()
-            .filter(tx -> types==null || types.isEmpty() || types.contains(tx.getType()))
-            .filter(tx -> methods==null || methods.isEmpty() || methods.contains(tx.getPaymentMethod()))
-            .filter(tx -> settledOnly==null || (tx.isSettled()==settledOnly))
-            .sorted((a,b) -> a.getOccurredAt().compareTo(b.getOccurredAt()))
-            .toList();
+                .filter(tx -> types == null || types.isEmpty() || types.contains(tx.getType()))
+                .filter(tx -> methods == null || methods.isEmpty() || methods.contains(tx.getPaymentMethod()))
+                .filter(tx -> settledOnly == null || (tx.isSettled() == settledOnly))
+                .sorted((a, b) -> a.getOccurredAt().compareTo(b.getOccurredAt()))
+                .toList();
 
-        BigDecimal in  = filtered.stream().filter(tx -> tx.getType()==CashTransaction.Type.IN)
-            .map(CashTransaction::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal out = filtered.stream().filter(tx -> tx.getType()==CashTransaction.Type.OUT)
-            .map(CashTransaction::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal in = filtered.stream().filter(tx -> tx.getType() == CashTransaction.Type.IN)
+                .map(CashTransaction::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal out = filtered.stream().filter(tx -> tx.getType() == CashTransaction.Type.OUT)
+                .map(CashTransaction::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         Map<CashTransaction.PaymentMethod, BigDecimal> byMethod = new HashMap<>();
-        for (CashTransaction tx: filtered) {
+        for (CashTransaction tx : filtered) {
             byMethod.merge(tx.getPaymentMethod(), tx.getAmount(), BigDecimal::add);
         }
 
         BigDecimal remaining = filtered.stream()
-            .filter(tx -> tx.getPaymentMethod()==CashTransaction.PaymentMethod.CREDIT && !tx.isSettled())
-            .map(CashTransaction::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+                .filter(tx -> tx.getPaymentMethod() == CashTransaction.PaymentMethod.CREDIT && !tx.isSettled())
+                .map(CashTransaction::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         Result r = new Result();
         r.rows = filtered;
@@ -66,5 +77,3 @@ public class CashLedgerService {
         return r;
     }
 }
-
-

@@ -12,31 +12,36 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.time.LocalDate;
 import java.util.*;
 
-@Controller @RequestMapping("/reports/cash")
+@Controller
+@RequestMapping("/reports/cash")
 public class CashLedgerController {
     private final CashLedgerService ledger;
-    @Autowired CashLedgerController(CashLedgerService ledger) { this.ledger = ledger; }
+
+    @Autowired
+    CashLedgerController(CashLedgerService ledger) {
+        this.ledger = ledger;
+    }
 
     @GetMapping
-    public String view(@RequestParam(required=false) @DateTimeFormat(iso=DateTimeFormat.ISO.DATE) LocalDate from,
-                       @RequestParam(required=false) @DateTimeFormat(iso=DateTimeFormat.ISO.DATE) LocalDate to,
-                       @RequestParam(required=false) String type,
-                       @RequestParam(required=false) String method,
-                       @RequestParam(required=false) Boolean settled,
-                       Model model) {
+    public String view(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String method,
+            @RequestParam(required = false) Boolean settled,
+            Model model) {
 
-        LocalDate start = (from!=null) ? from : LocalDate.now().withDayOfMonth(1);
-        LocalDate end   = (to  !=null) ? to   : LocalDate.now();
+        LocalDate start = (from != null) ? from : LocalDate.now().withDayOfMonth(1);
+        LocalDate end = (to != null) ? to : LocalDate.now();
 
         Set<CashTransaction.Type> types = new HashSet<>();
-        if (type==null || type.isBlank() || "ALL".equalsIgnoreCase(type)) {
+        if (type == null || type.isBlank() || "ALL".equalsIgnoreCase(type)) {
             types = Set.of(CashTransaction.Type.IN, CashTransaction.Type.OUT);
         } else {
             types.add(CashTransaction.Type.valueOf(type.toUpperCase(Locale.ROOT)));
         }
 
         Set<CashTransaction.PaymentMethod> methods = new HashSet<>();
-        if (method!=null && !method.isBlank()) {
+        if (method != null && !method.isBlank()) {
             for (String m : method.split(",")) {
                 methods.add(CashTransaction.PaymentMethod.valueOf(m.trim().toUpperCase(Locale.ROOT)));
             }
@@ -44,19 +49,17 @@ public class CashLedgerController {
 
         CashLedgerService.Result r = ledger.view(start, end, types, methods, settled);
         model.addAttribute("rows", r.rows);
-        model.addAttribute("totalIn",  r.totalIn);
+        model.addAttribute("totalIn", r.totalIn);
         model.addAttribute("totalOut", r.totalOut);
-        model.addAttribute("net",      r.net);
+        model.addAttribute("net", r.net);
         model.addAttribute("totalsByMethod", r.totalsByMethod);
         model.addAttribute("remaining", r.remaining);
 
         model.addAttribute("from", start);
         model.addAttribute("to", end);
-        model.addAttribute("type", type==null ? "ALL" : type.toUpperCase(Locale.ROOT));
-        model.addAttribute("methodCsv", method==null ? "" : method);
+        model.addAttribute("type", type == null ? "ALL" : type.toUpperCase(Locale.ROOT));
+        model.addAttribute("methodCsv", method == null ? "" : method);
         model.addAttribute("settled", settled);
         return "cash_ledger";
     }
 }
-
-

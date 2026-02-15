@@ -7,6 +7,8 @@ import java.util.List;
 
 public interface CashTransactionRepository extends JpaRepository<CashTransaction, Long> {
     List<CashTransaction> findByOccurredAtBetween(LocalDateTime start, LocalDateTime end);
+
+    void deleteByReference(String reference);
+
+    boolean existsByReference(String reference);
 }
-
-
