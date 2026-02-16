@@ -8,10 +8,40 @@
     <div th:replace="~{fragments :: navbar}"></div>
 
     <div class="card shadow-sm mb-4">
+      <div class="card-body p-4">
+        <form th:action="@{/reports/sales/monthly}" method="get" class="row g-3 align-items-end">
+          <div class="col-md-3">
+            <label class="form-label small fw-bold text-secondary">Start Date</label>
+            <input type="date" name="startDate" th:value="${startDate}" class="form-control">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small fw-bold text-secondary">End Date</label>
+            <input type="date" name="endDate" th:value="${endDate}" class="form-control">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small fw-bold text-secondary">Customer</label>
+            <select name="customerId" class="form-select">
+              <option value="">All Customers</option>
+              <option th:each="c : ${customers}" th:value="${c.id}" th:text="${c.name}"
+                th:selected="${c.id == customerId}"></option>
+            </select>
+          </div>
+          <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-dark flex-grow-1">
+              <i class="bi bi-filter me-2"></i>Apply Filters
+            </button>
+            <a th:href="@{/reports/sales/monthly}" class="btn btn-outline-secondary">Reset</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
       <div class="card-body d-flex align-items-center justify-content-between p-4 flex-wrap gap-3">
         <div>
-          <h4 class="mb-1 fw-bold" th:text="'Monthly Performance - ' + ${ym}">Monthly Sales</h4>
-          <div class="text-secondary small">Analysis of daily sales and profit trends</div>
+          <h4 class="mb-1 fw-bold" th:text="${ym != null} ? 'Performance - ' + ${ym} : 'Sales Performance'">Monthly
+            Performance</h4>
+          <div class="text-secondary small">Analysis of daily sales and earnings trends</div>
         </div>
         <div class="d-flex gap-2">
           <div class="stat-pill">
@@ -20,13 +50,13 @@
               ₹0.00</div>
           </div>
           <div class="stat-pill border-start ps-3">
-            <div class="small text-secondary">Monthly P/L</div>
+            <div class="small text-secondary">Net Earnings</div>
             <div class="fw-bold fs-5" th:classappend="${totalPL >= 0 ? 'text-success' : 'text-danger'}"
               th:text="'₹' + ${#numbers.formatDecimal(totalPL, 1, 'COMMA', 2, 'POINT')}">₹0.00</div>
           </div>
-          <a th:href="@{'/reports/sales/monthly.pdf'(year=${ym.year}, month=${ym.monthValue})}"
+          <a th:href="@{/reports/sales/monthly.pdf(year=${ym != null ? ym.year : null}, month=${ym != null ? ym.monthValue : null}, startDate=${startDate}, endDate=${endDate}, customerId=${customerId})}"
             class="btn btn-primary d-flex align-items-center">
-            <i class="bi bi-file-earmark-pdf me-2"></i>PDF
+            <i class="bi bi-file-earmark-pdf me-2"></i>Download Report
           </a>
         </div>
       </div>
@@ -34,34 +64,40 @@
 
     <div class="card shadow-sm border-0 overflow-hidden">
       <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0" id="salesTable">
           <thead class="bg-light">
             <tr>
-              <th class="ps-4">Transaction Date</th>
-              <th>Product Details</th>
+              <th class="ps-4 cursor-pointer" onclick="sortTable(0)">Date <i class="bi bi-arrow-down-up small ms-1"></i>
+              </th>
+              <th class="cursor-pointer" onclick="sortTable(1)">Customer <i class="bi bi-arrow-down-up small ms-1"></i>
+              </th>
+              <th class="cursor-pointer" onclick="sortTable(2)">Product <i class="bi bi-arrow-down-up small ms-1"></i>
+              </th>
               <th class="text-center">Qty</th>
-              <th class="text-center">Result</th>
-              <th class="text-end pe-4">Profit / Loss</th>
+              <th class="text-center">Status</th>
+              <th class="text-end pe-4 cursor-pointer" onclick="sortTable(5)">Net Result <i
+                  class="bi bi-arrow-down-up small ms-1"></i></th>
             </tr>
           </thead>
           <tbody>
             <tr th:each="r : ${rows}">
               <td class="ps-4 fw-medium text-dark" th:text="${r.date}">2026-01-01</td>
+              <td th:text="${r.customerName != null ? r.customerName : 'Walk-in'}">Customer</td>
               <td>
                 <div class="fw-semibold" th:text="${r.productName}">Product</div>
                 <div class="text-secondary smaller"
-                  th:text="'Rev: ₹' + ${#numbers.formatDecimal(r.totalRevenue, 1, 'COMMA', 2, 'POINT')}">Rev: ₹0.00
+                  th:text="'Sales: ₹' + ${#numbers.formatDecimal(r.totalRevenue, 1, 'COMMA', 2, 'POINT')}">Rev: ₹0.00
                 </div>
               </td>
               <td class="text-center fw-medium" th:text="${r.qty}">0</td>
               <td class="text-center">
                 <span th:if="${r.profitLossAmount >= 0}"
                   class="badge text-bg-success-subtle border border-success-subtle text-success rounded-pill px-3">
-                  Profit
+                  Gain
                 </span>
                 <span th:if="${r.profitLossAmount < 0}"
                   class="badge text-bg-danger-subtle border border-danger-subtle text-danger rounded-pill px-3">
-                  Loss
+                  Shortfall
                 </span>
               </td>
               <td class="text-end pe-4 fw-bold"
@@ -71,7 +107,7 @@
           </tbody>
           <tfoot class="bg-light-subtle border-top mt-2">
             <tr>
-              <td colspan="2" class="ps-4 fw-bold py-3">MONTHLY CUMULATIVE</td>
+              <td colspan="3" class="ps-4 fw-bold py-3">TOTAL CUMULATIVE</td>
               <td class="text-center fw-bold" th:text="${totalQty}">0</td>
               <td></td>
               <td class="text-end pe-4 fw-bold fs-5" th:classappend="${totalPL >= 0 ? 'text-success' : 'text-danger'}"
@@ -91,10 +127,63 @@
     .smaller {
       font-size: 0.75rem;
     }
+
+    .cursor-pointer {
+      cursor: pointer;
+    }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <div th:replace="~{fragments :: theme_script}"></div>
+
+  <script>
+    function sortTable(n) {
+      var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+      table = document.getElementById("salesTable");
+      switching = true;
+      dir = "asc";
+      while (switching) {
+        switching = false;
+        rows = table.rows;
+        for (i = 1; i < (rows.length - 2); i++) { // -2 to skip footer
+          shouldSwitch = false;
+          x = rows[i].getElementsByTagName("TD")[n];
+          y = rows[i + 1].getElementsByTagName("TD")[n];
+
+          let xValue = x.textContent || x.innerText;
+          let yValue = y.textContent || y.innerText;
+
+          // Try to parse values as currency/number if possible
+          if (n === 5) { // Net Result column
+            xValue = parseFloat(xValue.replace(/₹|,/g, ''));
+            yValue = parseFloat(yValue.replace(/₹|,/g, ''));
+          }
+
+          if (dir == "asc") {
+            if (xValue > yValue) {
+              shouldSwitch = true;
+              break;
+            }
+          } else if (dir == "desc") {
+            if (xValue < yValue) {
+              shouldSwitch = true;
+              break;
+            }
+          }
+        }
+        if (shouldSwitch) {
+          rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+          switching = true;
+          switchcount++;
+        } else {
+          if (switchcount == 0 && dir == "asc") {
+            dir = "desc";
+            switching = true;
+          }
+        }
+      }
+    }
+  </script>
 </body>
 
 </html>

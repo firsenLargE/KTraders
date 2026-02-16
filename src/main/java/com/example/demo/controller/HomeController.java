@@ -91,7 +91,19 @@ public class HomeController {
     @PostMapping("/login")
     public String postLogin(@ModelAttribute User user, Model model, HttpSession session) {
         try {
+            System.out.println("=== LOGIN ATTEMPT ===");
+            System.out.println("Email received: [" + user.getEmail() + "]");
+            System.out.println("Password received: [" + user.getPassword() + "]");
+            System.out.println("Email lowercase: [" + user.getEmail().toLowerCase() + "]");
+
             User usr = userService.login(user.getEmail().toLowerCase(), user.getPassword());
+
+            System.out.println("User found: " + (usr != null));
+            if (usr != null) {
+                System.out.println("User ID: " + usr.getId());
+                System.out.println("User name: " + usr.getUname());
+            }
+
             if (usr != null) {
                 session.setAttribute("validuser", usr);
                 session.setMaxInactiveInterval(3600);
@@ -102,6 +114,8 @@ public class HomeController {
                 return "index";
             }
         } catch (Exception e) {
+            System.out.println("Login exception: " + e.getMessage());
+            e.printStackTrace();
             model.addAttribute("error", "Login failed: " + e.getMessage());
             return "index";
         }

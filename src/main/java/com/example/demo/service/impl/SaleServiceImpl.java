@@ -25,6 +25,12 @@ public class SaleServiceImpl implements SaleService {
         if (product != null) {
             Integer currentStock = product.getQuantity() != null ? product.getQuantity() : 0;
             product.setQuantity(Math.max(0, currentStock - sale.getQuantity()));
+
+            // Snapshot the cost price
+            if (sale.getUnitCostPrice() == null) {
+                sale.setUnitCostPrice(product.getActualPrice());
+            }
+
             productService.updateProduct(product);
         }
         saleRepository.save(sale);
@@ -52,6 +58,12 @@ public class SaleServiceImpl implements SaleService {
                 Integer qtyDiff = sale.getQuantity() - existingSale.getQuantity();
                 Integer currentStock = product.getQuantity() != null ? product.getQuantity() : 0;
                 product.setQuantity(Math.max(0, currentStock - qtyDiff));
+
+                // If product changed or cost pricing was null, re-snapshot
+                if (sale.getUnitCostPrice() == null) {
+                    sale.setUnitCostPrice(product.getActualPrice());
+                }
+
                 productService.updateProduct(product);
             }
         }

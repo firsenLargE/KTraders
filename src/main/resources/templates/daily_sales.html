@@ -26,8 +26,8 @@
             <tr>
               <th class="ps-4">Product Name</th>
               <th class="text-center">Qty</th>
-              <th class="text-center">Profit / Loss</th>
-              <th class="text-end pe-4">P/L Amount</th>
+              <th class="text-center">Result</th>
+              <th class="text-end pe-4">Gain / Shortfall</th>
             </tr>
           </thead>
           <tbody>
@@ -39,12 +39,12 @@
               <td class="text-center fw-medium" th:text="${r.qty}">0</td>
               <td class="text-center">
                 <span th:if="${r.profitLossAmount >= 0}"
-                  class="badge text-bg-success-subtle border border-success-subtle text-success">
-                  <i class="bi bi-graph-up-arrow me-1"></i>Profit
+                  class="badge text-bg-success-subtle border border-success-subtle text-success rounded-pill px-3">
+                  Gain
                 </span>
                 <span th:if="${r.profitLossAmount < 0}"
-                  class="badge text-bg-danger-subtle border border-danger-subtle text-danger">
-                  <i class="bi bi-graph-down-arrow me-1"></i>Loss
+                  class="badge text-bg-danger-subtle border border-danger-subtle text-danger rounded-pill px-3">
+                  Shortfall
                 </span>
               </td>
               <td class="text-end pe-4 fw-bold"

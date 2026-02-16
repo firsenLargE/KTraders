@@ -14,11 +14,9 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         if (userRepository.count() == 0) {
-            User adminUser = new User("admin", "admin@kapiltraders.com", "admin123");
+            User adminUser = new User("admin", "admin@kapiltraders.com", "kapil@123");
             userRepository.save(adminUser);
-            System.out.println("Created default admin user: admin@kapiltraders.com / admin123");
+            System.out.println("Created default admin user: admin@kapiltraders.com / kapil@123");
         }
     }
 }
-
-

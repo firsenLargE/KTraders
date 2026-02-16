@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: common_head('Database Backup')}"></head>
+
+<body>
+    <div class="container-xxl py-4">
+        <div th:replace="~{fragments :: navbar}"></div>
+
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="page-head">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-success bg-opacity-10 text-success rounded-3 p-2">
+                                <i class="bi bi-shield-check fs-4"></i>
+                            </div>
+                            <div>
+                                <h1 class="h4 mb-0 fw-bold">Database Backup & Restore</h1>
+                                <div class="text-secondary small">Protect your business data with automated backups
+                                </div>
+                            </div>
+                        </div>
+                        <form th:action="@{/admin/backup/create}" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-plus-circle me-1"></i>Create Backup Now
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flash Messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i><span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i><span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Backup Info Card -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="icon-wrap" style="background:rgba(25,135,84,.12); color:#198754;">
+                                <i class="bi bi-clock-history"></i>
+                            </div>
+                            <div>
+                                <div class="stat-number">2:00 AM</div>
+                                <div class="muted">Auto Backup Time</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="icon-wrap" style="background:rgba(13,110,253,.12); color:#0d6efd;">
+                                <i class="bi bi-calendar-check"></i>
+                            </div>
+                            <div>
+                                <div class="stat-number">30 Days</div>
+                                <div class="muted">Retention Period</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="icon-wrap" style="background:rgba(220,53,69,.12); color:#dc3545;">
+                                <i class="bi bi-database"></i>
+                            </div>
+                            <div>
+                                <div class="stat-number" th:text="${#lists.size(backups)}">0</div>
+                                <div class="muted">Available Backups</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Backup History -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="bi bi-archive me-2"></i>Backup History
+                </h5>
+
+                <div th:if="${#lists.isEmpty(backups)}" class="text-center py-5">
+                    <i class="bi bi-inbox fs-1 text-secondary mb-3"></i>
+                    <p class="text-secondary">No backups found. Create your first backup to get started.</p>
+                </div>
+
+                <div th:unless="${#lists.isEmpty(backups)}" class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th><i class="bi bi-file-earmark-zip me-1"></i>Filename</th>
+                                <th><i class="bi bi-hdd me-1"></i>Size</th>
+                                <th><i class="bi bi-calendar me-1"></i>Created</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="backup : ${backups}">
+                                <td>
+                                    <span class="fw-semibold" th:text="${backup.filename}">backup.sql</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border" th:text="${backup.formattedSize}">0
+                                        KB</span>
+                                </td>
+                                <td>
+                                    <span
+                                        th:text="${#temporals.format(T(java.time.Instant).ofEpochMilli(backup.timestamp), 'MMM dd, yyyy HH:mm')}">
+                                        Date
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <a th:href="@{/admin/backup/download/{filename}(filename=${backup.filename})}"
+                                        class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-download me-1"></i>Download
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Section -->
+        <div class="card mt-4 border-info">
+            <div class="card-body">
+                <h6 class="card-title text-info">
+                    <i class="bi bi-info-circle me-2"></i>Backup Information
+                </h6>
+                <ul class="mb-0 small">
+                    <li><strong>Automated Backups:</strong> The system automatically creates backups every day at 2:00
+                        AM</li>
+                    <li><strong>Retention:</strong> Backups older than 30 days are automatically deleted to save space
+                    </li>
+                    <li><strong>Manual Backups:</strong> You can create additional backups anytime using the "Create
+                        Backup Now" button</li>
+                    <li><strong>Storage:</strong> All backups are stored in the <code>./backups</code> directory</li>
+                    <li><strong>Restore:</strong> To restore a backup, download the SQL file and use PostgreSQL's
+                        <code>psql</code> command</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <div th:replace="~{fragments :: theme_script}"></div>
+</body>
+
+</html>
