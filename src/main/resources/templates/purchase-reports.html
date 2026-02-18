@@ -299,67 +299,90 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="card h-100">
-                                    <div class="card-body text-center">
+                        <div class="row g-4">
+                            <!-- Daily Report -->
+                            <div class="col-md-4">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body text-center p-4">
+                                        <div class="icon-wrap mx-auto mb-3"
+                                            style="width: 60px; height: 60px; background: linear-gradient(135deg, #6c757d, #adb5bd);">
+                                            <i class="bi bi-calendar-event fs-3 text-white"></i>
+                                        </div>
+                                        <h5 class="fw-bold">Daily Report</h5>
+                                        <p class="text-muted small">Detailed purchase analysis for a specific day</p>
+                                        <form th:action="@{/purchases/reports/daily}" method="get">
+                                            <div class="mb-3">
+                                                <input type="date" name="date" class="form-control"
+                                                    th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}"
+                                                    required>
+                                            </div>
+                                            <button type="submit" class="btn btn-secondary w-100 rounded-pill">
+                                                <i class="bi bi-eye me-1"></i>View Daily
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Yearly Report -->
+                            <div class="col-md-4">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body text-center p-4">
                                         <div class="icon-wrap mx-auto mb-3"
                                             style="width: 60px; height: 60px; background: linear-gradient(135deg, #0d6efd, #6ea8fe);">
                                             <i class="bi bi-calendar-year fs-3 text-white"></i>
                                         </div>
-                                        <h5>Yearly Report</h5>
-                                        <p class="text-muted">View all purchases for a specific year</p>
+                                        <h5 class="fw-bold">Yearly Report</h5>
+                                        <p class="text-muted small">View all purchases for a specific fiscal year</p>
                                         <form th:action="@{/purchases/reports/yearly}" method="get">
                                             <div class="mb-3">
                                                 <select name="year" class="form-select" required>
                                                     <option value="">Select Year</option>
                                                     <option
                                                         th:each="year : ${#numbers.sequence(currentYear-5, currentYear+1)}"
-                                                        th:value="${year}" th:text="${year}"></option>
+                                                        th:value="${year}" th:text="${year}"
+                                                        th:selected="${year == currentYear}"></option>
                                                 </select>
                                             </div>
-                                            <button type="submit" class="btn btn-primary">
-                                                <i class="bi bi-eye me-1"></i>View Report
+                                            <button type="submit" class="btn btn-primary w-100 rounded-pill">
+                                                <i class="bi bi-eye me-1"></i>View Yearly
                                             </button>
                                         </form>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="card h-100">
-                                    <div class="card-body text-center">
+
+                            <!-- Monthly Report -->
+                            <div class="col-md-4">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body text-center p-4">
                                         <div class="icon-wrap mx-auto mb-3"
                                             style="width: 60px; height: 60px; background: linear-gradient(135deg, #198754, #20c997);">
                                             <i class="bi bi-calendar-month fs-3 text-white"></i>
                                         </div>
-                                        <h5>Monthly Report</h5>
-                                        <p class="text-muted">View all purchases for a specific month</p>
+                                        <h5 class="fw-bold">Monthly Report</h5>
+                                        <p class="text-muted small">View all purchases for a specific month</p>
                                         <form th:action="@{/purchases/reports/monthly}" method="get">
-                                            <div class="mb-3">
-                                                <select name="year" class="form-select mb-2" required>
-                                                    <option value="">Select Year</option>
-                                                    <option
-                                                        th:each="year : ${#numbers.sequence(currentYear-5, currentYear+1)}"
-                                                        th:value="${year}" th:text="${year}"></option>
-                                                </select>
-                                                <select name="month" class="form-select" required>
-                                                    <option value="">Select Month</option>
-                                                    <option value="1">January</option>
-                                                    <option value="2">February</option>
-                                                    <option value="3">March</option>
-                                                    <option value="4">April</option>
-                                                    <option value="5">May</option>
-                                                    <option value="6">June</option>
-                                                    <option value="7">July</option>
-                                                    <option value="8">August</option>
-                                                    <option value="9">September</option>
-                                                    <option value="10">October</option>
-                                                    <option value="11">November</option>
-                                                    <option value="12">December</option>
-                                                </select>
+                                            <div class="row g-2 mb-3">
+                                                <div class="col-6">
+                                                    <select name="year" class="form-select" required>
+                                                        <option
+                                                            th:each="year : ${#numbers.sequence(currentYear-5, currentYear+1)}"
+                                                            th:value="${year}" th:text="${year}"
+                                                            th:selected="${year == currentYear}"></option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-6">
+                                                    <select name="month" class="form-select" required>
+                                                        <option th:each="m : ${#numbers.sequence(1, 12)}"
+                                                            th:value="${m}"
+                                                            th:text="${#temporals.format(#temporals.createNow().withMonth(m), 'MMM')}"
+                                                            th:selected="${m == currentMonth}"></option>
+                                                    </select>
+                                                </div>
                                             </div>
-                                            <button type="submit" class="btn btn-success">
-                                                <i class="bi bi-eye me-1"></i>View Report
+                                            <button type="submit" class="btn btn-success w-100 rounded-pill">
+                                                <i class="bi bi-eye me-1"></i>View Monthly
                                             </button>
                                         </form>
                                     </div>

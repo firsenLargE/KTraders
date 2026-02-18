@@ -148,16 +148,16 @@
                     </div>
                     <div class="card-body p-4">
                         <div class="d-flex flex-wrap gap-2">
-                            <div th:each="supplier : ${distinctSuppliers}"
+                            <div th:each="sup : ${distinctSuppliers}"
                                 class="bg-light rounded-4 p-3 flex-fill text-center border">
-                                <div class="fw-bold text-uppercase extra-small text-secondary mb-1"
-                                    th:text="${supplier}"></div>
-                                <div class="h5 mb-0 fw-bold" th:with="sp=${purchases.?[supplier == __${supplier}__]}">
-                                    ₹[[${#numbers.formatDecimal(#aggregates.sum(sp.![totalCost != null ? totalCost :
-                                    0]), 1, 'COMMA', 2, 'POINT')}]]
+                                <div class="fw-bold text-uppercase extra-small text-secondary mb-1" th:text="${sup}">
+                                </div>
+                                <div class="h5 mb-0 fw-bold" th:with="sp=${purchases.?[supplier == #root.sup]}">
+                                    ₹[[${#numbers.formatDecimal(#aggregates.sum(sp.![totalCost]) ?: 0, 1, 'COMMA', 2,
+                                    'POINT')}]]
                                 </div>
                                 <div class="extra-small opacity-50">Orders: [[${purchases.?[supplier ==
-                                    __${supplier}__].size()}]]</div>
+                                    #root.sup].size()}]]</div>
                             </div>
                         </div>
                     </div>

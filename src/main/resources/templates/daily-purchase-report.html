@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: common_head('Daily Purchase Report')}"></head>
+
+<body>
+    <div class="container-xxl py-4">
+        <div th:replace="~{fragments :: navbar}"></div>
+
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="page-head no-print">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-2">
+                                <i class="bi bi-calendar-event fs-4"></i>
+                            </div>
+                            <div>
+                                <h1 class="h4 mb-0 fw-bold">Daily Purchase Report</h1>
+                                <div class="text-secondary small">Operational Procurement for
+                                    [[${#temporals.format(date, 'dd MMM, yyyy')}]]</div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a th:href="@{/purchases/reports}" class="btn btn-light btn-sm rounded-pill px-3 shadow-sm">
+                                <i class="bi bi-arrow-left me-1"></i> Back
+                            </a>
+                            <button onclick="window.print()" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm">
+                                <i class="bi bi-printer me-1"></i> Print
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Summary -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="card border-0 h-100">
+                    <div class="card-body p-4 text-center">
+                        <div class="text-uppercase-header extra-small mb-2 opacity-50">Transactions</div>
+                        <div class="h2 mb-0 fw-bold" th:text="${purchases.size()}">0</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 h-100 bg-dark text-white shadow-lg">
+                    <div class="card-body p-4 text-center">
+                        <div class="text-uppercase-header extra-small mb-2 opacity-50">Total Outlay</div>
+                        <div class="h2 mb-0 fw-bold">₹[[${#numbers.formatDecimal(total, 1, 'COMMA', 2, 'POINT')}]]</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction Ledger -->
+        <div class="card border-0 mb-4 overflow-hidden">
+            <div class="card-header bg-white border-0 py-4 px-4">
+                <h6 class="mb-0 fw-bold">Daily Procurement History</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light bg-opacity-50">
+                        <tr>
+                            <th class="ps-4 py-3 text-uppercase-header">ID</th>
+                            <th class="py-3 text-uppercase-header">Item Description</th>
+                            <th class="py-3 text-uppercase-header text-center">Supplier</th>
+                            <th class="py-3 text-uppercase-header text-center">Volume</th>
+                            <th class="py-3 text-uppercase-header text-end pe-4">Total Disbursement</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="p : ${purchases}">
+                            <td class="ps-4 small text-secondary">#[[${p.id}]]</td>
+                            <td>
+                                <div class="fw-bold product-name text-uppercase" th:text="${p.product.name}"></div>
+                                <div class="extra-small text-secondary opacity-50"
+                                    th:text="'Rate: ₹' + ${#numbers.formatDecimal(p.unitCost, 1, 2)}"></div>
+                            </td>
+                            <td class="text-center">
+                                <span
+                                    class="badge bg-light text-dark rounded-pill border text-uppercase px-3">[[${p.supplier}]]</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="fw-bold">[[${p.quantity}]]</span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <span class="fw-bold text-primary">₹[[${#numbers.formatDecimal(p.totalCost, 1, 'COMMA',
+                                    2, 'POINT')}]]</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${purchases.empty}">
+                            <td colspan="5" class="py-5 text-center text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-3 opacity-25"></i>
+                                No procurement data recorded for this date.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div th:replace="~{fragments :: theme_script}"></div>
+</body>
+
+</html>

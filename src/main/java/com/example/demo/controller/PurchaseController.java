@@ -236,4 +236,21 @@ public class PurchaseController {
         return "monthly-purchase-report";
     }
 
+    @GetMapping("/reports/daily")
+    public String dailyReport(
+            @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate date,
+            Model model) {
+
+        List<Purchase> purchases = purchaseService.getPurchasesByDateRange(date, date);
+        BigDecimal total = purchases.stream()
+                .map(p -> p.getTotalCost() != null ? p.getTotalCost() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        model.addAttribute("purchases", purchases);
+        model.addAttribute("total", total);
+        model.addAttribute("date", date);
+
+        return "daily-purchase-report";
+    }
+
 }

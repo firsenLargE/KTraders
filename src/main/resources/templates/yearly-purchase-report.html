@@ -135,11 +135,10 @@
                                     <div class="fw-bold text-uppercase extra-small text-secondary mb-2"
                                         th:text="${#temporals.format(#temporals.createNow().withMonth(month), 'MMMM')}">
                                         Jan</div>
-                                    <div
-                                        th:with="monthPurchases=${purchases.?[#temporals.monthValue(purchaseDate) == __${month}__]}">
+                                    <div th:with="monthPurchases=${purchases.?[month == __${month}__]}">
                                         <div class="h6 mb-1 fw-bold">
-                                            ₹[[${#numbers.formatDecimal(#aggregates.sum(monthPurchases.![totalCost !=
-                                            null ? totalCost : 0]) ?: 0, 1, 'COMMA', 2, 'POINT')}]]
+                                            ₹[[${#numbers.formatDecimal(#aggregates.sum(monthPurchases.![totalCost]) ?:
+                                            0, 1, 'COMMA', 2, 'POINT')}]]
                                         </div>
                                         <div class="extra-small opacity-50">[[${monthPurchases.size()}]] Orders</div>
                                     </div>
