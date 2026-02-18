@@ -34,26 +34,44 @@
         <!-- Stats Overview -->
         <div class="row g-4 mb-4" id="statsRow">
             <div class="col-md-4">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body py-3 px-4">
-                        <div class="text-secondary small text-uppercase fw-bold mb-1">Total Logs</div>
-                        <div class="h3 mb-0 fw-bold" id="totalRecords">0</div>
+                <div class="card border-0">
+                    <div class="card-body p-4 d-flex align-items-center gap-3">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-4 d-flex align-items-center justify-content-center"
+                            style="width: 48px; height: 48px;">
+                            <i class="bi bi-list-check fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="h3 mb-0 fw-bold" id="totalRecords">0</div>
+                            <div class="text-uppercase-header">Total Logs</div>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card border-0 shadow-sm border-start border-success border-4">
-                    <div class="card-body py-3 px-4">
-                        <div class="text-success small text-uppercase fw-bold mb-1">Inward (Stock-In)</div>
-                        <div class="h3 mb-0 fw-bold" id="inwardMovements">0</div>
+                <div class="card border-0">
+                    <div class="card-body p-4 d-flex align-items-center gap-3">
+                        <div class="bg-success bg-opacity-10 text-success rounded-4 d-flex align-items-center justify-content-center"
+                            style="width: 48px; height: 48px;">
+                            <i class="bi bi-arrow-down-left fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="h3 mb-0 fw-bold" id="inwardMovements">0</div>
+                            <div class="text-uppercase-header">Stock-In</div>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card border-0 shadow-sm border-start border-danger border-4">
-                    <div class="card-body py-3 px-4">
-                        <div class="text-danger small text-uppercase fw-bold mb-1">Outward (Stock-Out)</div>
-                        <div class="h3 mb-0 fw-bold" id="outwardMovements">0</div>
+                <div class="card border-0">
+                    <div class="card-body p-4 d-flex align-items-center gap-3">
+                        <div class="bg-danger bg-opacity-10 text-danger rounded-4 d-flex align-items-center justify-content-center"
+                            style="width: 48px; height: 48px;">
+                            <i class="bi bi-arrow-up-right fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="h3 mb-0 fw-bold" id="outwardMovements">0</div>
+                            <div class="text-uppercase-header">Stock-Out</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -62,30 +80,25 @@
         <div class="row g-4">
             <!-- Form Column -->
             <div class="col-lg-4">
-                <div class="card border-0 shadow-sm sticky-top" style="top: 2rem; z-index: 10;">
-                    <div class="card-body">
-                        <h6 class="text-uppercase text-secondary fw-bold small mb-4 tracking-wider">Manual Adjustment
-                        </h6>
+                <div class="card border-0 sticky-top" style="top: 2rem;">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold mb-4">Manual Adjustment</h6>
 
                         <form th:action="@{/inventory/movements}" method="post" class="needs-validation" novalidate>
                             <div class="mb-3">
-                                <label class="form-label small text-uppercase fw-bold text-secondary">Target Product
-                                    ID</label>
+                                <label class="form-label fw-semibold">Target Product ID</label>
                                 <input type="number" name="product.id" class="form-control bg-light border-0 py-2"
                                     required min="1" placeholder="e.g. 101" />
-                                <div class="invalid-feedback">Valid ID required</div>
                             </div>
 
                             <div class="row g-2 mb-3">
                                 <div class="col-7">
-                                    <label
-                                        class="form-label small text-uppercase fw-bold text-secondary">Quantity</label>
+                                    <label class="form-label fw-semibold">Quantity</label>
                                     <input type="number" name="quantity" class="form-control bg-light border-0 py-2"
                                         required min="0.01" step="0.01" placeholder="0.0" />
                                 </div>
                                 <div class="col-5">
-                                    <label
-                                        class="form-label small text-uppercase fw-bold text-secondary">Direction</label>
+                                    <label class="form-label fw-semibold">Direction</label>
                                     <select name="direction" class="form-select bg-light border-0 py-2">
                                         <option value="INWARD">Stock-In</option>
                                         <option value="OUTWARD">Stock-Out</option>
@@ -94,21 +107,20 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label small text-uppercase fw-bold text-secondary">Reference
-                                    Code</label>
+                                <label class="form-label fw-semibold">Reference Code</label>
                                 <input type="text" name="reference" class="form-control bg-light border-0 py-2"
                                     placeholder="REQ-001" />
                             </div>
 
                             <div class="mb-4">
-                                <label class="form-label small text-uppercase fw-bold text-secondary">Audit Note</label>
+                                <label class="form-label fw-semibold">Audit Note</label>
                                 <textarea name="reason" class="form-control bg-light border-0 py-2" rows="2"
                                     placeholder="Damage, refill, etc."></textarea>
                             </div>
 
-                            <div class="d-grid shadow-sm">
-                                <button type="submit" class="btn btn-primary py-2 fw-bold">
-                                    <i class="bi bi-plus-lg me-2"></i> RECORD MOVEMENT
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary rounded-pill py-2">
+                                    <i class="bi bi-plus-lg me-2"></i> Record Movement
                                 </button>
                             </div>
                         </form>
@@ -118,11 +130,11 @@
 
             <!-- List Column -->
             <div class="col-lg-8">
-                <div class="card border-0 shadow-sm overflow-hidden mb-4">
-                    <div class="card-header bg-white border-0 py-3 px-4">
+                <div class="card border-0 overflow-hidden mb-4">
+                    <div class="card-header bg-white border-0 py-4 px-4">
                         <div class="d-flex align-items-center justify-content-between">
                             <h6 class="mb-0 fw-bold">Recent Movements</h6>
-                            <div class="input-group input-group-sm w-50 shadow-sm">
+                            <div class="input-group input-group-sm w-50">
                                 <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
                                 <input id="searchBox" type="text" class="form-control bg-light border-0"
                                     placeholder="Filter audit trail...">
@@ -133,49 +145,56 @@
                         <table class="table table-hover align-middle mb-0" id="movementsTable">
                             <thead class="bg-light bg-opacity-50">
                                 <tr>
-                                    <th class="ps-4 py-3 small text-uppercase fw-bold text-secondary">Timestamp</th>
-                                    <th class="py-3 small text-uppercase fw-bold text-secondary">Product</th>
-                                    <th class="py-3 small text-uppercase fw-bold text-secondary text-center">Flow</th>
-                                    <th class="py-3 small text-uppercase fw-bold text-secondary text-end">Quantity</th>
-                                    <th class="pe-4 py-3 small text-uppercase fw-bold text-secondary">Ref / Meta</th>
+                                    <th class="ps-4 py-3 text-uppercase-header">Timestamp</th>
+                                    <th class="py-3 text-uppercase-header">Product</th>
+                                    <th class="py-3 text-uppercase-header text-center">Flow</th>
+                                    <th class="py-3 text-uppercase-header text-end">Quantity</th>
+                                    <th class="pe-4 py-3 text-uppercase-header">Ref / Meta</th>
                                 </tr>
                             </thead>
                             <tbody id="movementsBody">
-                                <tr th:each="m : ${rows}" th:attr="data-direction=${m.direction ?: ''}"
-                                    class="cursor-default">
+                                <tr th:each="m : ${rows}"
+                                    th:attr="data-direction=${m.direction != null ? m.direction.name() : ''}">
                                     <td class="ps-4">
-                                        <div class="fw-semibold"
-                                            th:text="${m.occurredAt != null} ? ${#temporals.format(m.occurredAt, 'dd MMM, HH:mm')} : '—'">
+                                        <div class="fw-semibold small"
+                                            th:text="${m.occurredAt != null ? #temporals.format(m.occurredAt, 'dd MMM, HH:mm') : '—'}">
                                             Timestamp</div>
                                     </td>
                                     <td>
-                                        <div class="fw-bold" th:text="${m.product?.name ?: 'Unknown Product'}">Name
+                                        <div class="fw-bold product-name"
+                                            th:text="${m.product != null ? m.product.name : 'Unknown Product'}">Name
                                         </div>
-                                        <div class="extra-small text-secondary"
-                                            th:text="'ID: ' + ${m.product?.id ?: 'N/A'}">ID</div>
+                                        <div class="extra-small text-secondary text-uppercase opacity-50"
+                                            th:text="${'ID: ' + (m.product != null ? m.product.id : 'N/A')}">ID</div>
                                     </td>
                                     <td class="text-center">
-                                        <span th:if="${m.direction == 'INWARD'}"
-                                            class="badge bg-success bg-opacity-10 text-success border-0 px-2 py-1 small">INWARD</span>
-                                        <span th:if="${m.direction == 'OUTWARD'}"
-                                            class="badge bg-danger bg-opacity-10 text-danger border-0 px-2 py-1 small">OUTWARD</span>
+                                        <span th:if="${m.direction != null and m.direction.name() == 'INWARD'}"
+                                            class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 extra-small">INWARD</span>
+                                        <span th:if="${m.direction != null and m.direction.name() == 'OUTWARD'}"
+                                            class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-1 extra-small">OUTWARD</span>
                                     </td>
-                                    <td class="text-end fw-bold" th:text="${m.quantity ?: '0'}">0</td>
+                                    <td class="text-end fw-bold" th:text="${m.quantity != null ? m.quantity : '0'}">0
+                                    </td>
                                     <td class="pe-4">
-                                        <div th:if="${m.reference}" class="small text-dark fw-semibold">
-                                            <i class="bi bi-tag me-1 opacity-50"></i> [[${m.reference}]]
+                                        <div th:if="${m.reference != null and !m.reference.isEmpty()}"
+                                            class="small text-dark fw-semibold">
+                                            <i class="bi bi-tag me-1 opacity-25"></i> <span
+                                                th:text="${m.reference}"></span>
                                         </div>
-                                        <div th:if="${m.reason}" class="extra-small text-secondary italic"
+                                        <div th:if="${m.reason != null and !m.reason.isEmpty()}"
+                                            class="extra-small text-secondary opacity-75" style="font-style: italic;"
                                             th:text="${m.reason}">Reason</div>
-                                        <div th:unless="${m.reference or m.reason}" class="extra-small text-muted">—
+                                        <div th:if="${(m.reference == null or m.reference.isEmpty()) and (m.reason == null or m.reason.isEmpty())}"
+                                            class="text-secondary opacity-25">—
                                         </div>
                                     </td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(rows)}" class="empty">
-                                    <td colspan="5" class="py-5 text-center text-secondary">
+                                    <td colspan="5" class="py-5 text-center">
                                         <i class="bi bi-box-arrow-in-right fs-1 opacity-25 d-block mb-3"></i>
-                                        <div class="h5 fw-bold">No Movements Logged</div>
-                                        <p class="small">Start recording stock changes to see them here.</p>
+                                        <h5 class="fw-bold">No Movements Logged</h5>
+                                        <p class="text-secondary small">Start recording stock changes to see them here.
+                                        </p>
                                     </td>
                                 </tr>
                             </tbody>

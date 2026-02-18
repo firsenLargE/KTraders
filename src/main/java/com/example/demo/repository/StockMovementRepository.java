@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface StockMovementRepository extends JpaRepository<StockMovement, Long> {
     List<StockMovement> findByProductIdOrderByOccurredAtDesc(Integer productId);
+
+    List<StockMovement> findAllByOrderByOccurredAtDesc();
 }
-
-

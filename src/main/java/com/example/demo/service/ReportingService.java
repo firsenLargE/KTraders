@@ -89,7 +89,8 @@ public class ReportingService {
             long qty = (r.getQty() != null) ? r.getQty() : 0L;
 
             r.setSnapshottedUnitCost(unitCost);
-            r.setProfitLossAmount(revenue - (unitCost * qty));
+            double profitLoss = revenue - (unitCost * qty);
+            r.setProfitLossAmount(profitLoss);
         }
     }
 }

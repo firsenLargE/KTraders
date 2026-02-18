@@ -1,8 +1,8 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.ProductSalesRow;
+import com.example.demo.service.CustomerService;
 import com.example.demo.service.ReportingService;
-import com.itextpdf.text.Element;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -19,10 +19,12 @@ import java.util.List;
 @RequestMapping("/reports/sales")
 public class SalesReportsController {
     private final ReportingService svc;
+    private final CustomerService customerService;
 
     @Autowired
-    SalesReportsController(ReportingService svc) {
+    SalesReportsController(ReportingService svc, CustomerService customerService) {
         this.svc = svc;
+        this.customerService = customerService;
     }
 
     private void exportSalesPdf(HttpServletResponse response,
@@ -104,6 +106,23 @@ public class SalesReportsController {
         doc.close();
     }
 
+    @GetMapping("/daily")
+    public String dailyHtml(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            Model model) {
+        LocalDate d = (date != null) ? date : LocalDate.now();
+        List<ProductSalesRow> rows = svc.daily(d);
+        long totalQty = rows.stream().mapToLong(r -> r.getQty() == null ? 0L : r.getQty()).sum();
+        double totalPL = rows.stream().mapToDouble(r -> r.getProfitLossAmount() == null ? 0.0 : r.getProfitLossAmount())
+                .sum();
+
+        model.addAttribute("date", d);
+        model.addAttribute("rows", rows);
+        model.addAttribute("totalQty", totalQty);
+        model.addAttribute("totalPL", totalPL);
+        return "daily_sales";
+    }
+
     @GetMapping("/daily.pdf")
     public void dailyPdf(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             HttpServletResponse response) throws Exception {
@@ -141,9 +160,6 @@ public class SalesReportsController {
         exportSalesPdf(response, "Sales Report", subtitle, rows, isBill);
     }
 
-    @Autowired
-    private com.example.demo.repository.CustomerRepository customerRepo;
-
     @GetMapping("/monthly")
     public String monthlyHtml(
             @RequestParam(required = false) Integer year,
@@ -176,7 +192,7 @@ public class SalesReportsController {
         model.addAttribute("startDate", startDate);
         model.addAttribute("endDate", endDate);
         model.addAttribute("customerId", customerId);
-        model.addAttribute("customers", customerRepo.findAll());
+        model.addAttribute("customers", customerService.getAllCustomers());
         model.addAttribute("rows", rows);
         model.addAttribute("totalQty", totalQty);
         model.addAttribute("totalRevenue", totalRevenue);

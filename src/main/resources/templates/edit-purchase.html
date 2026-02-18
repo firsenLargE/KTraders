@@ -191,12 +191,12 @@
                                     <select class="form-select" id="productId" th:field="*{product.id}" required>
                                         <option value="">Select Product</option>
                                         <option th:each="product : ${products}" th:value="${product.id}"
-                                            th:text="${product.name}">Product Name</option>
+                                            th:text="${product.name}" class="product-name">Product Name</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Supplier *</label>
-                                    <input type="text" class="form-control" th:field="*{supplier}"
+                                    <input type="text" class="form-control customer-name" th:field="*{supplier}"
                                         placeholder="Enter supplier name" required>
                                 </div>
                             </div>

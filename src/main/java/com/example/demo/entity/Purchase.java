@@ -37,10 +37,11 @@ public class Purchase {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     // Constructors
-    public Purchase() {}
+    public Purchase() {
+    }
 
-    public Purchase(Product product, String supplier, LocalDate purchaseDate, Integer quantity, 
-                   BigDecimal unitCost, String invoiceNumber, String paymentMethod, String notes) {
+    public Purchase(Product product, String supplier, LocalDate purchaseDate, Integer quantity,
+            BigDecimal unitCost, String invoiceNumber, String paymentMethod, String notes) {
         this.product = product;
         this.supplier = supplier;
         this.purchaseDate = purchaseDate;
@@ -53,49 +54,99 @@ public class Purchase {
     }
 
     // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public Product getProduct() { return product; }
-    public void setProduct(Product product) { this.product = product; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public String getSupplier() { return supplier; }
-    public void setSupplier(String supplier) { this.supplier = supplier; }
+    public Product getProduct() {
+        return product;
+    }
 
-    public LocalDate getPurchaseDate() { return purchaseDate; }
-    public void setPurchaseDate(LocalDate purchaseDate) { this.purchaseDate = purchaseDate; }
+    public void setProduct(Product product) {
+        this.product = product;
+    }
 
-    public Integer getQuantity() { return quantity; }
-    public void setQuantity(Integer quantity) { 
+    public String getSupplier() {
+        return supplier;
+    }
+
+    public void setSupplier(String supplier) {
+        this.supplier = (supplier != null) ? supplier.toUpperCase() : null;
+    }
+
+    public LocalDate getPurchaseDate() {
+        return purchaseDate;
+    }
+
+    public void setPurchaseDate(LocalDate purchaseDate) {
+        this.purchaseDate = purchaseDate;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
         this.quantity = quantity;
         if (this.unitCost != null) {
             this.totalCost = this.unitCost.multiply(BigDecimal.valueOf(quantity));
         }
     }
 
-    public BigDecimal getUnitCost() { return unitCost; }
-    public void setUnitCost(BigDecimal unitCost) { 
+    public BigDecimal getUnitCost() {
+        return unitCost;
+    }
+
+    public void setUnitCost(BigDecimal unitCost) {
         this.unitCost = unitCost;
         if (this.quantity != null) {
             this.totalCost = unitCost.multiply(BigDecimal.valueOf(this.quantity));
         }
     }
 
-    public BigDecimal getTotalCost() { return totalCost; }
-    public void setTotalCost(BigDecimal totalCost) { this.totalCost = totalCost; }
+    public BigDecimal getTotalCost() {
+        return totalCost;
+    }
 
-    public String getInvoiceNumber() { return invoiceNumber; }
-    public void setInvoiceNumber(String invoiceNumber) { this.invoiceNumber = invoiceNumber; }
+    public void setTotalCost(BigDecimal totalCost) {
+        this.totalCost = totalCost;
+    }
 
-    public String getPaymentMethod() { return paymentMethod; }
-    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+    public String getInvoiceNumber() {
+        return invoiceNumber;
+    }
 
-    public String getNotes() { return notes; }
-    public void setNotes(String notes) { this.notes = notes; }
+    public void setInvoiceNumber(String invoiceNumber) {
+        this.invoiceNumber = invoiceNumber;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
 
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 
     @Transient
     public int getMonth() {

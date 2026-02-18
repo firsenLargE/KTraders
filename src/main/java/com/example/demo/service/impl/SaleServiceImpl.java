@@ -17,6 +17,9 @@ public class SaleServiceImpl implements SaleService {
     @Autowired
     private com.example.demo.service.CashLedgerService cashLedgerService;
 
+    @Autowired
+    private com.example.demo.service.StockMovementService stockMovementService;
+
     @Override
     @org.springframework.transaction.annotation.Transactional
     public void addSale(Sale sale) {
@@ -45,6 +48,16 @@ public class SaleServiceImpl implements SaleService {
         tx.setOccurredAt(sale.getDate() != null ? sale.getDate().atStartOfDay() : java.time.LocalDateTime.now());
         tx.setNotes("Sale of " + (sale.getProduct() != null ? sale.getProduct().getName() : "Item"));
         cashLedgerService.record(tx);
+
+        // Record Stock Movement (OUTWARD)
+        com.example.demo.entity.StockMovement sm = new com.example.demo.entity.StockMovement();
+        sm.setProduct(product);
+        sm.setDirection(com.example.demo.entity.StockMovement.Direction.OUTWARD);
+        sm.setQuantity(java.math.BigDecimal.valueOf(sale.getQuantity()));
+        sm.setReference("SALE:" + sale.getId());
+        sm.setReason("Sales Terminal Transaction");
+        sm.setOccurredAt(java.time.LocalDateTime.now());
+        stockMovementService.record(sm);
     }
 
     @Override
@@ -81,6 +94,16 @@ public class SaleServiceImpl implements SaleService {
         tx.setOccurredAt(sale.getDate() != null ? sale.getDate().atStartOfDay() : java.time.LocalDateTime.now());
         tx.setNotes("Sale of " + (sale.getProduct() != null ? sale.getProduct().getName() : "Item"));
         cashLedgerService.record(tx);
+
+        // Update Stock Movement (OUTWARD)
+        com.example.demo.entity.StockMovement sm = new com.example.demo.entity.StockMovement();
+        sm.setProduct(sale.getProduct());
+        sm.setDirection(com.example.demo.entity.StockMovement.Direction.OUTWARD);
+        sm.setQuantity(java.math.BigDecimal.valueOf(sale.getQuantity()));
+        sm.setReference("SALE:" + sale.getId());
+        sm.setReason("Sale Record Updated");
+        sm.setOccurredAt(java.time.LocalDateTime.now());
+        stockMovementService.record(sm);
     }
 
     @Override
@@ -97,6 +120,19 @@ public class SaleServiceImpl implements SaleService {
             }
         }
         cashLedgerService.deleteByReference("SALE:" + id);
+
+        // Record Stock Movement (INWARD - Adjustment for deletion)
+        if (sale.getProduct() != null) {
+            com.example.demo.entity.StockMovement sm = new com.example.demo.entity.StockMovement();
+            sm.setProduct(sale.getProduct());
+            sm.setDirection(com.example.demo.entity.StockMovement.Direction.INWARD);
+            sm.setQuantity(java.math.BigDecimal.valueOf(sale.getQuantity()));
+            sm.setReference("SALE_CANCEL:" + id);
+            sm.setReason("Sale Deleted/Cancelled");
+            sm.setOccurredAt(java.time.LocalDateTime.now());
+            stockMovementService.record(sm);
+        }
+
         saleRepository.deleteById(id);
     }
 

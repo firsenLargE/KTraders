@@ -2,7 +2,6 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.Product;
 import com.example.demo.service.ProductService;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,10 +21,13 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
+    private static final List<String> SIZES = List.of(
+            "1.5L", "1kg", "1L", "2.25L", "2L", "160ml", "175ml", "250g", "250ml",
+            "330ml", "500g", "500ml", "650ml", "A3", "A4", "EXTRA LARGE", "LARGE",
+            "MEDIUM", "SMALL", "OTHERS").stream().sorted().toList();
+
     @GetMapping("/products")
-    public String showProducts(Model model, HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/";
+    public String showProducts(Model model) {
         List<Product> products = productService.getAllProducts();
         model.addAttribute("products", products);
         populateSummary(model, products);
@@ -33,19 +35,25 @@ public class ProductController {
     }
 
     @GetMapping("/products/show-prices")
-    public String showPrices(Model model, HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/";
+    public String showPrices(Model model) {
         model.addAttribute("products", productService.getAllProducts().stream()
                 .sorted((a, b) -> a.getName().compareToIgnoreCase(b.getName())).toList());
         return "show_prices";
     }
 
+    @GetMapping("/products/details/{id}")
+    public String showProductDetails(@PathVariable Integer id, Model model) {
+        Product product = productService.getProductById(id);
+        if (product == null)
+            return "redirect:/products";
+        model.addAttribute("product", product);
+        return "product-details";
+    }
+
     @GetMapping("/add-product")
-    public String showAddProductForm(Model model, HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/";
+    public String showAddProductForm(Model model) {
         model.addAttribute("product", new Product());
+        model.addAttribute("sizes", SIZES);
         return "add-product";
     }
 
@@ -60,9 +68,7 @@ public class ProductController {
 
     @PostMapping("/add-product")
     public String addProduct(@ModelAttribute Product product, @RequestParam("imageFile") MultipartFile imageFile,
-            RedirectAttributes ra, HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/";
+            RedirectAttributes ra) {
         try {
             if (product.getDate() == null)
                 product.setDate(LocalDate.now());
@@ -104,22 +110,18 @@ public class ProductController {
     }
 
     @GetMapping("/edit-product/{id}")
-    public String showEditProductForm(@PathVariable Integer id, Model model, HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/";
+    public String showEditProductForm(@PathVariable Integer id, Model model) {
         Product product = productService.getProductById(id);
         if (product == null)
             return "redirect:/products";
         model.addAttribute("product", product);
+        model.addAttribute("sizes", SIZES);
         return "edit-product";
     }
 
     @PostMapping("/edit-product/{id}")
     public String updateProduct(@PathVariable Integer id, @ModelAttribute Product product,
-            @RequestParam("imageFile") MultipartFile imageFile, RedirectAttributes ra,
-            HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/";
+            @RequestParam("imageFile") MultipartFile imageFile, RedirectAttributes ra) {
         try {
             product.setId(id);
 
@@ -167,9 +169,7 @@ public class ProductController {
     }
 
     @GetMapping("/delete-product/{id}")
-    public String deleteProduct(@PathVariable Integer id, RedirectAttributes ra, HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/";
+    public String deleteProduct(@PathVariable Integer id, RedirectAttributes ra) {
         try {
             productService.deleteProduct(id);
             ra.addFlashAttribute("success", "Deleted successfully!");
@@ -180,9 +180,7 @@ public class ProductController {
     }
 
     @GetMapping("/search-products")
-    public String searchProducts(@RequestParam String query, Model model, HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/";
+    public String searchProducts(@RequestParam String query, Model model) {
         List<Product> products = productService.searchProducts(query);
         model.addAttribute("products", products);
         model.addAttribute("searchQuery", query);

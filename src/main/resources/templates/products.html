@@ -7,184 +7,173 @@
   <div class="container-xxl py-4">
     <div th:replace="~{fragments :: navbar}"></div>
 
-    <!-- Header / actions -->
+    <!-- Header -->
     <div class="row mb-4">
       <div class="col-12">
-        <div class="page-head">
+        <div class="page-head no-print">
           <div class="d-flex align-items-center justify-content-between">
-            <div>
-              <h1 class="h4 mb-0 fw-bold">Product Management</h1>
-              <div class="text-secondary small">Curate and manage your inventory</div>
-            </div>
-            <a th:href="@{/add-product}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Add Product</a>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Stats -->
-    <div class="row g-3 mb-4">
-      <div class="col-md-4">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-body d-flex align-items-center gap-3">
-            <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-3"><i class="bi bi-box-seam fs-4"></i></div>
-            <div>
-              <div class="h3 fw-bold mb-0" th:text="${totalProducts} ?: 0">0</div>
-              <div class="text-secondary small">Total Products</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-body d-flex align-items-center gap-3">
-            <div class="bg-danger bg-opacity-10 text-danger rounded-3 p-3"><i
-                class="bi bi-exclamation-triangle fs-4"></i></div>
-            <div>
-              <div class="h3 fw-bold mb-0" th:text="${lowStockProducts} ?: 0">0</div>
-              <div class="text-secondary small">Low Stock Items</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-body d-flex align-items-center gap-3">
-            <div class="bg-success bg-opacity-10 text-success rounded-3 p-3"><i class="bi bi-currency-rupee fs-4"></i>
-            </div>
-            <div>
-              <div class="d-flex align-items-center gap-2">
-                <div id="inventoryValue" class="h3 fw-bold mb-0 currency" style="display:none;"
-                  th:text="'₹' + ${#numbers.formatDecimal(totalValue ?: 0, 0, 2)}">₹0.00</div>
-                <div id="inventoryValueHidden" class="h3 fw-bold mb-0 currency">₹****</div>
-                <i class="bi bi-eye-slash ms-2" id="toggleInventory" style="cursor: pointer; opacity: 0.7;"
-                  onclick="toggleInventoryValue()"></i>
+            <div class="d-flex align-items-center gap-3">
+              <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-2">
+                <i class="bi bi-box-seam-fill fs-4"></i>
               </div>
-              <div class="text-secondary small">Inventory Value</div>
-              <script>
-                function toggleInventoryValue() {
-                  const realValue = document.getElementById('inventoryValue');
-                  const hiddenValue = document.getElementById('inventoryValueHidden');
-                  const icon = document.getElementById('toggleInventory');
-
-                  if (realValue.style.display === 'none') {
-                    // Reveal logic
-                    const pass = prompt("Please enter password to reveal:");
-                    if (pass === '5432') {
-                      realValue.style.display = 'block';
-                      hiddenValue.style.display = 'none';
-                      icon.classList.remove('bi-eye-slash');
-                      icon.classList.add('bi-eye');
-                    } else if (pass !== null) {
-                      alert("Incorrect password!");
-                    }
-                  } else {
-                    // Hide logic
-                    realValue.style.display = 'none';
-                    hiddenValue.style.display = 'block';
-                    icon.classList.remove('bi-eye');
-                    icon.classList.add('bi-eye-slash');
-                  }
-                }
-              </script>
+              <div>
+                <h1 class="h4 mb-0 fw-bold">Commercial Inventory</h1>
+                <div class="text-secondary small">Comprehensive management of [[${totalProducts}]] product units</div>
+              </div>
+            </div>
+            <div class="d-flex gap-2">
+              <a th:href="@{/add-product}" class="btn btn-primary rounded-pill px-4 shadow-primary">
+                <i class="bi bi-plus-lg me-1"></i> New Product
+              </a>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Flash messages -->
-    <div th:if="${success}" class="alert alert-success border-0 shadow-sm" th:text="${success}"></div>
-    <div th:if="${error}" class="alert alert-danger border-0 shadow-sm" th:text="${error}"></div>
-
-    <!-- Search -->
-    <div class="card border-0 shadow-sm mb-4">
-      <div class="card-body">
-        <form th:action="@{/search-products}" method="get" class="row g-2">
-          <div class="col">
-            <input class="form-control" type="text" name="query" placeholder="Search name, category, size…"
-              th:value="${searchQuery}">
+    <!-- Global Search & Stats -->
+    <div class="row g-4 mb-4">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-soft h-100">
+          <div class="card-body p-4">
+            <form th:action="@{/search-products}" method="get" class="row g-2">
+              <div class="col">
+                <div class="input-group">
+                  <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
+                  <input type="text" name="query" class="form-control bg-light border-0 py-2"
+                    placeholder="Search by name, size, or ID..." th:value="${searchQuery}">
+                </div>
+              </div>
+              <div class="col-auto">
+                <button class="btn btn-dark rounded-pill px-4">Find Asset</button>
+              </div>
+            </form>
+            <div th:if="${searchQuery}" class="mt-2 extra-small text-secondary">
+              Refining records for: <span class="fw-bold text-primary">"[[${searchQuery}]]"</span> • <a
+                th:href="@{/products}" class="text-decoration-none">Clear Filters</a>
+            </div>
           </div>
-          <div class="col-auto">
-            <button class="btn btn-primary"><i class="bi bi-search me-1"></i>Search</button>
-          </div>
-        </form>
-        <div th:if="${searchQuery}" class="text-secondary small mt-2">
-          Showing results for “<span th:text="${searchQuery}"></span>”. <a th:href="@{/products}"
-            class="text-primary text-decoration-none">Clear filter</a>
         </div>
       </div>
-    </div>
-
-    <!-- Cards Grid -->
-    <div th:if="${products != null and #lists.size(products) > 0}"
-      class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
-      <div class="col" th:each="product : ${products}">
-        <div class="card h-100 border-0 shadow-sm overflow-hidden">
-          <!-- Media -->
-          <div class="position-relative" style="aspect-ratio: 16/10; background: #f8fafc;">
-            <img th:if="${product.imagePath}" th:src="@{${product.imagePath}}" class="w-100 h-100 object-fit-cover"
-              alt="Product" />
-            <div th:if="${product.imagePath == null}"
-              class="w-100 h-100 d-grid place-items-center text-secondary fw-bold">No Image</div>
-
-            <span class="position-absolute top-0 start-0 m-2 badge bg-dark bg-opacity-75 rounded-pill"
-              th:text="${product.category ?: 'Category'}">Category</span>
-            <span class="position-absolute bottom-0 end-0 m-2 badge bg-primary fs-6"
-              th:text="'₹' + ${#numbers.formatDecimal(product.price, 0, 2)}">₹0.00</span>
-          </div>
-
-          <!-- Body -->
-          <div class="card-body">
-            <h5 class="card-title fw-bold mb-1" th:text="${product.name}">Product Name</h5>
-            <div class="text-secondary small mb-3">
-              Size: <span th:text="${product.size ?: '—'}">—</span>
-              <span class="mx-1">•</span>
-              ID: <span th:text="${product.id}">0</span>
+      <div class="col-lg-4">
+        <div class="card border-0 bg-dark text-white h-100 shadow-soft">
+          <div class="card-body p-4 d-flex align-items-center justify-content-between">
+            <div>
+              <div class="text-uppercase-header extra-small opacity-50 mb-1">Low Stock Alerts</div>
+              <div class="h2 mb-0 fw-bold" th:text="${lowStockProducts} ?: 0">0</div>
             </div>
-
-            <div class="d-flex justify-content-between align-items-center small mb-2">
-              <span>Quantity: <span
-                  th:class="${product.quantity < (product.minStockLevel ?: 10)} ? 'text-danger fw-bold' : 'text-success fw-bold'"
-                  th:text="${product.quantity ?: 0}">0</span></span>
-              <span class="text-secondary">Value: <strong class="text-dark">₹<span
-                    th:text="${#numbers.formatDecimal((product.price?:0) * (product.quantity?:0), 0, 2)}">0.00</span></strong></span>
+            <div class="bg-white bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
+              style="width: 50px; height: 50px;">
+              <i class="bi bi-lightning-charge text-warning fs-3"></i>
             </div>
-
-            <!-- Stock bar -->
-            <div class="progress mb-1" style="height: 6px;" th:with="min=${product.minStockLevel ?: 10}, 
-                          max=${product.maxStockLevel ?: 100}, 
-                          q=${product.quantity ?: 0}, 
-                          pct=${( (q > max ? max : q) * 100.0) / (max > 0 ? max : 100)}">
-              <div class="progress-bar" role="progressbar" th:style="'width:' + ${pct} + '%'"></div>
-            </div>
-            <div class="d-flex justify-content-between extra-small text-muted" style="font-size: 0.7rem;">
-              <span>Min: <span th:text="${product.minStockLevel ?: 10}">10</span></span>
-              <span>Max: <span th:text="${product.maxStockLevel ?: 100}">100</span></span>
-            </div>
-          </div>
-
-          <!-- Actions -->
-          <div class="card-footer bg-transparent border-0 pt-0 pb-3 hstack gap-2">
-            <a th:href="@{/edit-product/{id}(id=${product.id})}"
-              class="btn btn-outline-primary btn-sm flex-grow-1">Edit</a>
-            <a th:href="@{/delete-product/{id}(id=${product.id})}" class="btn btn-outline-danger btn-sm flex-grow-1"
-              onclick="return confirm('Delete this product?')">Delete</a>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Empty state -->
+    <!-- Products Display -->
+    <div th:if="${products != null and #lists.size(products) > 0}" class="row g-4">
+      <div class="col-xl-3 col-lg-4 col-sm-6" th:each="p : ${products}">
+        <div class="card border-0 h-100 shadow-soft-hover transition-base overflow-hidden" style="border-radius: 24px;">
+          <!-- Media Area -->
+          <div class="position-relative bg-light" style="aspect-ratio: 1/1;">
+            <img th:if="${p.imagePath}" th:src="@{${p.imagePath}}" class="w-100 h-100 object-fit-cover transition-base"
+              alt="Product" style="filter: brightness(0.98);" />
+            <div th:unless="${p.imagePath}"
+              class="w-100 h-100 d-flex flex-column align-items-center justify-content-center opacity-25">
+              <i class="bi bi-box-seam-fill fs-1 mb-2"></i>
+              <span class="extra-small fw-bold">IMAGE PENDING</span>
+            </div>
+
+            <!-- Price Badge - Floating Top Right -->
+            <div class="position-absolute top-0 end-0 m-3">
+              <span class="badge bg-white text-dark shadow-sm py-2 px-3 rounded-4 border fs-6 fw-bold">
+                ₹[[${#numbers.formatDecimal(p.price, 0, 'COMMA', 2, 'POINT')}]]
+              </span>
+            </div>
+          </div>
+
+          <!-- Details Area -->
+          <div class="card-body px-4 pt-4 pb-0">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h6 class="fw-bold mb-0 text-uppercase-header tracking-wider product-name flex-grow-1" th:text="${p.name}"
+                style="font-size: 0.95rem;">Product Name</h6>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="extra-small px-2 py-1 bg-light rounded-pill border text-secondary fw-bold">
+                [[${p.size ?: 'STANDARD'}]]
+              </span>
+              <span th:if="${p.quantity < (p.minStockLevel ?: 10)}"
+                class="extra-small px-2 py-1 bg-danger bg-opacity-10 text-danger rounded-pill fw-bold">
+                LOW STOCK
+              </span>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-end mb-3">
+              <div>
+                <div class="extra-small text-secondary text-uppercase-header opacity-50 mb-1">Available Units</div>
+                <div
+                  th:class="${p.quantity < (p.minStockLevel ?: 10) ? 'text-danger' : 'text-dark'} + ' h5 mb-0 fw-bold'">
+                  [[${p.quantity}]] PCS
+                </div>
+              </div>
+              <div class="text-end">
+                <div class="extra-small text-secondary text-uppercase-header opacity-50 mb-1">Current Value</div>
+                <div class="small fw-bold text-dark">₹[[${#numbers.formatDecimal((p.price?:0) * (p.quantity?:0), 0,
+                  'COMMA', 0, 'POINT')}]]</div>
+              </div>
+            </div>
+
+            <!-- Modern Stock Bar -->
+            <div class="progress bg-light mb-4" style="height: 6px; border-radius: 10px;" th:with="min=${p.minStockLevel ?: 10}, 
+                                      max=${p.maxStockLevel ?: 100}, 
+                                      q=${p.quantity ?: 0}, 
+                                      pct=${( (q > max ? max : q) * 100.0) / (max > 0 ? max : 100)}">
+              <div class="progress-bar" role="progressbar"
+                th:classappend="${p.quantity < min ? 'bg-danger shadow-danger' : 'bg-primary shadow-primary'}"
+                th:style="'width:' + ${pct} + '%; border-radius: 10px;'"></div>
+            </div>
+          </div>
+
+          <!-- Action Footer - Translucent / Subtle -->
+          <div class="card-footer bg-white border-0 px-4 pb-4 pt-0">
+            <div class="d-flex gap-2">
+              <a th:href="@{/products/details/{id}(id=${p.id})}"
+                class="btn btn-dark btn-sm flex-grow-1 rounded-pill fw-bold extra-small py-2 transition-base">
+                MANAGE ASSET
+              </a>
+              <a th:href="@{/edit-product/{id}(id=${p.id})}"
+                class="btn btn-outline-secondary btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center transition-base"
+                style="width: 34px; height: 34px; border-color: #eee;">
+                <i class="bi bi-pencil-fill small text-primary"></i>
+              </a>
+              <a th:href="@{/delete-product/{id}(id=${p.id})}"
+                class="btn btn-outline-secondary btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center transition-base"
+                style="width: 34px; height: 34px; border-color: #eee;" onclick="return confirm('Archive this asset?')">
+                <i class="bi bi-trash-fill small text-danger"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty Hub -->
     <div th:if="${products == null or #lists.size(products) == 0}" class="text-center py-5">
-      <div class="display-1 text-secondary opacity-25 mb-4"><i class="bi bi-inboxes"></i></div>
-      <h3 class="fw-bold">No Products Found</h3>
-      <p class="text-secondary" th:if="${searchQuery}">No items match your search for "<span
-          th:text="${searchQuery}"></span>".</p>
-      <p class="text-secondary" th:unless="${searchQuery}">Add your first product to get started.</p>
-      <a th:href="@{/add-product}" class="btn btn-primary mt-3"><i class="bi bi-plus-lg me-1"></i>Add Product</a>
+      <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-4"
+        style="width: 120px; height: 120px;">
+        <i class="bi bi-boxes fs-1 opacity-25"></i>
+      </div>
+      <h3 class="fw-bold">Central Vault Empty</h3>
+      <p class="text-secondary max-w-400 mx-auto mb-4">You haven't added any products yet. Start by populating your
+        inventory to enable analytics and sales tracking.</p>
+      <a th:href="@{/add-product}" class="btn btn-primary rounded-pill px-5 shadow-primary">
+        <i class="bi bi-plus-lg me-2"></i> Register First Asset
+      </a>
     </div>
-
+  </div>
+  <div th:replace="~{fragments :: theme_script}"></div>
 </body>
 
 </html>

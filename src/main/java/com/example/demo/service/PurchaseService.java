@@ -29,4 +29,6 @@ public interface PurchaseService {
     BigDecimal getTotalPurchaseAmountByDateRange(LocalDate startDate, LocalDate endDate);
 
     Long getPurchaseCountByDateRange(LocalDate startDate, LocalDate endDate);
+
+    void syncCapitalization();
 }

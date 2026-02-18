@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <title>Purchase Orders - Kapil Traders</title>
@@ -336,6 +337,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="navbar">
         <div class="navbar-brand">Kapil Traders</div>
@@ -393,7 +395,8 @@
                     <div class="order-header">
                         <div>
                             <div class="product-name" th:text="${order.product.name}">Product Name</div>
-                            <div class="product-category" th:text="${order.product.category}">Category</div>
+                            <div class="product-category text-uppercase" th:text="${order.product.category}">Category
+                            </div>
                         </div>
                         <div class="status-badge status-pending">PENDING</div>
                     </div>

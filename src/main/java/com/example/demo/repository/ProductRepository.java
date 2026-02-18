@@ -8,6 +8,9 @@ import java.util.List;
 public interface ProductRepository extends JpaRepository<Product, Integer> {
     List<Product> findByNameContainingIgnoreCaseAndDeletedFalse(String name);
 
+    @Query("SELECT p FROM Product p WHERE (LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(p.category) LIKE LOWER(CONCAT('%', :query, '%'))) AND p.deleted = false")
+    List<Product> searchByNameOrCategory(@org.springframework.data.repository.query.Param("query") String query);
+
     List<Product> findByCategoryContainingIgnoreCaseAndDeletedFalse(String category);
 
     long countByQuantityLessThanAndDeletedFalse(int quantity);

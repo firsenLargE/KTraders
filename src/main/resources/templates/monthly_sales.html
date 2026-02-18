@@ -7,110 +7,112 @@
   <div class="container-xxl py-4">
     <div th:replace="~{fragments :: navbar}"></div>
 
-    <div class="card shadow-sm mb-4">
+    <div class="card border-0 mb-4">
       <div class="card-body p-4">
         <form th:action="@{/reports/sales/monthly}" method="get" class="row g-3 align-items-end">
           <div class="col-md-3">
-            <label class="form-label small fw-bold text-secondary">Start Date</label>
-            <input type="date" name="startDate" th:value="${startDate}" class="form-control">
+            <label class="form-label fw-semibold">Start Date</label>
+            <input type="date" name="startDate" th:value="${startDate}" class="form-control bg-light border-0">
           </div>
           <div class="col-md-3">
-            <label class="form-label small fw-bold text-secondary">End Date</label>
-            <input type="date" name="endDate" th:value="${endDate}" class="form-control">
+            <label class="form-label fw-semibold">End Date</label>
+            <input type="date" name="endDate" th:value="${endDate}" class="form-control bg-light border-0">
           </div>
           <div class="col-md-3">
-            <label class="form-label small fw-bold text-secondary">Customer</label>
-            <select name="customerId" class="form-select">
-              <option value="">All Customers</option>
-              <option th:each="c : ${customers}" th:value="${c.id}" th:text="${c.name}"
-                th:selected="${c.id == customerId}"></option>
+            <label class="form-label fw-semibold">Customer</label>
+            <select name="customerId" id="customerSelect" class="form-select border-0 bg-light">
+              <option value="">ALL CUSTOMERS</option>
+              <option th:each="c : ${customers}" th:value="${c.id}" th:text="${#strings.toUpperCase(c.name)}"
+                th:selected="${c.id == customerId}" class="customer-name"></option>
             </select>
           </div>
           <div class="col-md-3 d-flex gap-2">
-            <button type="submit" class="btn btn-dark flex-grow-1">
-              <i class="bi bi-filter me-2"></i>Apply Filters
+            <button type="submit" class="btn btn-primary rounded-pill flex-grow-1">
+              <i class="bi bi-filter me-1"></i>Apply Filters
             </button>
-            <a th:href="@{/reports/sales/monthly}" class="btn btn-outline-secondary">Reset</a>
+            <a th:href="@{/reports/sales/monthly}" class="btn btn-outline-secondary rounded-pill">Reset</a>
           </div>
         </form>
       </div>
     </div>
 
-    <div class="card shadow-sm mb-4">
-      <div class="card-body d-flex align-items-center justify-content-between p-4 flex-wrap gap-3">
-        <div>
-          <h4 class="mb-1 fw-bold" th:text="${ym != null} ? 'Performance - ' + ${ym} : 'Sales Performance'">Monthly
-            Performance</h4>
-          <div class="text-secondary small">Analysis of daily sales and earnings trends</div>
-        </div>
-        <div class="d-flex gap-2">
-          <div class="stat-pill">
-            <div class="small text-secondary">Total Revenue</div>
-            <div class="fw-bold fs-5" th:text="'₹' + ${#numbers.formatDecimal(totalRevenue, 1, 'COMMA', 2, 'POINT')}">
-              ₹0.00</div>
+    <div class="card border-0 mb-4 overflow-hidden">
+      <div class="card-body p-4">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+          <div>
+            <h4 class="mb-1 fw-bold" th:text="${ym != null} ? 'Performance - ' + ${ym} : 'Sales Performance'">Monthly
+              Performance</h4>
+            <div class="text-secondary small">Analysis of daily sales and earnings trends</div>
           </div>
-          <div class="stat-pill border-start ps-3">
-            <div class="small text-secondary">Net Earnings</div>
-            <div class="fw-bold fs-5" th:classappend="${totalPL >= 0 ? 'text-success' : 'text-danger'}"
-              th:text="'₹' + ${#numbers.formatDecimal(totalPL, 1, 'COMMA', 2, 'POINT')}">₹0.00</div>
+          <div class="d-flex gap-3 align-items-center">
+            <div class="text-end">
+              <div class="text-uppercase-header extra-small">Total Revenue</div>
+              <div class="fw-bold fs-5" th:text="'₹' + ${#numbers.formatDecimal(totalRevenue, 1, 'COMMA', 2, 'POINT')}">
+                ₹0.00</div>
+            </div>
+            <div class="border-start ps-3 text-end">
+              <div class="text-uppercase-header extra-small">Net Earnings</div>
+              <div class="fw-bold fs-5" th:classappend="${totalPL >= 0 ? 'text-success' : 'text-danger'}"
+                th:text="'₹' + ${#numbers.formatDecimal(totalPL, 1, 'COMMA', 2, 'POINT')}">₹0.00</div>
+            </div>
+            <a th:href="@{/reports/sales/monthly.pdf(year=${ym != null ? ym.year : null}, month=${ym != null ? ym.monthValue : null}, startDate=${startDate}, endDate=${endDate}, customerId=${customerId})}"
+              class="btn btn-primary rounded-pill px-4">
+              <i class="bi bi-file-earmark-pdf me-2"></i>Export PDF
+            </a>
           </div>
-          <a th:href="@{/reports/sales/monthly.pdf(year=${ym != null ? ym.year : null}, month=${ym != null ? ym.monthValue : null}, startDate=${startDate}, endDate=${endDate}, customerId=${customerId})}"
-            class="btn btn-primary d-flex align-items-center">
-            <i class="bi bi-file-earmark-pdf me-2"></i>Download Report
-          </a>
         </div>
       </div>
     </div>
 
-    <div class="card shadow-sm border-0 overflow-hidden">
+    <div class="card border-0 overflow-hidden mb-4">
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0" id="salesTable">
-          <thead class="bg-light">
+          <thead class="bg-light bg-opacity-50">
             <tr>
-              <th class="ps-4 cursor-pointer" onclick="sortTable(0)">Date <i class="bi bi-arrow-down-up small ms-1"></i>
-              </th>
-              <th class="cursor-pointer" onclick="sortTable(1)">Customer <i class="bi bi-arrow-down-up small ms-1"></i>
-              </th>
-              <th class="cursor-pointer" onclick="sortTable(2)">Product <i class="bi bi-arrow-down-up small ms-1"></i>
-              </th>
-              <th class="text-center">Qty</th>
-              <th class="text-center">Status</th>
-              <th class="text-end pe-4 cursor-pointer" onclick="sortTable(5)">Net Result <i
-                  class="bi bi-arrow-down-up small ms-1"></i></th>
+              <th class="ps-4 py-3 text-uppercase-header cursor-pointer" onclick="sortTable(0)">Date <i
+                  class="bi bi-arrow-down-up extra-small ms-1"></i></th>
+              <th class="py-3 text-uppercase-header cursor-pointer" onclick="sortTable(1)">Customer <i
+                  class="bi bi-arrow-down-up extra-small ms-1"></i></th>
+              <th class="py-3 text-uppercase-header cursor-pointer" onclick="sortTable(2)">Product <i
+                  class="bi bi-arrow-down-up extra-small ms-1"></i></th>
+              <th class="text-center py-3 text-uppercase-header">Qty</th>
+              <th class="text-center py-3 text-uppercase-header">Status</th>
+              <th class="text-end pe-4 py-3 text-uppercase-header cursor-pointer" onclick="sortTable(5)">Net Result <i
+                  class="bi bi-arrow-down-up extra-small ms-1"></i></th>
             </tr>
           </thead>
           <tbody>
             <tr th:each="r : ${rows}">
-              <td class="ps-4 fw-medium text-dark" th:text="${r.date}">2026-01-01</td>
-              <td th:text="${r.customerName != null ? r.customerName : 'Walk-in'}">Customer</td>
+              <td class="ps-4 small fw-semibold" th:text="${r.date}">2026-01-01</td>
+              <td th:text="${r.customerName != null ? r.customerName : 'Walk-in'}"
+                class="customer-name text-uppercase small">Customer</td>
               <td>
-                <div class="fw-semibold" th:text="${r.productName}">Product</div>
-                <div class="text-secondary smaller"
-                  th:text="'Sales: ₹' + ${#numbers.formatDecimal(r.totalRevenue, 1, 'COMMA', 2, 'POINT')}">Rev: ₹0.00
+                <div class="fw-bold product-name text-uppercase" th:text="${r.productName}">Product</div>
+                <div class="extra-small text-secondary opacity-50"
+                  th:text="'Sales Value: ₹' + ${#numbers.formatDecimal(r.totalRevenue, 1, 'COMMA', 2, 'POINT')}">Rev:
+                  ₹0.00
                 </div>
               </td>
-              <td class="text-center fw-medium" th:text="${r.qty}">0</td>
+              <td class="text-center">
+                <span class="badge bg-light text-dark rounded-pill border fw-bold px-3">[[${r.qty}]]</span>
+              </td>
               <td class="text-center">
                 <span th:if="${r.profitLossAmount >= 0}"
-                  class="badge text-bg-success-subtle border border-success-subtle text-success rounded-pill px-3">
-                  Gain
-                </span>
+                  class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1 extra-small">GAIN</span>
                 <span th:if="${r.profitLossAmount < 0}"
-                  class="badge text-bg-danger-subtle border border-danger-subtle text-danger rounded-pill px-3">
-                  Shortfall
-                </span>
+                  class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-1 extra-small">SHORTFALL</span>
               </td>
               <td class="text-end pe-4 fw-bold"
                 th:classappend="${r.profitLossAmount >= 0 ? 'text-success' : 'text-danger'}"
                 th:text="'₹' + ${#numbers.formatDecimal(r.profitLossAmount, 1, 'COMMA', 2, 'POINT')}">₹0.00</td>
             </tr>
           </tbody>
-          <tfoot class="bg-light-subtle border-top mt-2">
+          <tfoot class="bg-light bg-opacity-25 border-top">
             <tr>
-              <td colspan="3" class="ps-4 fw-bold py-3">TOTAL CUMULATIVE</td>
-              <td class="text-center fw-bold" th:text="${totalQty}">0</td>
+              <td colspan="3" class="ps-4 fw-bold py-4">TOTAL CUMULATIVE</td>
+              <td class="text-center fw-bold h5 mb-0" th:text="${totalQty}">0</td>
               <td></td>
-              <td class="text-end pe-4 fw-bold fs-5" th:classappend="${totalPL >= 0 ? 'text-success' : 'text-danger'}"
+              <td class="text-end pe-4 fw-bold h4 mb-0 text-primary"
                 th:text="'₹' + ${#numbers.formatDecimal(totalPL, 1, 'COMMA', 2, 'POINT')}">₹0.00</td>
             </tr>
           </tfoot>
@@ -136,7 +138,11 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <div th:replace="~{fragments :: theme_script}"></div>
 
-  <script>
+  <script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', () => {
+      new SlimSelect({ select: '#customerSelect' });
+    });
+
     function sortTable(n) {
       var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
       table = document.getElementById("salesTable");

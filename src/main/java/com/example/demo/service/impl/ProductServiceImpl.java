@@ -5,6 +5,7 @@ import com.example.demo.repository.ProductRepository;
 import com.example.demo.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
@@ -21,7 +22,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     public List<Product> getAllProducts() {
-        return productRepository.findAllByDeletedFalse();
+        List<Product> products = productRepository.findAllByDeletedFalse();
+        products.sort((p1, p2) -> {
+            String name1 = p1.getName() != null ? p1.getName() : "";
+            String name2 = p2.getName() != null ? p2.getName() : "";
+            return name1.compareToIgnoreCase(name2);
+        });
+        return products;
     }
 
     public Product getProductById(Integer id) {
@@ -32,8 +39,8 @@ public class ProductServiceImpl implements ProductService {
         productRepository.save(product);
     }
 
-    public List<Product> searchProducts(String name) {
-        return productRepository.findByNameContainingIgnoreCaseAndDeletedFalse(name);
+    public List<Product> searchProducts(String query) {
+        return productRepository.searchByNameOrCategory(query);
     }
 
     public void deleteProduct(Integer id) {
@@ -60,5 +67,16 @@ public class ProductServiceImpl implements ProductService {
 
     public List<Product> getProductsNeedingReorder() {
         return productRepository.findProductsNeedingReorder();
+    }
+
+    @Transactional
+    public void syncCapitalization() {
+        productRepository.findAll().forEach(p -> {
+            p.setName(p.getName());
+            p.setCategory(p.getCategory());
+            p.setSize(p.getSize());
+            p.setSupplier(p.getSupplier());
+            productRepository.save(p);
+        });
     }
 }

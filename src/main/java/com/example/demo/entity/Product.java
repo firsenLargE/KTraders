@@ -24,6 +24,7 @@ public class Product {
     private Integer minStockLevel = 10;
     private Integer maxStockLevel;
     private String supplier;
+    @jakarta.persistence.Column(columnDefinition = "boolean default false")
     private boolean deleted = false;
 
     public Product() {
@@ -61,7 +62,7 @@ public class Product {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = (name != null) ? name.toUpperCase() : null;
     }
 
     public String getCategory() {
@@ -69,7 +70,7 @@ public class Product {
     }
 
     public void setCategory(String category) {
-        this.category = category;
+        this.category = (category != null) ? category.toUpperCase() : null;
     }
 
     public String getSize() {
@@ -77,7 +78,7 @@ public class Product {
     }
 
     public void setSize(String size) {
-        this.size = size;
+        this.size = (size != null) ? size.toUpperCase() : null;
     }
 
     public Integer getQuantity() {
@@ -141,6 +142,6 @@ public class Product {
     }
 
     public void setSupplier(String supplier) {
-        this.supplier = supplier;
+        this.supplier = (supplier != null) ? supplier.toUpperCase() : null;
     }
 }

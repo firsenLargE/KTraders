@@ -3,7 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.entity.Purchase;
 import com.example.demo.service.PurchaseService;
 import com.example.demo.service.ProductService;
-import jakarta.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,9 +28,7 @@ public class PurchaseController {
     public String listPurchases(@RequestParam(required = false) String supplier,
             @RequestParam(defaultValue = "supplier") String sortBy,
             @RequestParam(defaultValue = "asc") String sortOrder,
-            Model model, HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/";
+            Model model) {
 
         List<Purchase> purchases;
 
@@ -90,9 +88,7 @@ public class PurchaseController {
     }
 
     @GetMapping("/add")
-    public String showAddPurchaseForm(Model model, HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/";
+    public String showAddPurchaseForm(Model model) {
 
         model.addAttribute("purchase", new Purchase());
         model.addAttribute("products", productService.getAllProducts());
@@ -102,9 +98,7 @@ public class PurchaseController {
     }
 
     @PostMapping("/add")
-    public String addPurchase(@ModelAttribute Purchase purchase, RedirectAttributes ra, HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/";
+    public String addPurchase(@ModelAttribute Purchase purchase, RedirectAttributes ra) {
 
         try {
             if (purchase.getPurchaseDate() == null) {
@@ -119,9 +113,7 @@ public class PurchaseController {
     }
 
     @GetMapping("/edit/{id}")
-    public String showEditPurchaseForm(@PathVariable Long id, Model model, HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/";
+    public String showEditPurchaseForm(@PathVariable Long id, Model model) {
 
         Purchase purchase = purchaseService.getPurchaseById(id);
         if (purchase == null)
@@ -135,10 +127,7 @@ public class PurchaseController {
     }
 
     @PostMapping("/edit/{id}")
-    public String updatePurchase(@PathVariable Long id, @ModelAttribute Purchase purchase, RedirectAttributes ra,
-            HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/";
+    public String updatePurchase(@PathVariable Long id, @ModelAttribute Purchase purchase, RedirectAttributes ra) {
 
         try {
             purchase.setId(id);
@@ -151,9 +140,7 @@ public class PurchaseController {
     }
 
     @GetMapping("/delete/{id}")
-    public String deletePurchase(@PathVariable Long id, RedirectAttributes ra, HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/";
+    public String deletePurchase(@PathVariable Long id, RedirectAttributes ra) {
 
         try {
             purchaseService.deletePurchase(id);
@@ -165,9 +152,7 @@ public class PurchaseController {
     }
 
     @GetMapping("/reports")
-    public String showPurchaseReports(Model model, HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/";
+    public String showPurchaseReports(Model model) {
 
         int currentYear = LocalDate.now().getYear();
         int currentMonth = LocalDate.now().getMonthValue();
@@ -195,9 +180,7 @@ public class PurchaseController {
     }
 
     @GetMapping("/reports/yearly")
-    public String yearlyReport(@RequestParam int year, Model model, HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/";
+    public String yearlyReport(@RequestParam int year, Model model) {
 
         List<Purchase> purchases = purchaseService.getPurchasesByYear(year);
         BigDecimal total = purchaseService.getTotalPurchaseAmountByDateRange(
@@ -225,9 +208,7 @@ public class PurchaseController {
     }
 
     @GetMapping("/reports/monthly")
-    public String monthlyReport(@RequestParam int year, @RequestParam int month, Model model, HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/";
+    public String monthlyReport(@RequestParam int year, @RequestParam int month, Model model) {
 
         List<Purchase> purchases = purchaseService.getPurchasesByYearAndMonth(year, month);
         BigDecimal total = purchaseService.getTotalPurchaseAmountByDateRange(

@@ -24,6 +24,9 @@ public class PurchaseServiceImpl implements PurchaseService {
     @Autowired
     private com.example.demo.service.CashLedgerService cashLedgerService;
 
+    @Autowired
+    private com.example.demo.service.StockMovementService stockMovementService;
+
     @Override
     @Transactional
     public void addPurchase(Purchase purchase) {
@@ -53,6 +56,16 @@ public class PurchaseServiceImpl implements PurchaseService {
                 : java.time.LocalDateTime.now());
         tx.setNotes("Purchase: " + purchase.getInvoiceNumber());
         cashLedgerService.record(tx);
+
+        // Record Stock Movement (INWARD)
+        com.example.demo.entity.StockMovement sm = new com.example.demo.entity.StockMovement();
+        sm.setProduct(product);
+        sm.setDirection(com.example.demo.entity.StockMovement.Direction.INWARD);
+        sm.setQuantity(java.math.BigDecimal.valueOf(purchase.getQuantity()));
+        sm.setReference("PURCHASE:" + purchase.getId());
+        sm.setReason("Regular Purchase: " + purchase.getInvoiceNumber());
+        sm.setOccurredAt(java.time.LocalDateTime.now());
+        stockMovementService.record(sm);
     }
 
     @Override
@@ -66,7 +79,6 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
 
     @Override
-
     @Transactional
     public void updatePurchase(Purchase purchase) {
         Purchase existingPurchase = purchaseRepository.findById(purchase.getId()).orElse(null);
@@ -106,6 +118,16 @@ public class PurchaseServiceImpl implements PurchaseService {
                 : java.time.LocalDateTime.now());
         tx.setNotes("Purchase: " + purchase.getInvoiceNumber());
         cashLedgerService.record(tx);
+
+        // Update Stock Movement (INWARD)
+        com.example.demo.entity.StockMovement sm = new com.example.demo.entity.StockMovement();
+        sm.setProduct(purchase.getProduct());
+        sm.setDirection(com.example.demo.entity.StockMovement.Direction.INWARD);
+        sm.setQuantity(java.math.BigDecimal.valueOf(purchase.getQuantity()));
+        sm.setReference("PURCHASE:" + purchase.getId());
+        sm.setReason("Updated Purchase: " + purchase.getInvoiceNumber());
+        sm.setOccurredAt(java.time.LocalDateTime.now());
+        stockMovementService.record(sm);
     }
 
     @Override
@@ -122,6 +144,19 @@ public class PurchaseServiceImpl implements PurchaseService {
             }
         }
         cashLedgerService.deleteByReference("PURCHASE:" + id);
+
+        // Record Stock Movement (OUTWARD - Adjustment for deletion)
+        if (purchase.getProduct() != null) {
+            com.example.demo.entity.StockMovement sm = new com.example.demo.entity.StockMovement();
+            sm.setProduct(purchase.getProduct());
+            sm.setDirection(com.example.demo.entity.StockMovement.Direction.OUTWARD);
+            sm.setQuantity(java.math.BigDecimal.valueOf(purchase.getQuantity()));
+            sm.setReference("PURCHASE_CANCEL:" + id);
+            sm.setReason("Purchase Deleted/Cancelled");
+            sm.setOccurredAt(java.time.LocalDateTime.now());
+            stockMovementService.record(sm);
+        }
+
         purchaseRepository.deleteById(id);
     }
 
@@ -159,5 +194,14 @@ public class PurchaseServiceImpl implements PurchaseService {
     @Override
     public Long getPurchaseCountByDateRange(LocalDate startDate, LocalDate endDate) {
         return purchaseRepository.getPurchaseCountByDateRange(startDate, endDate);
+    }
+
+    @Override
+    @Transactional
+    public void syncCapitalization() {
+        purchaseRepository.findAll().forEach(p -> {
+            p.setSupplier(p.getSupplier());
+            purchaseRepository.save(p);
+        });
     }
 }

@@ -36,15 +36,14 @@
         <!-- Filters and Stats -->
         <div class="row g-4 mb-4">
             <div class="col-lg-8">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body">
+                <div class="card border-0 h-100">
+                    <div class="card-body p-4">
                         <div class="row align-items-center">
                             <div class="col-md-5">
-                                <label class="form-label small text-uppercase fw-bold text-secondary">Filter by
-                                    Supplier</label>
+                                <label class="form-label fw-semibold">Filter by Supplier</label>
                                 <form th:action="@{/purchases}" method="get">
-                                    <select name="supplier" class="form-select border-0 bg-light py-2"
-                                        onchange="this.form.submit()">
+                                    <select name="supplier" id="supplierSelect"
+                                        class="form-select border-0 bg-light py-2" onchange="this.form.submit()">
                                         <option value="all">All Suppliers</option>
                                         <option th:each="supplier : ${allSuppliers}" th:value="${supplier}"
                                             th:selected="${supplier == selectedSupplier}" th:text="${supplier}">
@@ -55,17 +54,17 @@
                                     <input type="hidden" name="sortOrder" th:value="${sortOrder}">
                                 </form>
                             </div>
-                            <div class="col-md-7 border-start-md ps-md-4">
+                            <div class="col-md-7 border-start ps-md-4">
                                 <div class="d-flex flex-column h-100 justify-content-center">
-                                    <div class="text-secondary small mb-1">Active View</div>
+                                    <div class="text-uppercase-header extra-small mb-2">Active View</div>
                                     <div class="d-flex align-items-center gap-2">
                                         <span
                                             class="badge bg-primary bg-opacity-10 text-primary rounded-pill py-2 px-3">
-                                            <strong th:text="${purchases.size()}">0</strong> Records
+                                            <strong th:text="${purchases.size()}">0</strong> Records Found
                                         </span>
                                         <span th:if="${selectedSupplier != null && selectedSupplier != 'all'}"
                                             class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill py-2 px-3">
-                                            <i class="bi bi-person me-1"></i><span
+                                            <i class="bi bi-shop me-1"></i><span
                                                 th:text="${selectedSupplier}">Supplier</span>
                                         </span>
                                     </div>
@@ -75,12 +74,12 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-4 text-end">
-                <div class="card border-0 shadow-sm h-100 bg-primary text-white">
+            <div class="col-lg-4">
+                <div class="card border-0 h-100 cta-gradient text-white">
                     <div class="card-body d-flex flex-column justify-content-center p-4">
-                        <div class="small opacity-75 text-uppercase fw-bold mb-1">Total Procurement</div>
+                        <div class="text-white opacity-75 small text-uppercase fw-bold mb-1">Total Procurement</div>
                         <div class="h2 mb-0 fw-bold">₹<span
-                                th:text="${#numbers.formatDecimal(totalProcurement, 1, 2)}">0.00</span>
+                                th:text="${#numbers.formatDecimal(totalProcurement, 1, 'COMMA', 2, 'POINT')}">0.00</span>
                         </div>
                     </div>
                 </div>
@@ -88,101 +87,105 @@
         </div>
 
         <!-- Alerts -->
-        <div th:if="${success}" class="alert alert-success border-0 shadow-sm mb-4" th:text="${success}"></div>
-        <div th:if="${error}" class="alert alert-danger border-0 shadow-sm mb-4" th:text="${error}"></div>
+        <div th:if="${success}" class="alert alert-success border-0 rounded-4 p-3 mb-4" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-danger border-0 rounded-4 p-3 mb-4" th:text="${error}"></div>
 
         <!-- Main Table -->
-        <div class="card border-0 shadow-sm overflow-hidden mb-4">
+        <div class="card border-0 overflow-hidden mb-4">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="bg-light bg-opacity-50">
                         <tr>
-                            <th class="ps-4 py-3 small text-uppercase fw-bold text-secondary">
+                            <th class="ps-4 py-3 text-uppercase-header">
                                 <a th:href="@{/purchases(sortBy='date', sortOrder=${sortBy == 'date' && sortOrder == 'asc' ? 'desc' : 'asc'}, supplier=${selectedSupplier})}"
-                                    class="text-decoration-none text-secondary d-flex align-items-center gap-1">
+                                    class="text-decoration-none text-dark d-flex align-items-center gap-1">
                                     Date <i th:if="${sortBy == 'date'}"
                                         th:class="${sortOrder == 'asc' ? 'bi bi-sort-up' : 'bi bi-sort-down'}"></i>
                                 </a>
                             </th>
-                            <th class="py-3 small text-uppercase fw-bold text-secondary">
+                            <th class="py-3 text-uppercase-header">
                                 <a th:href="@{/purchases(sortBy='product', sortOrder=${sortBy == 'product' && sortOrder == 'asc' ? 'desc' : 'asc'}, supplier=${selectedSupplier})}"
-                                    class="text-decoration-none text-secondary d-flex align-items-center gap-1">
+                                    class="text-decoration-none text-dark d-flex align-items-center gap-1">
                                     Product <i th:if="${sortBy == 'product'}"
                                         th:class="${sortOrder == 'asc' ? 'bi bi-sort-up' : 'bi bi-sort-down'}"></i>
                                 </a>
                             </th>
-                            <th class="py-3 small text-uppercase fw-bold text-secondary">
+                            <th class="py-3 text-uppercase-header">
                                 <a th:href="@{/purchases(sortBy='supplier', sortOrder=${sortBy == 'supplier' && sortOrder == 'asc' ? 'desc' : 'asc'}, supplier=${selectedSupplier})}"
-                                    class="text-decoration-none text-secondary d-flex align-items-center gap-1">
+                                    class="text-decoration-none text-dark d-flex align-items-center gap-1">
                                     Supplier <i th:if="${sortBy == 'supplier'}"
                                         th:class="${sortOrder == 'asc' ? 'bi bi-sort-up' : 'bi bi-sort-down'}"></i>
                                 </a>
                             </th>
-                            <th class="py-3 small text-uppercase fw-bold text-secondary">Quantity</th>
-                            <th class="py-3 small text-uppercase fw-bold text-secondary text-end">
+                            <th class="py-3 text-uppercase-header">Volume</th>
+                            <th class="py-3 text-uppercase-header text-end">
                                 <a th:href="@{/purchases(sortBy='totalCost', sortOrder=${sortBy == 'totalCost' && sortOrder == 'asc' ? 'desc' : 'asc'}, supplier=${selectedSupplier})}"
-                                    class="text-decoration-none text-secondary d-flex align-items-center justify-content-end gap-1">
+                                    class="text-decoration-none text-dark d-flex align-items-center justify-content-end gap-1">
                                     Total Cost <i th:if="${sortBy == 'totalCost'}"
                                         th:class="${sortOrder == 'asc' ? 'bi bi-sort-up' : 'bi bi-sort-down'}"></i>
                                 </a>
                             </th>
-                            <th class="py-3 small text-uppercase fw-bold text-secondary text-center">Invoice</th>
-                            <th class="pe-4 py-3 small text-uppercase fw-bold text-secondary text-end">Actions</th>
+                            <th class="py-3 text-uppercase-header text-center">Invoice</th>
+                            <th class="pe-4 py-3 text-uppercase-header text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr th:each="purchase : ${purchases}">
                             <td class="ps-4">
-                                <div class="fw-bold"
+                                <div class="fw-bold product-name"
                                     th:text="${#temporals.format(purchase.purchaseDate, 'dd MMM yyyy')}">01 Jan 2024
                                 </div>
-                                <div class="small text-secondary"
+                                <div class="extra-small text-secondary opacity-50"
                                     th:text="${#temporals.format(purchase.purchaseDate, 'HH:mm')}">12:00</div>
                             </td>
                             <td>
                                 <div class="d-flex align-items-center gap-3">
-                                    <div class="rounded bg-light p-1" style="width: 40px; height: 40px;">
+                                    <div class="rounded-3 bg-light p-1" style="width: 40px; height: 40px;">
                                         <img th:if="${purchase.product.imagePath != null}"
                                             th:src="${purchase.product.imagePath}"
-                                            class="w-100 h-100 object-fit-cover rounded border" />
+                                            class="w-100 h-100 object-fit-cover rounded-2" />
                                         <div th:unless="${purchase.product.imagePath != null}"
-                                            class="w-100 h-100 d-grid place-items-center text-muted border rounded">
+                                            class="w-100 h-100 d-flex align-items-center justify-content-center text-muted">
                                             <i class="bi bi-box small"></i>
                                         </div>
                                     </div>
                                     <div>
-                                        <div class="fw-bold" th:text="${purchase.product.name}">Product</div>
-                                        <div class="extra-small text-uppercase text-secondary tracking-wider"
+                                        <div class="fw-bold product-name text-uppercase"
+                                            th:text="${purchase.product.name}">Product
+                                        </div>
+                                        <div class="extra-small text-uppercase text-secondary opacity-50 tracking-wider"
                                             th:text="${purchase.product.category}">Category</div>
                                     </div>
                                 </div>
                             </td>
-                            <td th:text="${purchase.supplier}">Supplier</td>
+                            <td class="small fw-semibold text-uppercase text-secondary">
+                                <i class="bi bi-shop me-1"></i>[[${purchase.supplier}]]
+                            </td>
                             <td>
-                                <span class="badge bg-light text-dark border py-2 px-3 fw-bold"
+                                <span class="badge bg-light text-dark rounded-pill border fw-bold px-3 py-1"
                                     th:text="${purchase.quantity}">10</span>
-                                <span class="small text-secondary ms-1">units</span>
                             </td>
                             <td class="text-end">
-                                <div class="fw-bold fs-6">₹<span
-                                        th:text="${#numbers.formatDecimal(purchase.totalCost, 1, 2)}">0.00</span></div>
-                                <div class="small text-secondary">@ ₹<span
-                                        th:text="${#numbers.formatDecimal(purchase.unitCost, 1, 2)}">0.00</span></div>
+                                <div class="fw-bold text-primary">₹<span
+                                        th:text="${#numbers.formatDecimal(purchase.totalCost, 1, 'COMMA', 2, 'POINT')}">0.00</span>
+                                </div>
+                                <div class="extra-small text-secondary opacity-50">@
+                                    ₹[[${#numbers.formatDecimal(purchase.unitCost, 1, 'COMMA', 2, 'POINT')}]]</div>
                             </td>
                             <td class="text-center">
-                                <code class="bg-light text-dark px-2 py-1 rounded small"
-                                    th:text="${purchase.invoiceNumber ?: 'N/A'}">INV-0123</code>
+                                <span class="badge bg-light text-dark rounded-pill border-0 extra-small"
+                                    th:text="${purchase.invoiceNumber ?: 'N/A'}">INV-0123</span>
                             </td>
                             <td class="pe-4 text-end">
-                                <div class="btn-group shadow-sm">
+                                <div class="d-flex justify-content-end gap-1">
                                     <a th:href="@{/purchases/edit/{id}(id=${purchase.id})}"
-                                        class="btn btn-white btn-sm border" title="Edit">
+                                        class="btn btn-icon-only rounded-circle btn-light" title="Edit">
                                         <i class="bi bi-pencil-square text-primary"></i>
                                     </a>
                                     <form th:action="@{/purchases/delete/{id}(id=${purchase.id})}" method="get"
                                         class="d-inline">
-                                        <button type="submit" class="btn btn-white btn-sm border" title="Delete"
-                                            onclick="return confirm('Archive this purchase record?')">
+                                        <button type="submit" class="btn btn-icon-only rounded-circle btn-light"
+                                            title="Delete" onclick="return confirm('Archive this purchase record?')">
                                             <i class="bi bi-trash text-danger"></i>
                                         </button>
                                     </form>
@@ -202,6 +205,11 @@
             </div>
         </div>
         <div th:replace="~{fragments :: theme_script}"></div>
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', () => {
+                new SlimSelect({ select: '#supplierSelect' });
+            });
+        </script>
     </div>
 </body>
 

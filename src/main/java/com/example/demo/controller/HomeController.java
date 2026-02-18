@@ -8,7 +8,9 @@ import com.example.demo.service.ProductService;
 import com.example.demo.service.SaleService;
 import com.example.demo.service.UserService;
 import com.example.demo.entity.User;
+import com.example.demo.service.CustomerService;
 import com.example.demo.util.FinancialUtil;
+import com.example.demo.service.PurchaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +18,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,21 +32,52 @@ public class HomeController {
     private SaleService saleService;
     @Autowired
     private OrderService orderService;
+    @Autowired
+    private CustomerService customerService;
+    @Autowired
+    private PurchaseService purchaseService;
 
     @GetMapping("/")
-    public String home() {
+    public String home(java.security.Principal principal) {
+        if (principal != null)
+            return "redirect:/dashboard";
         return "index";
     }
 
     @GetMapping("/login")
-    public String showLoginPage() {
+    public String showLoginPage(java.security.Principal principal) {
+        if (principal != null)
+            return "redirect:/dashboard";
         return "index";
     }
 
+    @GetMapping("/signup")
+    public String registerForm(Model model) {
+        model.addAttribute("user", new User());
+        return "signup";
+    }
+
+    @PostMapping("/signup")
+    public String postSignup(@ModelAttribute User user, RedirectAttributes ra, Model model) {
+        try {
+            if (userService.existsByEmail(user.getEmail().toLowerCase())) {
+                model.addAttribute("error", "Email already exists.");
+                return "signup";
+            }
+            user.setEmail(user.getEmail().toLowerCase());
+            // Encode password before saving
+            // userService.signUp should handle this, or we do it here if it's plain
+            userService.signUp(user);
+            ra.addFlashAttribute("success", "Account created successfully!");
+            return "redirect:/login";
+        } catch (Exception e) {
+            model.addAttribute("error", "Error creating account: " + e.getMessage());
+            return "signup";
+        }
+    }
+
     @GetMapping("/dashboard")
-    public String showDashboard(Model model, HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/";
+    public String showDashboard(Model model) {
 
         List<Product> products = productService.getAllProducts();
         model.addAttribute("totalProducts", productService.countProducts());
@@ -67,9 +99,7 @@ public class HomeController {
     }
 
     @GetMapping("/reports")
-    public String showReports(Model model, HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/";
+    public String showReports(Model model) {
         List<Product> products = productService.getAllProducts();
         model.addAttribute("products", products);
         model.addAttribute("productNames",
@@ -82,73 +112,9 @@ public class HomeController {
         return "reports";
     }
 
-    @GetMapping("/signup")
-    public String registerForm(Model model) {
-        model.addAttribute("user", new User());
-        return "signup";
-    }
-
-    @PostMapping("/login")
-    public String postLogin(@ModelAttribute User user, Model model, HttpSession session) {
-        try {
-            System.out.println("=== LOGIN ATTEMPT ===");
-            System.out.println("Email received: [" + user.getEmail() + "]");
-            System.out.println("Password received: [" + user.getPassword() + "]");
-            System.out.println("Email lowercase: [" + user.getEmail().toLowerCase() + "]");
-
-            User usr = userService.login(user.getEmail().toLowerCase(), user.getPassword());
-
-            System.out.println("User found: " + (usr != null));
-            if (usr != null) {
-                System.out.println("User ID: " + usr.getId());
-                System.out.println("User name: " + usr.getUname());
-            }
-
-            if (usr != null) {
-                session.setAttribute("validuser", usr);
-                session.setMaxInactiveInterval(3600);
-                model.addAttribute("uname", usr.getUname());
-                return "redirect:/dashboard";
-            } else {
-                model.addAttribute("error", "Invalid email or password");
-                return "index";
-            }
-        } catch (Exception e) {
-            System.out.println("Login exception: " + e.getMessage());
-            e.printStackTrace();
-            model.addAttribute("error", "Login failed: " + e.getMessage());
-            return "index";
-        }
-    }
-
-    @GetMapping("/logout")
-    public String logout(HttpSession session) {
-        session.invalidate();
-        return "redirect:/";
-    }
-
-    @PostMapping("/signup")
-    public String postSignup(@ModelAttribute User user, RedirectAttributes ra, Model model) {
-        try {
-            if (userService.existsByEmail(user.getEmail().toLowerCase())) {
-                model.addAttribute("error", "Email already exists.");
-                return "signup";
-            }
-            user.setEmail(user.getEmail().toLowerCase());
-            userService.signUp(user);
-            ra.addFlashAttribute("success", "Account created successfully!");
-            return "redirect:/";
-        } catch (Exception e) {
-            model.addAttribute("error", "Error creating account: " + e.getMessage());
-            return "signup";
-        }
-    }
-
     @GetMapping("/api/products")
     @ResponseBody
-    public ResponseEntity<List<Map<String, Object>>> getAllProducts(HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    public ResponseEntity<List<Map<String, Object>>> getAllProducts() {
         try {
             List<Product> products = productService.getAllProducts();
             if (products == null)
@@ -175,9 +141,7 @@ public class HomeController {
 
     @GetMapping("/api/statistics")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> getStatistics(HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    public ResponseEntity<Map<String, Object>> getStatistics() {
         try {
             List<Product> products = productService.getAllProducts();
             Map<String, Object> stats = new HashMap<>();
@@ -202,6 +166,20 @@ public class HomeController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    @GetMapping("/cleanup/capitalize")
+    public String capitalize(RedirectAttributes ra) {
+        try {
+            productService.syncCapitalization();
+            customerService.syncCapitalization();
+            purchaseService.syncCapitalization();
+            ra.addFlashAttribute("success",
+                    "Migration complete: All products, customers, and suppliers are now capitalized!");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Migration failed: " + e.getMessage());
+        }
+        return "redirect:/dashboard";
     }
 
 }

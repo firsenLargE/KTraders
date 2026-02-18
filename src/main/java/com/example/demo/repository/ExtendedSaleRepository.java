@@ -16,7 +16,8 @@ public interface ExtendedSaleRepository extends JpaRepository<Sale, Integer> {
            s.customer.name,
            s.date,
            SUM(CAST(COALESCE(s.quantity, 0) AS Long)),
-           SUM(COALESCE(s.totalPrice, 0.0))
+           SUM(COALESCE(s.totalPrice, 0.0)),
+           AVG(COALESCE(s.unitCostPrice, 0.0))
         )
         from Sale s
         where s.date >= :start and s.date < :endExclusive

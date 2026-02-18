@@ -12,7 +12,6 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -31,30 +30,28 @@ public class SaleController {
     private CustomerService customerService;
 
     @GetMapping("/sales")
-    public String showSalesForm(Model model, HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/";
+    public String showSalesForm(Model model) {
         model.addAttribute("sale", new Sale());
-        model.addAttribute("products", productService.getAllProducts());
+        model.addAttribute("products", productService.getAllProducts().stream()
+                .filter(p -> p.getName() != null && !p.getName().trim().isEmpty())
+                .sorted((p1, p2) -> p1.getName().compareToIgnoreCase(p2.getName()))
+                .collect(java.util.stream.Collectors.toList()));
         model.addAttribute("customers", customerService.getAllCustomers());
         model.addAttribute("sales", saleService.getAllSales());
         model.addAttribute("customer", new Customer());
+        model.addAttribute("currentUri", "/sales");
         return "sales";
     }
 
     @GetMapping("/sales/add")
-    public String showAddSaleForm(Model model, HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/";
+    public String showAddSaleForm(Model model) {
         model.addAttribute("sale", new Sale());
         model.addAttribute("products", productService.getAllProducts());
         return "add-sale";
     }
 
     @PostMapping("/sales/add")
-    public String addSale(@ModelAttribute Sale sale, RedirectAttributes ra, HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/sales";
+    public String addSale(@ModelAttribute Sale sale, RedirectAttributes ra) {
         try {
             Product product = productService.getProductById(sale.getProduct().getId());
             Customer customer = customerService.getCustomerById(sale.getCustomer().getId());
@@ -88,9 +85,7 @@ public class SaleController {
     }
 
     @GetMapping("/sales/edit/{id}")
-    public String showEditSaleForm(@PathVariable Integer id, Model model, HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/";
+    public String showEditSaleForm(@PathVariable Integer id, Model model) {
         Sale sale = saleService.getSaleById(id);
         if (sale == null)
             return "redirect:/sales";
@@ -101,10 +96,7 @@ public class SaleController {
     }
 
     @PostMapping("/sales/edit/{id}")
-    public String updateSale(@PathVariable Integer id, @ModelAttribute Sale sale, RedirectAttributes ra,
-            HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/sales";
+    public String updateSale(@PathVariable Integer id, @ModelAttribute Sale sale, RedirectAttributes ra) {
         try {
             sale.setId(id);
             // Basic price/total recalculation if not handled by JS
@@ -122,9 +114,7 @@ public class SaleController {
     }
 
     @GetMapping("/sales/delete/{id}")
-    public String deleteSale(@PathVariable Integer id, RedirectAttributes ra, HttpSession session) {
-        if (session.getAttribute("validuser") == null)
-            return "redirect:/sales";
+    public String deleteSale(@PathVariable Integer id, RedirectAttributes ra) {
         try {
             saleService.deleteSale(id);
             ra.addFlashAttribute("success", "Sale deleted and stock restored!");

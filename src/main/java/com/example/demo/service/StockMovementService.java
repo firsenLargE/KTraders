@@ -9,9 +9,21 @@ import java.util.List;
 @Service
 public class StockMovementService {
     private final StockMovementRepository repo;
-    @Autowired StockMovementService(StockMovementRepository repo) { this.repo = repo; }
-    public List<StockMovement> byProduct(Integer pid) { return repo.findByProductIdOrderByOccurredAtDesc(pid); }
-    public StockMovement record(StockMovement m) { return repo.save(m); }
+
+    @Autowired
+    StockMovementService(StockMovementRepository repo) {
+        this.repo = repo;
+    }
+
+    public List<StockMovement> byProduct(Integer pid) {
+        return repo.findByProductIdOrderByOccurredAtDesc(pid);
+    }
+
+    public List<StockMovement> all() {
+        return repo.findAllByOrderByOccurredAtDesc();
+    }
+
+    public StockMovement record(StockMovement m) {
+        return repo.save(m);
+    }
 }
-
-

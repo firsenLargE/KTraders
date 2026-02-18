@@ -213,7 +213,7 @@
           <tr class="row-select cursor-pointer" data-id="${r.id}">
             <td class="ps-4"><input type="checkbox" class="form-check-input product-check" value="${r.id}"></td>
             <td>
-              <div class="fw-bold">${escapeHtml(r.name)}</div>
+              <div class="fw-bold product-name">${escapeHtml(r.name)}</div>
               <div class="extra-small text-uppercase text-secondary">${escapeHtml(r.category || 'Other')}</div>
             </td>
             <td class="text-end fw-semibold text-secondary">${fmt(r.price)}</td>
@@ -298,7 +298,7 @@
         body.innerHTML = plan.items.map(it => `
           <tr>
             <td class="ps-3">
-              <div class="fw-bold text-dark">${escapeHtml(it.productName)}</div>
+              <div class="fw-bold text-dark product-name">${escapeHtml(it.productName)}</div>
               <div class="extra-small text-secondary">#${it.productId}</div>
             </td>
             <td class="text-end fw-bold">${it.units}</td>
