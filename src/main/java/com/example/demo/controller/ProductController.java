@@ -28,7 +28,10 @@ public class ProductController {
 
     @GetMapping("/products")
     public String showProducts(Model model) {
-        List<Product> products = productService.getAllProducts();
+        List<Product> products = productService.getAllProducts().stream()
+                .sorted(java.util.Comparator.comparing(Product::getName,
+                        java.util.Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
+                .toList();
         model.addAttribute("products", products);
         populateSummary(model, products);
         return "products";
@@ -181,7 +184,10 @@ public class ProductController {
 
     @GetMapping("/search-products")
     public String searchProducts(@RequestParam String query, Model model) {
-        List<Product> products = productService.searchProducts(query);
+        List<Product> products = productService.searchProducts(query).stream()
+                .sorted(java.util.Comparator.comparing(Product::getName,
+                        java.util.Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
+                .toList();
         model.addAttribute("products", products);
         model.addAttribute("searchQuery", query);
         populateSummary(model, products);
