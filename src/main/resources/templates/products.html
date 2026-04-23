@@ -1,335 +1,179 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <title>Products • Kapil Traders</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root{
-      --bg: #f6f8fb;
-      --text: #1f2937;
-      --muted: #6b7280;
-      --brand: #1e40af;
-      --brand-2:#60a5fa;
-      --good:#16a34a;
-      --warn:#f59e0b;
-      --bad:#dc2626;
-      --card: #ffffff;
-      --border:#e5e7eb;
-      --shadow: 0 18px 40px rgba(2,8,20,.06);
-      --radius:18px;
-      --glass: rgba(255,255,255,.7);
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0; padding:24px;
-      background: radial-gradient(1200px 600px at 70% -300px,#e8eefc,#f7f8fb 60%), var(--bg);
-      color:var(--text);
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-    }
 
-    /* Header / toolbar */
-    .topbar{
-      display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:20px;
-    }
-    .title{
-      display:flex; align-items:center; gap:12px;
-    }
-    .title .dot{
-      width:36px;height:36px;border-radius:12px;
-      background: linear-gradient(135deg,var(--brand),var(--brand-2));
-      box-shadow: 0 8px 24px rgba(30,64,175,.35);
-    }
-    h2{margin:0; font-size:1.45rem; letter-spacing:.2px}
-    .toolbar{display:flex; gap:10px; flex-wrap:wrap}
-    .btn{
-      border:1px solid var(--border);
-      background: linear-gradient(180deg,#fff,#f9fafb);
-      color:var(--text);
-      padding:.65rem 1rem; border-radius:10px;
-      font-weight:600; font-size:.9rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,.04);
-      text-decoration:none; display:inline-flex; align-items:center; gap:.5rem;
-      transition: transform .12s ease, box-shadow .12s ease, background .2s ease;
-    }
-    .btn:hover{ transform: translateY(-1px); box-shadow: 0 10px 26px rgba(0,0,0,.08); }
-    .btn.primary{
-      color:#fff; border-color:transparent;
-      background: linear-gradient(135deg, #2563eb, #0ea5e9);
-      box-shadow: 0 12px 26px rgba(37,99,235,.25);
-    }
-    .btn.danger{
-      color:#fff; border-color:transparent;
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      box-shadow: 0 12px 26px rgba(239,68,68,.25);
-    }
+<head th:replace="~{fragments :: common_head('Products')}"></head>
 
-    /* Stats */
-    .stats{
-      display:grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap:16px; margin-bottom:16px;
-    }
-    .stat{
-      background: var(--glass);
-      backdrop-filter: blur(6px);
-      border:1px solid rgba(0,0,0,.05);
-      border-radius: 16px; padding:16px;
-      box-shadow: var(--shadow);
-      display:flex; align-items:center; gap:14px;
-    }
-    .stat .icon{
-      width:42px;height:42px;border-radius:12px; display:grid; place-items:center;
-      color:#fff; font-weight:800; letter-spacing:.5px;
-      background: linear-gradient(135deg,#0ea5e9,#2563eb);
-    }
-    .stat .num{ font-size:1.6rem; font-weight:800 }
-    .muted{ color: var(--muted) }
-    .currency{ font-variant-numeric: tabular-nums; }
-
-    /* Alerts */
-    .alert{ padding:14px 16px; border-radius:12px; border:1px solid #fde68a; background:#fff8e1; color:#9a6b00; margin:16px 0; }
-
-    /* Search */
-    .search-card{
-      background: var(--card);
-      border:1px solid var(--border);
-      border-radius: 16px; padding:16px; box-shadow: var(--shadow); margin-bottom:18px;
-    }
-    .search-row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    .input{
-      flex:1;
-      border:1px solid var(--border);
-      border-radius:12px; padding:.8rem .9rem; font-size:1rem;
-      outline:none; transition: box-shadow .15s ease, border-color .15s ease;
-      background:#fff;
-    }
-    .input:focus{ border-color:#93c5fd; box-shadow: 0 0 0 4px rgba(147,197,253,.25); }
-
-    /* Cards grid */
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(auto-fill,minmax(260px,1fr));
-      gap:18px;
-    }
-
-    /* Product card */
-    .card{
-      background: var(--card);
-      border:1px solid rgba(0,0,0,.06);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-      display:flex; flex-direction:column;
-      transition: transform .18s ease, box-shadow .18s ease;
-      position:relative;
-    }
-    .card:hover{ transform: translateY(-4px); box-shadow: 0 22px 50px rgba(2,8,20,.12); }
-
-    .media{
-      position:relative; aspect-ratio: 16/10; background: linear-gradient(135deg,#e2e8f0,#f8fafc);
-    }
-    .media img{
-      width:100%; height:100%; object-fit:cover; display:block;
-    }
-    .pill{
-      position:absolute; left:12px; top:12px;
-      background: rgba(0,0,0,.65); color:#fff; padding:.35rem .6rem; border-radius:999px;
-      font-size:.75rem; backdrop-filter: blur(2px);
-    }
-    .ribbon{
-      position:absolute; right:-42px; top:14px;
-      transform: rotate(35deg);
-      background: linear-gradient(135deg,#22c55e,#16a34a);
-      color:#fff; padding:.35rem 48px; font-weight:700; letter-spacing:.3px; font-size:.8rem;
-      box-shadow: 0 10px 24px rgba(34,197,94,.35);
-    }
-
-    .body{ padding:14px 14px 0 14px; display:flex; flex-direction:column; gap:8px; }
-    .name{ font-weight:700; letter-spacing:.2px; font-size:1.05rem; }
-    .kv{ font-size:.92rem; color:var(--muted) }
-    .row{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      font-size:.95rem;
-    }
-    .row .qty.low{ color: var(--bad); font-weight:700 }
-    .row .qty.ok{ color: var(--good); font-weight:700 }
-
-    /* Stock bar */
-    .stockbar{
-      background:#eef2ff; height:8px; border-radius:999px; overflow:hidden; position:relative;
-    }
-    .stockbar > span{
-      display:block; height:100%; background: linear-gradient(90deg,#2563eb,#60a5fa);
-      width: 0%;
-      transition: width .4s ease;
-    }
-    .stock-hint{ font-size:.75rem; color:var(--muted); }
-
-    /* Footer actions */
-    .actions{
-      padding:12px 14px 16px;
-      display:flex; align-items:center; justify-content:space-between; gap:8px;
-    }
-    .btn-icon{
-      flex:1;
-      border:1px solid var(--border);
-      border-radius: 12px;
-      padding:.55rem .8rem;
-      display:flex; align-items:center; justify-content:center; gap:.5rem;
-      background:#fff;
-      font-weight:600; color:#0f172a; text-decoration:none;
-      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
-    }
-    .btn-icon:hover{ transform: translateY(-1px); box-shadow: 0 10px 24px rgba(2,8,20,.08); border-color:#bfdbfe; }
-    .btn-icon.danger{ color:#fff; background: linear-gradient(135deg,#ef4444,#dc2626); border-color:transparent; }
-    .btn-icon.primary{ color:#fff; background: linear-gradient(135deg,#2563eb,#0ea5e9); border-color:transparent; }
-
-    /* Helpers */
-    .right{ text-align:right }
-    .nowrap{ white-space:nowrap }
-    .note{ font-size:.85rem; color:var(--muted) }
-    .empty{
-      text-align:center; color:var(--muted); padding:48px 16px;
-      background: var(--glass); border:1px dashed var(--border); border-radius:16px;
-    }
-
-    /* Responsive */
-    @media (max-width: 900px){
-      .stats{ grid-template-columns: 1fr; }
-      .topbar{ flex-direction:column; align-items:flex-start }
-      body{ padding:18px }
-    }
-    @media (max-width: 540px){
-      .grid{ grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); }
-    }
-  </style>
-</head>
 <body>
+  <div class="container-xxl py-4">
+    <div th:replace="~{fragments :: navbar}"></div>
 
-  <!-- Header / actions -->
-  <div class="topbar">
-    <div class="title">
-      <div class="dot"></div>
-      <div>
-        <h2>Product Management</h2>
-        <div class="note">Curate, edit and replenish your catalog</div>
-      </div>
-    </div>
-    <div class="toolbar">
-      <a th:href="@{/dashboard}" class="btn">← Back</a>
-      <a th:href="@{/add-product}" class="btn primary">＋ Add New Product</a>
-    </div>
-  </div>
-
-  <!-- Stats -->
-  <div class="stats">
-    <div class="stat">
-      <div class="icon">P</div>
-      <div>
-        <div class="num" th:text="${totalProducts} ?: 0">0</div>
-        <div class="muted">Total Products</div>
-      </div>
-    </div>
-    <div class="stat">
-      <div class="icon" style="background:linear-gradient(135deg,#f59e0b,#f97316)">L</div>
-      <div>
-        <div class="num" th:text="${lowStockProducts} ?: 0">0</div>
-        <div class="muted">Low Stock (&lt; 10)</div>
-      </div>
-    </div>
-    <div class="stat">
-      <div class="icon" style="background:linear-gradient(135deg,#22c55e,#16a34a)">₹</div>
-      <div>
-        <div class="num currency" th:text="'₹' + ${#numbers.formatDecimal(totalValue ?: 0, 0, 2)}">₹0.00</div>
-        <div class="muted">Inventory Value</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Flash messages -->
-  <div th:if="${success}" class="alert" style="border-color:#86efac;background:#f0fdf4;color:#14532d" th:text="${success}"></div>
-  <div th:if="${error}" class="alert" style="border-color:#fecaca;background:#fef2f2;color:#7f1d1d" th:text="${error}"></div>
-
-  <!-- Search -->
-  <div class="search-card">
-    <form th:action="@{/search-products}" method="get" class="search-row">
-      <input class="input" type="text" name="query" placeholder="Search name, category, size…" th:value="${searchQuery}">
-      <button class="btn">Search</button>
-    </form>
-    <div th:if="${searchQuery}" class="note" style="margin-top:8px">
-      Showing results for “<span th:text="${searchQuery}"></span>”. <a th:href="@{/products}" style="text-decoration:none; color:#2563eb">Clear filter</a>
-    </div>
-  </div>
-
-  <!-- Cards Grid -->
-  <div th:if="${products != null and #lists.size(products) > 0}" class="grid">
-    <div class="card" th:each="product : ${products}">
-      <!-- Media -->
-      <div class="media">
-        <img th:if="${product.imagePath}" th:src="@{${product.imagePath}}" alt="Product"/>
-        <div th:if="${product.imagePath == null}" style="width:100%;height:100%;display:grid;place-items:center;color:#94a3b8;font-weight:700">No Image</div>
-
-        <div class="pill" th:text="${product.category ?: 'Category'}">Category</div>
-        <div class="ribbon" th:text="'₹' + ${#numbers.formatDecimal(product.price, 0, 2)}">₹0.00</div>
-      </div>
-
-      <!-- Body -->
-      <div class="body">
-        <div class="name" th:text="${product.name}">Product Name</div>
-        <div class="kv">
-          Size: <span th:text="${product.size ?: '—'}">—</span>
-          <span class="muted">•</span>
-          <span class="muted">ID:</span> <span th:text="${product.id}">0</span>
-        </div>
-
-        <div class="row">
-          <div>
-            Quantity:
-            <span th:class="${product.quantity < (product.minStockLevel ?: 10)} ? 'qty low' : 'qty ok'"
-                  th:text="${product.quantity ?: 0}">0</span>
-          </div>
-          <div class="right nowrap">Value:
-            <strong class="currency">₹<span th:text="${#numbers.formatDecimal((product.price?:0) * (product.quantity?:0), 0, 2)}">0.00</span></strong>
+    <!-- Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="page-head no-print">
+          <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+              <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-2">
+                <i class="bi bi-box-seam-fill fs-4"></i>
+              </div>
+              <div>
+                <h1 class="h4 mb-0 fw-bold">Commercial Inventory</h1>
+                <div class="text-secondary small">Comprehensive management of [[${totalProducts}]] product units</div>
+              </div>
+            </div>
+            <div class="d-flex gap-2">
+              <a th:href="@{/add-product}" class="btn btn-primary rounded-pill px-4 shadow-primary">
+                <i class="bi bi-plus-lg me-1"></i> New Product
+              </a>
+            </div>
           </div>
         </div>
-
-        <!-- Stock bar -->
-        <div class="stockbar"
-             th:with="min=${product.minStockLevel ?: 10},
-                      max=${product.maxStockLevel ?: 100},
-                      q=${product.quantity ?: 0},
-                      pct=${( (q > max ? max : q) * 100.0) / (max > 0 ? max : 100)}">
-          <span th:style="'width:' + ${pct} + '%'"></span>
-        </div>
-        <div class="stock-hint">
-          <span class="muted">Min:</span> <span th:text="${product.minStockLevel ?: 10}">10</span>
-          <span class="muted">• Max:</span> <span th:text="${product.maxStockLevel ?: 100}">100</span>
-        </div>
-      </div>
-
-      <!-- Actions -->
-      <div class="actions">
-        <a th:href="@{/edit-product/{id}(id=${product.id})}" class="btn-icon primary">✎ Edit</a>
-        <a th:href="@{/delete-product/{id}(id=${product.id})}"
-           class="btn-icon danger"
-           onclick="return confirm('Delete this product?')">🗑 Delete</a>
       </div>
     </div>
-  </div>
 
-  <!-- Empty state -->
-  <div th:if="${products == null or #lists.size(products) == 0}" class="empty">
-    <h3 style="margin:0 0 6px">No Products Found</h3>
-    <div th:if="${searchQuery}">No items match your search.</div>
-    <div th:unless="${searchQuery}">Add your first product to get started.</div>
-    <div style="margin-top:14px">
-      <a th:href="@{/add-product}" class="btn primary">＋ Add Your First Product</a>
+    <!-- Global Search & Stats -->
+    <div class="row g-4 mb-4">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-soft h-100">
+          <div class="card-body p-4">
+            <form th:action="@{/search-products}" method="get" class="row g-2">
+              <div class="col">
+                <div class="input-group">
+                  <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
+                  <input type="text" name="query" class="form-control bg-light border-0 py-2"
+                    placeholder="Search by name, size, or ID..." th:value="${searchQuery}">
+                </div>
+              </div>
+              <div class="col-auto">
+                <button class="btn btn-dark rounded-pill px-4">Find Asset</button>
+              </div>
+            </form>
+            <div th:if="${searchQuery}" class="mt-2 extra-small text-secondary">
+              Refining records for: <span class="fw-bold text-primary">"[[${searchQuery}]]"</span> • <a
+                th:href="@{/products}" class="text-decoration-none">Clear Filters</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="card border-0 bg-dark text-white h-100 shadow-soft">
+          <div class="card-body p-4 d-flex align-items-center justify-content-between">
+            <div>
+              <div class="text-uppercase-header extra-small opacity-50 mb-1">Low Stock Alerts</div>
+              <div class="h2 mb-0 fw-bold" th:text="${lowStockProducts} ?: 0">0</div>
+            </div>
+            <div class="bg-white bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
+              style="width: 50px; height: 50px;">
+              <i class="bi bi-lightning-charge text-warning fs-3"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products Display -->
+    <div th:if="${products != null and #lists.size(products) > 0}" class="row g-4">
+      <div class="col-xl-3 col-lg-4 col-sm-6" th:each="p : ${products}">
+        <div class="card border-0 h-100 shadow-soft-hover transition-base overflow-hidden" style="border-radius: 24px;">
+          <!-- Media Area -->
+          <div class="position-relative bg-light" style="aspect-ratio: 1/1;">
+            <img th:if="${p.imagePath}" th:src="@{${p.imagePath}}" class="w-100 h-100 object-fit-cover transition-base"
+              alt="Product" style="filter: brightness(0.98);" />
+            <div th:unless="${p.imagePath}"
+              class="w-100 h-100 d-flex flex-column align-items-center justify-content-center opacity-25">
+              <i class="bi bi-box-seam-fill fs-1 mb-2"></i>
+              <span class="extra-small fw-bold">IMAGE PENDING</span>
+            </div>
+
+            <!-- Price Badge - Floating Top Right -->
+            <div class="position-absolute top-0 end-0 m-3">
+              <span class="badge bg-white text-dark shadow-sm py-2 px-3 rounded-4 border fs-6 fw-bold">
+                ₹[[${#numbers.formatDecimal(p.price, 0, 'COMMA', 2, 'POINT')}]]
+              </span>
+            </div>
+          </div>
+
+          <!-- Details Area -->
+          <div class="card-body px-4 pt-4 pb-0">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h6 class="fw-bold mb-0 text-uppercase-header tracking-wider product-name flex-grow-1" th:text="${p.name}"
+                style="font-size: 0.95rem;">Product Name</h6>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="extra-small px-2 py-1 bg-light rounded-pill border text-secondary fw-bold">
+                [[${p.size ?: 'STANDARD'}]]
+              </span>
+              <span th:if="${p.quantity < (p.minStockLevel ?: 10)}"
+                class="extra-small px-2 py-1 bg-danger bg-opacity-10 text-danger rounded-pill fw-bold">
+                LOW STOCK
+              </span>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-end mb-3">
+              <div>
+                <div class="extra-small text-secondary text-uppercase-header opacity-50 mb-1">Available Units</div>
+                <div
+                  th:class="${p.quantity < (p.minStockLevel ?: 10) ? 'text-danger' : 'text-dark'} + ' h5 mb-0 fw-bold'">
+                  [[${p.quantity}]] PCS
+                </div>
+              </div>
+              <div class="text-end">
+                <div class="extra-small text-secondary text-uppercase-header opacity-50 mb-1">Current Value</div>
+                <div class="small fw-bold text-dark">₹[[${#numbers.formatDecimal((p.price?:0) * (p.quantity?:0), 0,
+                  'COMMA', 0, 'POINT')}]]</div>
+              </div>
+            </div>
+
+            <!-- Modern Stock Bar -->
+            <div class="progress bg-light mb-4" style="height: 6px; border-radius: 10px;" th:with="min=${p.minStockLevel ?: 10}, 
+                                      max=${p.maxStockLevel ?: 100}, 
+                                      q=${p.quantity ?: 0}, 
+                                      pct=${( (q > max ? max : q) * 100.0) / (max > 0 ? max : 100)}">
+              <div class="progress-bar" role="progressbar"
+                th:classappend="${p.quantity < min ? 'bg-danger shadow-danger' : 'bg-primary shadow-primary'}"
+                th:style="'width:' + ${pct} + '%; border-radius: 10px;'"></div>
+            </div>
+          </div>
+
+          <!-- Action Footer - Translucent / Subtle -->
+          <div class="card-footer bg-white border-0 px-4 pb-4 pt-0">
+            <div class="d-flex gap-2">
+              <a th:href="@{/products/details/{id}(id=${p.id})}"
+                class="btn btn-dark btn-sm flex-grow-1 rounded-pill fw-bold extra-small py-2 transition-base">
+                MANAGE ASSET
+              </a>
+              <a th:href="@{/edit-product/{id}(id=${p.id})}"
+                class="btn btn-outline-secondary btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center transition-base"
+                style="width: 34px; height: 34px; border-color: #eee;">
+                <i class="bi bi-pencil-fill small text-primary"></i>
+              </a>
+              <a th:href="@{/delete-product/{id}(id=${p.id})}"
+                class="btn btn-outline-secondary btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center transition-base"
+                style="width: 34px; height: 34px; border-color: #eee;" onclick="return confirm('Archive this asset?')">
+                <i class="bi bi-trash-fill small text-danger"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty Hub -->
+    <div th:if="${products == null or #lists.size(products) == 0}" class="text-center py-5">
+      <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-4"
+        style="width: 120px; height: 120px;">
+        <i class="bi bi-boxes fs-1 opacity-25"></i>
+      </div>
+      <h3 class="fw-bold">Central Vault Empty</h3>
+      <p class="text-secondary max-w-400 mx-auto mb-4">You haven't added any products yet. Start by populating your
+        inventory to enable analytics and sales tracking.</p>
+      <a th:href="@{/add-product}" class="btn btn-primary rounded-pill px-5 shadow-primary">
+        <i class="bi bi-plus-lg me-2"></i> Register First Asset
+      </a>
     </div>
   </div>
-
-  <!-- Low stock warning -->
-  <div th:if="${lowStockProducts > 0}" class="alert">
-    <strong>Heads up:</strong> <span th:text="${lowStockProducts}"></span> product(s) are below minimum stock.
-  </div>
-
+  <div th:replace="~{fragments :: theme_script}"></div>
 </body>
+
 </html>

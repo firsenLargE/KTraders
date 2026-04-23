@@ -1,83 +1,134 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Edit Product - Kapil Traders</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
-        .navbar { background: #343a40; color: white; padding: 15px; margin: -20px -20px 20px -20px; }
-        .navbar a { color: white; text-decoration: none; margin-right: 20px; padding: 8px 15px; border-radius: 3px; }
-        .navbar a:hover { background: #495057; }
-        .form-container { background: white; padding: 30px; border-radius: 5px; max-width: 600px; margin: 0 auto; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 3px; box-sizing: border-box; }
-        .btn { padding: 12px 30px; border: none; border-radius: 3px; cursor: pointer; text-decoration: none; display: inline-block; }
-        .btn-primary { background: #007bff; color: white; }
-        .btn-primary:hover { background: #0056b3; }
-        .btn-secondary { background: #6c757d; color: white; }
-        .btn-secondary:hover { background: #5a6268; }
-        .form-actions { display: flex; gap: 10px; justify-content: center; margin-top: 30px; }
-    </style>
-</head>
+
+<head th:replace="~{fragments :: common_head('Edit Product')}"></head>
+
 <body>
-    <div class="navbar">
-        <strong>Kapil Traders</strong> - Welcome <span th:text="${session.validuser?.uname}"></span>
-        <div style="float: right;">
-            <a th:href="@{/dashboard}">Dashboard</a>
-            <a th:href="@{/products}">Products</a>
-            <a th:href="@{/add-product}">Add Product</a>
-            <a th:href="@{/logout}">Logout</a>
+    <div class="container-xxl py-4">
+        <div th:replace="~{fragments :: navbar}"></div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="page-head d-flex align-items-center gap-3">
+                    <a th:href="@{/products}" class="btn btn-outline-secondary btn-sm rounded-pill">
+                        <i class="bi bi-arrow-left me-1"></i> Back
+                    </a>
+                    <div>
+                        <h1 class="h4 mb-0 fw-bold">Edit Product</h1>
+                        <div class="text-secondary small">Modify details for <span th:text="${product.name}"
+                                class="fw-bold">Product</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card border-0">
+                    <div class="card-body p-4 p-md-5">
+                        <form th:action="@{/edit-product/{id}(id=${product.id})}" method="post" th:object="${product}"
+                            enctype="multipart/form-data" class="needs-validation" novalidate>
+
+                            <div class="mb-5">
+                                <div class="section-title mb-4">General Information</div>
+                                <div class="mb-4">
+                                    <label for="name" class="form-label fw-semibold">Product Name <span
+                                            class="text-danger">*</span></label>
+                                    <input type="text" id="name" th:field="*{name}"
+                                        class="form-control form-control-lg border-0 bg-light" required>
+                                </div>
+
+                                <div class="row g-4">
+                                    <div class="col-md-12">
+                                        <label for="size" class="form-label fw-semibold">Size / Description <span
+                                                class="text-danger">*</span></label>
+                                        <select id="size" th:field="*{size}" class="form-select border-0 bg-light"
+                                            required>
+                                            <option th:each="sz : ${sizes}" th:value="${sz}" th:text="${sz}"></option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-5">
+                                <div class="section-title mb-4">Inventory & Pricing</div>
+                                <div class="row g-4">
+                                    <div class="col-md-4">
+                                        <label for="quantity" class="form-label fw-semibold">Stock Quantity <span
+                                                class="text-danger">*</span></label>
+                                        <input type="number" id="quantity" th:field="*{quantity}"
+                                            class="form-control border-0 bg-light" min="0" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="price" class="form-label fw-semibold">Selling Price <span
+                                                class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text border-0 bg-light">₹</span>
+                                            <input type="number" id="price" th:field="*{price}"
+                                                class="form-control border-0 bg-light" min="0" step="0.01" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="actualPrice" class="form-label fw-semibold">Cost Price</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text border-0 bg-light">₹</span>
+                                            <input type="number" id="actualPrice" th:field="*{actualPrice}"
+                                                class="form-control border-0 bg-light" min="0" step="0.01">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label for="date" class="form-label fw-semibold">Date Added</label>
+                                        <input type="date" id="date" th:field="*{date}"
+                                            class="form-control border-0 bg-light">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-5">
+                                <div class="section-title mb-4">Media</div>
+                                <div class="row align-items-center">
+                                    <div class="col-md-3 mb-3 mb-md-0">
+                                        <div th:if="*{imagePath}" class="rounded-4 overflow-hidden border">
+                                            <img th:src="@{*{imagePath}}" alt="Current Image" class="w-100 h-auto">
+                                        </div>
+                                        <div th:unless="*{imagePath}"
+                                            class="rounded-4 border-2 border-dashed d-grid place-items-center bg-light"
+                                            style="height: 120px;">
+                                            <i class="bi bi-image fs-2 text-secondary opacity-50"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <label for="imageFile" class="form-label fw-semibold">Update Image <span
+                                                class="text-secondary small fw-normal">(Leave empty to keep
+                                                current)</span></label>
+                                        <input type="file" id="imageFile" name="imageFile" accept="image/*"
+                                            class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-3 mt-5">
+                                <button type="submit"
+                                    class="btn btn-primary btn-lg rounded-pill px-5 flex-grow-1 flex-md-grow-0">
+                                    <i class="bi bi-check-lg me-2"></i> Update Product
+                                </button>
+                                <a th:href="@{/products}"
+                                    class="btn btn-outline-secondary btn-lg rounded-pill px-4">Cancel</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="form-container">
-        <h2>Edit Product</h2>
-        
-        <form th:action="@{/edit-product/{id}(id=${product.id})}" method="post" th:object="${product}">
-            <div class="form-group">
-                <label for="name">Product Name *</label>
-                <input type="text" id="name" th:field="*{name}" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="category">Category *</label>
-                <select id="category" th:field="*{category}" required>
-                        <option value="">Select Category</option>
-                            <option value="Bottlers Nepal">Bottlers Nepal</option>
-                            <option value="Dapcha Bhimsen">Dapcha Bhimsen</option>
-                            <option value="Nepal Ice Brewery">Nepal Ice Brewery</option>
-                            <option value="Wai Wai Noodles">Wai Wai Noodles</option>
-                            <option value="Current Noodle">Current Noodles</option>
-                            <option value="Others">Others</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="size">Size/Description *</label>
-                <input type="text" id="size" th:field="*{size}" placeholder="e.g., Large, 15-inch, A4" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="quantity">Quantity *</label>
-                <input type="number" id="quantity" th:field="*{quantity}" min="0" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="price">Price ($) *</label>
-                <input type="number" id="price" th:field="*{price}" min="0" step="0.01" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="date">Date Added</label>
-                <input type="date" id="date" th:field="*{date}">
-            </div>
-            
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Update Product</button>
-                <a th:href="@{/products}" class="btn btn-secondary">Cancel</a>
-            </div>
-        </form>
-    </div>
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', () => {
+
+            new SlimSelect({ select: '#size' });
+        });
+    </script>
+    <div th:replace="~{fragments :: theme_script}"></div>
 </body>
+
 </html>

@@ -1,29 +1,83 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head><title>Daily Sales</title></head>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: common_head('Daily Sales')}"></head>
+
 <body>
-<h2 th:text="'Daily Sales - ' + ${date}">Daily Sales</h2>
+  <div class="container-xxl py-4">
+    <div th:replace="~{fragments :: navbar}"></div>
 
-<p>
-  <a th:href="@{'/reports/sales/daily.pdf'(date=${date})}">Download PDF</a>
-</p>
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="page-head">
+          <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+              <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-2">
+                <i class="bi bi-calendar-check fs-4"></i>
+              </div>
+              <div>
+                <h1 class="h4 mb-0 fw-bold" th:text="'Daily Sales Report - ' + ${date}">Daily Sales</h1>
+                <div class="text-secondary small">Summary of transactions for the selected day</div>
+              </div>
+            </div>
+            <a th:href="@{'/reports/sales/daily.pdf'(date=${date})}" class="btn btn-outline-primary rounded-pill">
+              <i class="bi bi-file-earmark-pdf me-2"></i>Download PDF
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
 
-<table border="1" cellpadding="6" cellspacing="0">
-  <thead>
-  <tr>
-    <th>Product</th><th>Qty</th><th>Net</th><th>VAT (13%)</th><th>Gross</th><th>Avg Price</th>
-  </tr>
-  </thead>
-  <tbody>
-  <tr th:each="r : ${rows}">
-    <td th:text="${r.productName}">name</td>
-    <td th:text="${r.qty}">0</td>
-    <td th:text="${#numbers.formatDecimal(r.net, 1, 'POINT', 2, 'POINT')}">0.00</td>
-    <td th:text="${#numbers.formatDecimal(r.vat, 1, 'POINT', 2, 'POINT')}">0.00</td>
-    <td th:text="${#numbers.formatDecimal(r.gross, 1, 'POINT', 2, 'POINT')}">0.00</td>
-    <td th:text="${r.qty != null && r.qty > 0 ? #numbers.formatDecimal(r.net / r.qty, 1, 'POINT', 2, 'POINT') : '0.00'}">0.00</td>
-  </tr>
-  </tbody>
-</table>
+    <div class="card border-0 overflow-hidden mb-4">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="bg-light bg-opacity-50">
+            <tr>
+              <th class="ps-4 py-3 text-uppercase-header">Product Details</th>
+              <th class="text-center py-3 text-uppercase-header">Qty</th>
+              <th class="text-center py-3 text-uppercase-header">Status</th>
+              <th class="text-end pe-4 py-3 text-uppercase-header">Gain / Shortfall</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="r : ${rows}">
+              <td class="ps-4">
+                <div class="fw-bold product-name text-uppercase" th:text="${r.productName}">Product Name</div>
+                <div class="extra-small text-secondary opacity-50" th:text="${r.date}">2026-01-30</div>
+              </td>
+              <td class="text-center">
+                <span class="badge bg-light text-dark rounded-pill border fw-bold px-3">[[${r.qty}]]</span>
+              </td>
+              <td class="text-center">
+                <span th:if="${r.profitLossAmount >= 0}"
+                  class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1 extra-small">
+                  GAIN
+                </span>
+                <span th:if="${r.profitLossAmount < 0}"
+                  class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-1 extra-small">
+                  SHORTFALL
+                </span>
+              </td>
+              <td class="text-end pe-4 fw-bold"
+                th:classappend="${(r.profitLossAmount ?: 0) >= 0 ? 'text-success' : 'text-danger'}"
+                th:text="'₹' + ${#numbers.formatDecimal(r.profitLossAmount ?: 0, 1, 'COMMA', 2, 'POINT')}">₹0.00</td>
+            </tr>
+          </tbody>
+          <tfoot class="bg-light bg-opacity-25 border-top">
+            <tr>
+              <td class="ps-4 fw-bold py-4">TOTAL FOR DAY</td>
+              <td class="text-center fw-bold h5 mb-0" th:text="${totalQty}">0</td>
+              <td></td>
+              <td class="text-end pe-4 fw-bold h4 mb-0 text-primary"
+                th:text="'₹' + ${#numbers.formatDecimal(totalPL ?: 0, 1, 'COMMA', 2, 'POINT')}">₹0.00</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <div th:replace="~{fragments :: theme_script}"></div>
 </body>
+
 </html>

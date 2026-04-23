@@ -1,441 +1,276 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
-<head>
-    <meta charset="UTF-8">
-    <title>Cash Ledger</title>
-    <!-- Bootstrap & Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-    <style>
-        body {
-            background: #f8fafc;
-            color: #1f2937;
-            font-family: system-ui, -apple-system, sans-serif;
-        }
-
-        .page-wrap {
-            max-width: 1200px;
-            margin: 24px auto;
-            padding: 0 16px;
-        }
-
-        .card-dark {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.75rem;
-        }
-
-        .card-dark .card-header {
-            border-bottom: 1px solid #e2e8f0;
-            color: #4b5563;
-            padding: 12px 16px;
-        }
-
-        .muted {
-            color: #6b7280;
-        }
-
-        .table-darkish {
-            color: #1f2937;
-            border-collapse: separate;
-            border-spacing: 0;
-        }
-
-        .table-darkish thead th {
-            background: #ffffff;
-            position: sticky;
-            top: 0;
-            z-index: 1;
-            padding: 12px;
-        }
-
-        .table-darkish tbody tr {
-            background: #f1f5f9;
-        }
-
-        .table-darkish tbody tr:nth-child(even) {
-            background: #e2e8f0;
-        }
-
-        .form-control,
-        .form-select {
-            background: #ffffff;
-            color: #1f2937;
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
-        }
-
-        .form-control:focus,
-        .form-select:focus {
-            background: #ffffff;
-            color: #1f2937;
-            border-color: #3b82f6;
-            box-shadow: none;
-        }
-
-        .btn-outline-light {
-            border-color: #d1d5db;
-            color: #374151;
-        }
-
-        .btn-outline-light:hover {
-            background: #e5e7eb;
-        }
-
-        .badge-in {
-            background: rgba(34, 197, 94, 0.1);
-            color: #15803d;
-            border: 1px solid rgba(34, 197, 94, 0.3);
-        }
-
-        .badge-out {
-            background: rgba(239, 68, 68, 0.1);
-            color: #b91c1c;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-        }
-
-        .badge-ref {
-            background: rgba(59, 130, 246, 0.1);
-            color: #1e40af;
-            border: 1px solid rgba(59, 130, 246, 0.3);
-        }
-
-        .kpi {
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-
-        .sub {
-            font-size: 0.75rem;
-            color: #6b7280;
-        }
-
-        .table-wrap {
-            max-height: 55vh;
-            overflow: auto;
-            border-radius: 0.75rem;
-        }
-
-        .shadow-soft {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .link-lite {
-            color: #2563eb;
-            text-decoration: none;
-        }
-
-        .link-lite:hover {
-            text-decoration: underline;
-        }
-
-        .tiny {
-            font-size: 0.75rem;
-        }
-    </style>
-</head>
+<head th:replace="~{fragments :: common_head('Cash Ledger')}"></head>
 
 <body>
-    <div class="page-wrap">
-        <!-- Top bar -->
-        <div class="d-flex align-items-center justify-content-between mb-3">
-            <div>
-                <h2 class="mb-1">Cash Ledger</h2>
-                <div class="muted tiny">Track daily inflows & outflows, filter by date, and export.</div>
-            </div>
-            <div class="d-flex gap-2">
-                <a class="btn btn-sm btn-outline-light" href="/dashboard">
-                    <i class="bi bi-grid-fill me-1"></i> Dashboard
-                </a>
-                <button id="btnExport" class="btn btn-sm btn-primary">
-                    <i class="bi bi-download me-1"></i> Export CSV
-                </button>
+    <div class="container-xxl py-4">
+        <div th:replace="~{fragments :: navbar}"></div>
+
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="page-head">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-success bg-opacity-10 text-success rounded-3 p-2">
+                                <i class="bi bi-cash-stack fs-4"></i>
+                            </div>
+                            <div>
+                                <h1 class="h4 mb-0 fw-bold">Cash Ledger</h1>
+                                <div class="text-secondary small">Financial flow tracking and reconciliation</div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button id="btnExport" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-download me-1"></i> Export CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Filters -->
-        <div class="card card-dark shadow-soft mb-3">
-            <div class="card-body">
-                <form method="get" class="row g-3 align-items-end">
-                    <div class="col-sm-4 col-md-3">
-                        <label class="form-label tiny">From</label>
-                        <input type="date" name="from" th:value="${from ?: ''}" class="form-control">
+        <!-- Filters and KPIs -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-12">
+                <div class="card border-0">
+                    <div class="card-body p-4">
+                        <form method="get" class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Date From</label>
+                                <input type="date" name="from" th:value="${from ?: ''}"
+                                    class="form-control bg-light border-0">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Date To</label>
+                                <input type="date" name="to" th:value="${to ?: ''}"
+                                    class="form-control bg-light border-0">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Quick Range</label>
+                                <select id="quickRange" class="form-select bg-light border-0">
+                                    <option value="">Custom Range</option>
+                                    <option value="today">Today</option>
+                                    <option value="7">Last 7 Days</option>
+                                    <option value="30">Last 30 Days</option>
+                                    <option value="mtd">Month to Date</option>
+                                    <option value="ytd">Year to Date</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill">
+                                    <i class="bi bi-funnel me-1"></i> Filter Records
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                    <div class="col-sm-4 col-md-3">
-                        <label class="form-label tiny">To</label>
-                        <input type="date" name="to" th:value="${to ?: ''}" class="form-control">
-                    </div>
-                    <div class="col-sm-4 col-md-3">
-                        <label class="form-label tiny">Quick Range</label>
-                        <select id="quickRange" class="form-select">
-                            <option value="">— Select —</option>
-                            <option value="today">Today</option>
-                            <option value="7">Last 7 Days</option>
-                            <option value="30">Last 30 Days</option>
-                            <option value="mtd">Month to Date</option>
-                            <option value="ytd">Year to Date</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3 d-flex gap-2">
-                        <button type="submit" class="btn btn-primary flex-fill">
-                            <i class="bi bi-funnel me-1"></i> Filter
-                        </button>
-                        <a href="/reports/cash" class="btn btn-outline-light flex-fill">
-                            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
-                        </a>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
 
-        <!-- KPIs -->
-        <div class="row g-3 mb-3">
+        <!-- KPI Row -->
+        <div class="row g-4 mb-4">
             <div class="col-md-3">
-                <div class="card card-dark shadow-soft">
-                    <div class="card-body">
-                        <div class="tiny muted">Records</div>
-                        <div class="kpi" id="kpiCount">0</div>
-                        <div class="sub">entries in range</div>
+                <div class="card border-0 h-100">
+                    <div class="card-body p-4">
+                        <div class="text-uppercase-header mb-2">Total Inflow</div>
+                        <div class="h3 mb-0 fw-bold text-success" id="kpiIn">₹0.00</div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card card-dark shadow-soft">
-                    <div class="card-body">
-                        <div class="tiny muted">Total In</div>
-                        <div class="kpi text-success" id="kpiIn">Rs 0.00</div>
-                        <div class="sub">sum of inflows</div>
+                <div class="card border-0 h-100">
+                    <div class="card-body p-4">
+                        <div class="text-uppercase-header mb-2">Total Outflow</div>
+                        <div class="h3 mb-0 fw-bold text-danger" id="kpiOut">₹0.00</div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card card-dark shadow-soft">
-                    <div class="card-body">
-                        <div class="tiny muted">Total Out</div>
-                        <div class="kpi text-danger" id="kpiOut">Rs 0.00</div>
-                        <div class="sub">sum of outflows</div>
+                <div class="card border-0 h-100">
+                    <div class="card-body p-4">
+                        <div class="text-uppercase-header mb-2">Net Flow</div>
+                        <div class="h3 mb-0 fw-bold" id="kpiNet">₹0.00</div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card card-dark shadow-soft">
-                    <div class="card-body">
-                        <div class="tiny muted">Net</div>
-                        <div class="kpi" id="kpiNet">Rs 0.00</div>
-                        <div class="sub">in - out</div>
+                <div class="card border-0 h-100 cta-gradient text-white">
+                    <div class="card-body p-4">
+                        <div class="text-white opacity-75 small text-uppercase fw-bold mb-2">Closing Balance</div>
+                        <div class="h3 mb-0 fw-bold" id="ftEndBal">₹0.00</div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Table -->
-        <div class="card card-dark shadow-soft">
-            <div class="card-header d-flex justify-content-between align-items-center py-2">
-                <span class="tiny">Records</span>
-                <div class="d-flex gap-2 align-items-center">
-                    <input id="searchBox" class="form-control form-control-sm"
-                        placeholder="Search reference, notes, counterparty…">
-                    <select id="typeFilter" class="form-select form-select-sm">
-                        <option value="">All types</option>
-                        <option value="IN">IN</option>
-                        <option value="OUT">OUT</option>
-                    </select>
+        <div class="card border-0 overflow-hidden mb-4">
+            <div class="card-header bg-white border-0 py-4 px-4">
+                <div class="d-flex align-items-center justify-content-between">
+                    <h6 class="mb-0 fw-bold">Transaction History</h6>
+                    <div class="d-flex gap-2">
+                        <input id="searchBox" class="form-control form-control-sm bg-light border-0"
+                            placeholder="Search references..." style="width: 200px;">
+                        <select id="typeFilter" class="form-select form-select-sm bg-light border-0"
+                            style="width: 120px;">
+                            <option value="">All Types</option>
+                            <option value="IN">Cash In</option>
+                            <option value="OUT">Cash Out</option>
+                        </select>
+                    </div>
                 </div>
             </div>
-            <div class="table-wrap">
-                <table class="table table-darkish table-hover table-sm align-middle mb-0" id="ledgerTable">
-                    <thead>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="ledgerTable">
+                    <thead class="bg-light bg-opacity-50 sticky-top">
                         <tr>
-                            <th style="min-width:140px;">Date</th>
-                            <th>Type</th>
-                            <th class="text-end">Amount</th>
-                            <th>Reference</th>
-                            <th>Counterparty</th>
-                            <th>Notes</th>
-                            <th class="text-end">Run. Balance</th>
+                            <th class="ps-4 py-3 text-uppercase-header">Timestamp</th>
+                            <th class="py-3 text-uppercase-header">Flow</th>
+                            <th class="py-3 text-uppercase-header text-end">Amount</th>
+                            <th class="py-3 text-uppercase-header">Counterparty / Ref</th>
+                            <th class="pe-4 py-3 text-uppercase-header text-end">Balance</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr th:each="tx : ${rows}"
                             th:attr="data-type=${tx.type?.name() ?: ''}, data-amount=${tx.amount ?: 0}">
-                            <td
-                                th:text="${tx.occurredAt != null} ? ${#temporals.format(tx.occurredAt, 'yyyy-MM-dd HH:mm')} : 'N/A'">
+                            <td class="ps-4">
+                                <div class="fw-semibold small"
+                                    th:text="${tx.occurredAt != null} ? ${#temporals.format(tx.occurredAt, 'dd MMM, HH:mm')} : '—'">
+                                    —</div>
                             </td>
                             <td>
-                                <span th:if="${tx.type?.name() == 'IN'}" class="badge badge-in">IN</span>
-                                <span th:if="${tx.type?.name() == 'OUT'}" class="badge badge-out">OUT</span>
-                                <span th:if="${tx.type == null}" class="badge badge-ref">N/A</span>
+                                <span th:if="${tx.type?.name() == 'IN'}"
+                                    class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 extra-small">IN</span>
+                                <span th:if="${tx.type?.name() == 'OUT'}"
+                                    class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-1 extra-small">OUT</span>
                             </td>
-                            <td class="text-end amount-cell" th:text="${tx.amount != null} ? ${tx.amount} : '0.00'">
-                            </td>
+                            <td class="text-end fw-bold amount-cell" th:text="${tx.amount ?: '0.00'}">0.00</td>
                             <td>
-                                <span class="badge badge-ref tiny" th:if="${tx.reference}"
-                                    th:text="${tx.reference}"></span>
-                                <span th:unless="${tx.reference}" class="muted tiny">—</span>
+                                <div class="fw-bold product-name" th:text="${tx.counterparty ?: 'Direct Transaction'}">
+                                    Counterparty</div>
+                                <div class="extra-small text-secondary opacity-75"
+                                    th:text="${tx.reference ?: tx.notes}">Reference
+                                </div>
                             </td>
-                            <td th:text="${tx.counterparty ?: '—'}"></td>
-                            <td th:text="${tx.notes ?: '—'}"></td>
-                            <td class="text-end running-cell">—</td>
+                            <td class="pe-4 text-end fw-bold text-primary running-cell">—</td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(rows)}">
-                            <td colspan="7" class="text-center muted py-4">No records for this range.</td>
+                            <td colspan="5" class="py-5 text-center">
+                                <i class="bi bi-journal-text fs-1 opacity-25 d-block mb-3"></i>
+                                <h5 class="fw-bold">No Records Found</h5>
+                                <p class="text-secondary small">Adjust filters to see historical cash movements.</p>
+                            </td>
                         </tr>
                     </tbody>
-                    <tfoot>
-                        <tr>
-                            <th colspan="2" class="text-end">Totals:</th>
-                            <th class="text-end" id="ftTotal">Rs 0.00</th>
-                            <th colspan="3"></th>
-                            <th class="text-end" id="ftEndBal">Rs 0.00</th>
-                        </tr>
-                    </tfoot>
                 </table>
             </div>
         </div>
 
-        <div class="mt-3 tiny">
-            Tip: export CSV to share with your accountant. <a class="link-lite" href="/reports/cash">Reload</a>
-        </div>
-    </div>
+        <div th:replace="~{fragments :: theme_script}"></div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-        // Currency formatter (Nepal Rs)
-        const fmtMoney = (v) => {
-            const n = Number(v || 0).toFixed(2);
-            return `Rs ${Number(n).toLocaleString('en-NP', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-        };
+        <script>
+            const fmt = v => '₹' + Number(v || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-        // Initialize UI
-        (function initLedgerUI() {
-            const table = document.getElementById('ledgerTable');
-            const bodyRows = Array.from(table.querySelectorAll('tbody tr'))
-                .filter(tr => !tr.querySelector('td[colspan]')); // Ignore "No records" row
-            const kpiCount = document.getElementById('kpiCount');
-            const kpiIn = document.getElementById('kpiIn');
-            const kpiOut = document.getElementById('kpiOut');
-            const kpiNet = document.getElementById('kpiNet');
-            const ftTotal = document.getElementById('ftTotal');
-            const ftEndBal = document.getElementById('ftEndBal');
+            (function initLedger() {
+                const table = document.getElementById('ledgerTable');
+                const rows = [...table.querySelectorAll('tbody tr')].filter(tr => tr.dataset.amount !== undefined);
+                const searchBox = document.getElementById('searchBox');
+                const typeFilter = document.getElementById('typeFilter');
 
-            // Initial calculations and formatting
-            let totalIn = 0, totalOut = 0, balance = 0;
-            bodyRows.forEach(tr => {
-                const amountCell = tr.querySelector('.amount-cell');
-                const amtRaw = Number(parseFloat(tr.getAttribute('data-amount') || '0').toFixed(2));
-                amountCell.textContent = fmtMoney(amtRaw);
-                const type = tr.getAttribute('data-type');
-                if (type === 'IN') totalIn = Number((totalIn + amtRaw).toFixed(2));
-                if (type === 'OUT') totalOut = Number((totalOut + amtRaw).toFixed(2));
-                balance = Number((balance + (type === 'IN' ? amtRaw : -amtRaw)).toFixed(2));
-                tr.querySelector('.running-cell').textContent = fmtMoney(balance);
-            });
+                function updateLedger() {
+                    const q = searchBox.value.toLowerCase();
+                    const tf = typeFilter.value;
 
-            kpiCount.textContent = bodyRows.length;
-            kpiIn.textContent = fmtMoney(totalIn);
-            kpiOut.textContent = fmtMoney(totalOut);
-            kpiNet.textContent = fmtMoney(totalIn - totalOut);
-            ftTotal.textContent = fmtMoney(totalIn + totalOut);
-            ftEndBal.textContent = fmtMoney(balance);
+                    let sumIn = 0, sumOut = 0, balance = 0, count = 0;
 
-            // Search and type filter
-            const searchBox = document.getElementById('searchBox');
-            const typeFilter = document.getElementById('typeFilter');
+                    rows.forEach(tr => {
+                        const type = tr.dataset.type;
+                        const amt = Number(tr.dataset.amount);
+                        const text = tr.innerText.toLowerCase();
+                        const match = text.includes(q) && (!tf || type === tf);
 
-            function applyFilters() {
-                const q = (searchBox.value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                const tf = typeFilter.value;
-                let inSum = 0, outSum = 0, run = 0, visibleCount = 0;
+                        tr.style.display = match ? '' : 'none';
 
-                const visibleRows = bodyRows.filter(tr => {
-                    const type = tr.getAttribute('data-type');
-                    const text = tr.innerText.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                    const matchQ = !q || text.includes(q);
-                    const matchT = !tf || type === tf;
-                    tr.style.display = matchQ && matchT ? '' : 'none';
-                    return matchQ && matchT;
-                });
+                        if (match) {
+                            if (type === 'IN') sumIn += amt;
+                            else sumOut += amt;
+                            balance += (type === 'IN' ? amt : -amt);
+                            tr.querySelector('.amount-cell').textContent = fmt(amt).replace('₹', '');
+                            tr.querySelector('.running-cell').textContent = fmt(balance);
+                            count++;
+                        }
+                    });
 
-                visibleRows.forEach(tr => {
-                    const type = tr.getAttribute('data-type');
-                    const amt = Number(parseFloat(tr.getAttribute('data-amount') || '0').toFixed(2));
-                    if (type === 'IN') inSum = Number((inSum + amt).toFixed(2));
-                    if (type === 'OUT') outSum = Number((outSum + amt).toFixed(2));
-                    run = Number((run + (type === 'IN' ? amt : -amt)).toFixed(2));
-                    tr.querySelector('.running-cell').textContent = fmtMoney(run);
-                });
+                    document.getElementById('kpiIn').textContent = fmt(sumIn);
+                    document.getElementById('kpiOut').textContent = fmt(sumOut);
+                    document.getElementById('kpiNet').textContent = fmt(sumIn - sumOut);
+                    document.getElementById('ftEndBal').textContent = fmt(balance);
 
-                visibleCount = visibleRows.length;
-                kpiCount.textContent = visibleCount;
-                kpiIn.textContent = fmtMoney(inSum);
-                kpiOut.textContent = fmtMoney(outSum);
-                kpiNet.textContent = fmtMoney(inSum - outSum);
-                ftTotal.textContent = fmtMoney(inSum + outSum);
-                ftEndBal.textContent = fmtMoney(run);
-            }
-
-            searchBox.addEventListener('input', applyFilters);
-            typeFilter.addEventListener('change', applyFilters);
-
-            // Quick range helper
-            document.getElementById('quickRange').addEventListener('change', function () {
-                const from = document.querySelector('input[name="from"]');
-                const to = document.querySelector('input[name="to"]');
-                const now = new Date();
-                const iso = (d) => d.toISOString().slice(0, 10);
-
-                if (this.value === 'today') {
-                    from.value = to.value = iso(now);
-                } else if (this.value === '7') {
-                    const d = new Date();
-                    d.setDate(d.getDate() - 6);
-                    from.value = iso(d);
-                    to.value = iso(now);
-                } else if (this.value === '30') {
-                    const d = new Date();
-                    d.setDate(d.getDate() - 29);
-                    from.value = iso(d);
-                    to.value = iso(now);
-                } else if (this.value === 'mtd') {
-                    const d = new Date(now.getFullYear(), now.getMonth(), 1);
-                    from.value = iso(d);
-                    to.value = iso(now);
-                } else if (this.value === 'ytd') {
-                    const d = new Date(now.getFullYear(), 0, 1);
-                    from.value = iso(d);
-                    to.value = iso(now);
+                    const netKpi = document.getElementById('kpiNet');
+                    netKpi.className = 'h3 mb-0 fw-bold ' + (sumIn >= sumOut ? 'text-success' : 'text-danger');
                 }
-            });
 
-            // CSV export
-            document.getElementById('btnExport').addEventListener('click', () => {
-                const visibleRows = bodyRows.filter(tr => tr.style.display !== 'none');
-                const lines = [['Date', 'Type', 'Amount', 'Reference', 'Counterparty', 'Notes', 'RunningBalance']];
-                let rb = 0;
-                visibleRows.forEach(tr => {
-                    const tds = tr.querySelectorAll('td');
-                    const date = tds[0].innerText.trim();
-                    const type = tr.getAttribute('data-type');
-                    const amt = Number(parseFloat(tr.getAttribute('data-amount') || '0').toFixed(2));
-                    const ref = (tds[3].innerText || '').trim();
-                    const cp = (tds[4].innerText || '').trim();
-                    const notes = (tds[5].innerText || '').trim();
-                    rb = Number((rb + (type === 'IN' ? amt : -amt)).toFixed(2));
-                    lines.push([date, type, amt.toFixed(2), ref, cp, notes, rb.toFixed(2)]);
-                });
+                searchBox.oninput = updateLedger;
+                typeFilter.onchange = updateLedger;
+                updateLedger();
 
-                const csv = lines.map(r => r.map(val => `"${String(val).replace(/"/g, '""')}"`).join(',')).join('\n');
-                const bom = '\uFEFF'; // UTF-8 BOM for Excel compatibility
-                const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'cash_ledger.csv';
-                a.click();
-                URL.revokeObjectURL(url);
-            });
-        })();
-    </script>
+                // Quick Range logic
+                document.getElementById('quickRange').onchange = function () {
+                    const from = document.querySelector('input[name="from"]');
+                    const to = document.querySelector('input[name="to"]');
+                    const now = new Date();
+                    const iso = d => d.toISOString().split('T')[0];
+
+                    if (this.value === 'today') { from.value = to.value = iso(now); }
+                    else if (this.value === '7') {
+                        const d = new Date(); d.setDate(d.getDate() - 6);
+                        from.value = iso(d); to.value = iso(now);
+                    }
+                    else if (this.value === 'mtd') {
+                        from.value = iso(new Date(now.getFullYear(), now.getMonth(), 1));
+                        to.value = iso(now);
+                    }
+                    else if (this.value === 'ytd') {
+                        from.value = iso(new Date(now.getFullYear(), 0, 1));
+                        to.value = iso(now);
+                    }
+                };
+
+                // Export CSV
+                document.getElementById('btnExport').onclick = () => {
+                    const headers = ['Date', 'Type', 'Amount', 'Reference', 'Counterparty', 'Balance'];
+                    const csvRows = [headers];
+                    let running = 0;
+
+                    rows.filter(tr => tr.style.display !== 'none').forEach(tr => {
+                        const type = tr.dataset.type;
+                        const amt = Number(tr.dataset.amount);
+                        running += (type === 'IN' ? amt : -amt);
+                        csvRows.push([
+                            tr.cells[0].innerText.trim(),
+                            type,
+                            amt.toFixed(2),
+                            tr.cells[3].innerText.split('\n')[1]?.trim() || '',
+                            tr.cells[3].innerText.split('\n')[0]?.trim() || '',
+                            running.toFixed(2)
+                        ]);
+                    });
+
+                    const csvContent = csvRows.map(e => e.join(",")).join("\n");
+                    const blob = new Blob([csvContent], { type: 'text/csv' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.setAttribute('href', url);
+                    a.setAttribute('download', 'cash_ledger.csv');
+                    a.click();
+                };
+            })();
+        </script>
+    </div>
 </body>
 
 </html>

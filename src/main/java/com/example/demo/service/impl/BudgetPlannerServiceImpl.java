@@ -9,6 +9,7 @@ import com.example.demo.enums.ReplenishmentStrategy;
 import com.example.demo.repository.ProductRepository;
 import com.example.demo.repository.ReplenishmentPlanRepository;
 import com.example.demo.service.BudgetPlannerService;
+import com.example.demo.util.FinancialUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +25,14 @@ public class BudgetPlannerServiceImpl implements BudgetPlannerService {
     private ReplenishmentPlanRepository planRepo;
 
     private static final class Cand {
-        Product p; int price; int qty; int minLvl; int maxLvl; int gapToMin; double catW; double priority;
+        Product p;
+        int price;
+        int qty;
+        int minLvl;
+        int maxLvl;
+        int gapToMin;
+        double catW;
+        double priority;
     }
 
     @Override
@@ -67,14 +75,7 @@ public class BudgetPlannerServiceImpl implements BudgetPlannerService {
             c.minLvl = Optional.ofNullable(p.getMinStockLevel()).orElse(0);
             c.maxLvl = Optional.ofNullable(p.getMaxStockLevel()).orElse(Integer.MAX_VALUE);
             c.gapToMin = Math.max(0, c.minLvl - c.qty);
-            String cat = (p.getCategory() == null ? "" : p.getCategory().toLowerCase());
-            c.catW = switch (cat) {
-                case "electronics" -> 0.12;
-                case "premium" -> 0.10;
-                case "bestseller" -> 0.08;
-                case "gadgets" -> 0.05;
-                default -> 0.00;
-            };
+            c.catW = FinancialUtil.getCategoryWeight(p.getCategory());
             scored.add(c);
         }
 
@@ -250,5 +251,3 @@ public class BudgetPlannerServiceImpl implements BudgetPlannerService {
         return bought;
     }
 }
-
-

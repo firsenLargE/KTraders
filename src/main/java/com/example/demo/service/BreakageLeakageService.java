@@ -23,7 +23,7 @@ public class BreakageLeakageService {
         StockMovement m = new StockMovement();
         m.setProduct(b.getProduct());
         m.setQuantity(b.getQuantity());
-        m.setDirection(StockMovement.Direction.OUT);
+        m.setDirection(StockMovement.Direction.OUTWARD);
         m.setReason("breakage/leakage: " + b.getReason());
         m.setOccurredAt(b.getOccurredAt());
         movementSvc.record(m);
@@ -34,5 +34,3 @@ public class BreakageLeakageService {
         return repo.findAll();
     }
 }
-
-

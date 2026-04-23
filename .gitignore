@@ -31,3 +31,13 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Runtime folders
+/data/
+/backups/
+/logs/
+
+# Local scripts
+/scripts/*.bat
+/scripts/*.ps1
+/scripts/nssm/

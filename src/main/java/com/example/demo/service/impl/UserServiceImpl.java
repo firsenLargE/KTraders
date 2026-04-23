@@ -8,11 +8,24 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserServiceImpl implements UserService {
-    @Autowired private UserRepository userRepository;
-    public void signUp(User user) { userRepository.save(user); }
-    public User login(String email, String password) { return userRepository.findByEmailAndPassword(email, password); }
-    public User findByEmail(String email) { return userRepository.findByEmail(email); }
-    public boolean existsByEmail(String email) { return userRepository.existsByEmail(email); }
+    @Autowired
+    private UserRepository userRepository;
+
+    public void signUp(User user) {
+        userRepository.save(user);
+    }
+
+    public User login(String email, String password) {
+        // Note: This method is now legacy as Spring Security handles login.
+        // Returning null or throwing exception is appropriate here.
+        return null;
+    }
+
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email).orElse(null);
+    }
+
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
 }
-
-

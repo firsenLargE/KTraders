@@ -1,81 +1,195 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head><title>Monthly Sales</title></head>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: common_head('Monthly Sales')}"></head>
+
 <body>
-<h2 th:text="'Monthly Sales - ' + ${ym}">Monthly Sales</h2>
+  <div class="container-xxl py-4">
+    <div th:replace="~{fragments :: navbar}"></div>
 
-<p>
-  <a th:href="@{'/reports/sales/monthly.pdf'(year=${ym.year}, month=${ym.monthValue})}">Download PDF</a>
-</p>
+    <div class="card border-0 mb-4">
+      <div class="card-body p-4">
+        <form th:action="@{/reports/sales/monthly}" method="get" class="row g-3 align-items-end">
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Start Date</label>
+            <input type="date" name="startDate" th:value="${startDate}" class="form-control bg-light border-0">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">End Date</label>
+            <input type="date" name="endDate" th:value="${endDate}" class="form-control bg-light border-0">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Customer</label>
+            <select name="customerId" id="customerSelect" class="form-select border-0 bg-light">
+              <option value="">ALL CUSTOMERS</option>
+              <option th:each="c : ${customers}" th:value="${c.id}" th:text="${#strings.toUpperCase(c.name)}"
+                th:selected="${c.id == customerId}" class="customer-name"></option>
+            </select>
+          </div>
+          <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary rounded-pill flex-grow-1">
+              <i class="bi bi-filter me-1"></i>Apply Filters
+            </button>
+            <a th:href="@{/reports/sales/monthly}" class="btn btn-outline-secondary rounded-pill">Reset</a>
+          </div>
+        </form>
+      </div>
+    </div>
 
-<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;min-width:900px;">
-  <thead>
-  <tr>
-    <th>Product</th>
-    <th>Qty</th>
-    <th>Net</th>
-    <th>VAT (13%)</th>
-    <th>Gross</th>
-    <th>Avg Price</th>
-    <th>Unit Cost</th>
-    <th>Profit / Loss</th>
-  </tr>
-  </thead>
-  <tbody>
-  <tr th:each="r : ${rows}">
-    <td th:text="${r.productName}">name</td>
-    <td th:text="${r.qty}">0</td>
-    <td th:text="${#numbers.formatDecimal(r.net, 1, 'POINT', 2, 'POINT')}">0.00</td>
-    <td th:text="${#numbers.formatDecimal(r.vat, 1, 'POINT', 2, 'POINT')}">0.00</td>
-    <td th:text="${#numbers.formatDecimal(r.gross, 1, 'POINT', 2, 'POINT')}">0.00</td>
+    <div class="card border-0 mb-4 overflow-hidden">
+      <div class="card-body p-4">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+          <div>
+            <h4 class="mb-1 fw-bold" th:text="${ym != null} ? 'Performance - ' + ${ym} : 'Sales Performance'">Monthly
+              Performance</h4>
+            <div class="text-secondary small">Analysis of daily sales and earnings trends</div>
+          </div>
+          <div class="d-flex gap-3 align-items-center">
+            <div class="text-end">
+              <div class="text-uppercase-header extra-small">Total Revenue</div>
+              <div class="fw-bold fs-5" th:text="'₹' + ${#numbers.formatDecimal(totalRevenue, 1, 'COMMA', 2, 'POINT')}">
+                ₹0.00</div>
+            </div>
+            <div class="border-start ps-3 text-end">
+              <div class="text-uppercase-header extra-small">Net Earnings</div>
+              <div class="fw-bold fs-5" th:classappend="${totalPL >= 0 ? 'text-success' : 'text-danger'}"
+                th:text="'₹' + ${#numbers.formatDecimal(totalPL, 1, 'COMMA', 2, 'POINT')}">₹0.00</div>
+            </div>
+            <a th:href="@{/reports/sales/monthly.pdf(year=${ym != null ? ym.year : null}, month=${ym != null ? ym.monthValue : null}, startDate=${startDate}, endDate=${endDate}, customerId=${customerId})}"
+              class="btn btn-primary rounded-pill px-4">
+              <i class="bi bi-file-earmark-pdf me-2"></i>Export PDF
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <!-- Avg Price = net / qty -->
-    <td th:text="${
-          (r.qty!=null && r.qty>0 && r.net!=null)
-          ? #numbers.formatDecimal(r.net / r.qty, 1, 'POINT', 2, 'POINT')
-          : '0.00'}">0.00</td>
+    <div class="card border-0 overflow-hidden mb-4">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" id="salesTable">
+          <thead class="bg-light bg-opacity-50">
+            <tr>
+              <th class="ps-4 py-3 text-uppercase-header cursor-pointer" onclick="sortTable(0)">Date <i
+                  class="bi bi-arrow-down-up extra-small ms-1"></i></th>
+              <th class="py-3 text-uppercase-header cursor-pointer" onclick="sortTable(1)">Customer <i
+                  class="bi bi-arrow-down-up extra-small ms-1"></i></th>
+              <th class="py-3 text-uppercase-header cursor-pointer" onclick="sortTable(2)">Product <i
+                  class="bi bi-arrow-down-up extra-small ms-1"></i></th>
+              <th class="text-center py-3 text-uppercase-header">Qty</th>
+              <th class="text-center py-3 text-uppercase-header">Status</th>
+              <th class="text-end pe-4 py-3 text-uppercase-header cursor-pointer" onclick="sortTable(5)">Net Result <i
+                  class="bi bi-arrow-down-up extra-small ms-1"></i></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="r : ${rows}">
+              <td class="ps-4 small fw-semibold" th:text="${r.date}">2026-01-01</td>
+              <td th:text="${r.customerName != null ? r.customerName : 'Walk-in'}"
+                class="customer-name text-uppercase small">Customer</td>
+              <td>
+                <div class="fw-bold product-name text-uppercase" th:text="${r.productName}">Product</div>
+                <div class="extra-small text-secondary opacity-50"
+                  th:text="'Sales Value: ₹' + ${#numbers.formatDecimal(r.totalRevenue, 1, 'COMMA', 2, 'POINT')}">Rev:
+                  ₹0.00
+                </div>
+              </td>
+              <td class="text-center">
+                <span class="badge bg-light text-dark rounded-pill border fw-bold px-3">[[${r.qty}]]</span>
+              </td>
+              <td class="text-center">
+                <span th:if="${r.profitLossAmount >= 0}"
+                  class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1 extra-small">GAIN</span>
+                <span th:if="${r.profitLossAmount < 0}"
+                  class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-1 extra-small">SHORTFALL</span>
+              </td>
+              <td class="text-end pe-4 fw-bold"
+                th:classappend="${r.profitLossAmount >= 0 ? 'text-success' : 'text-danger'}"
+                th:text="'₹' + ${#numbers.formatDecimal(r.profitLossAmount, 1, 'COMMA', 2, 'POINT')}">₹0.00</td>
+            </tr>
+          </tbody>
+          <tfoot class="bg-light bg-opacity-25 border-top">
+            <tr>
+              <td colspan="3" class="ps-4 fw-bold py-4">TOTAL CUMULATIVE</td>
+              <td class="text-center fw-bold h5 mb-0" th:text="${totalQty}">0</td>
+              <td></td>
+              <td class="text-end pe-4 fw-bold h4 mb-0 text-primary"
+                th:text="'₹' + ${#numbers.formatDecimal(totalPL, 1, 'COMMA', 2, 'POINT')}">₹0.00</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
 
-    <!-- Actual Unit Cost (from product.actualPrice fallback price) -->
-    <td th:text="${r.actualUnitCost!=null ? #numbers.formatDecimal(r.actualUnitCost, 1, 'POINT', 2, 'POINT') : '-'}">-</td>
+  <style>
+    .stat-pill {
+      min-width: 140px;
+    }
 
-    <!-- Profit/Loss with color and % -->
-    <td>
-      <span th:with="
-              pl=${r.profitLoss!=null ? r.profitLoss : 0},
-              avg=${(r.qty!=null && r.qty>0 && r.net!=null) ? (r.net / r.qty) : 0},
-              cost=${r.actualUnitCost!=null ? r.actualUnitCost : 0},
-              marginPct=${avg>0 ? ((avg-cost)/avg)*100 : 0}
-            "
-            th:classappend="${pl>=0} ? 'pl-pos' : 'pl-neg' "
-            th:text="${#numbers.formatDecimal(pl, 1, 'POINT', 2, 'POINT')}">0.00</span>
-      <small style="opacity:.8" th:if="${r.actualUnitCost!=null}">
-        (<span th:text="${#numbers.formatDecimal(marginPct, 1, 'POINT', 1, 'POINT')}">0.0</span>%)
-      </small>
-    </td>
-  </tr>
-  </tbody>
+    .smaller {
+      font-size: 0.75rem;
+    }
 
-  <!-- Totals -->
-  <tfoot>
-  <tr style="font-weight:bold;background:#fafafa;">
-    <td>Total</td>
-    <td th:text="${totalQty}">0</td>
-    <td th:text="${#numbers.formatDecimal(totalNet, 1, 'POINT', 2, 'POINT')}">0.00</td>
-    <td th:text="${#numbers.formatDecimal(totalVat, 1, 'POINT', 2, 'POINT')}">0.00</td>
-    <td th:text="${#numbers.formatDecimal(totalGross, 1, 'POINT', 2, 'POINT')}">0.00</td>
-    <td th:text="${#numbers.formatDecimal(avgPriceOverall, 1, 'POINT', 2, 'POINT')}">0.00</td>
-    <td th:text="${#numbers.formatDecimal(avgCostOverall, 1, 'POINT', 2, 'POINT')}">0.00</td>
-    <td>
-      <span th:classappend="${totalPL>=0} ? 'pl-pos' : 'pl-neg'"
-            th:text="${#numbers.formatDecimal(totalPL, 1, 'POINT', 2, 'POINT')}">0.00</span>
-    </td>
-  </tr>
-  </tfoot>
-</table>
+    .cursor-pointer {
+      cursor: pointer;
+    }
+  </style>
 
-<style>
-  .pl-pos { color: #137333; font-weight: 600; } /* green */
-  .pl-neg { color: #c5221f; font-weight: 600; } /* red */
-</style>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <div th:replace="~{fragments :: theme_script}"></div>
+
+  <script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', () => {
+      new SlimSelect({ select: '#customerSelect' });
+    });
+
+    function sortTable(n) {
+      var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+      table = document.getElementById("salesTable");
+      switching = true;
+      dir = "asc";
+      while (switching) {
+        switching = false;
+        rows = table.rows;
+        for (i = 1; i < (rows.length - 2); i++) { // -2 to skip footer
+          shouldSwitch = false;
+          x = rows[i].getElementsByTagName("TD")[n];
+          y = rows[i + 1].getElementsByTagName("TD")[n];
+
+          let xValue = x.textContent || x.innerText;
+          let yValue = y.textContent || y.innerText;
+
+          // Try to parse values as currency/number if possible
+          if (n === 5) { // Net Result column
+            xValue = parseFloat(xValue.replace(/₹|,/g, ''));
+            yValue = parseFloat(yValue.replace(/₹|,/g, ''));
+          }
+
+          if (dir == "asc") {
+            if (xValue > yValue) {
+              shouldSwitch = true;
+              break;
+            }
+          } else if (dir == "desc") {
+            if (xValue < yValue) {
+              shouldSwitch = true;
+              break;
+            }
+          }
+        }
+        if (shouldSwitch) {
+          rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+          switching = true;
+          switchcount++;
+        } else {
+          if (switchcount == 0 && dir == "asc") {
+            dir = "desc";
+            switching = true;
+          }
+        }
+      }
+    }
+  </script>
 </body>
+
 </html>

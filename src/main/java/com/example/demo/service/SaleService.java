@@ -6,11 +6,18 @@ import java.util.List;
 
 public interface SaleService {
     void addSale(Sale sale);
+
+    void updateSale(Sale sale);
+
+    void deleteSale(Integer id);
+
     List<Sale> getAllSales();
+
     Sale getSaleById(Integer id);
+
     List<Sale> getRecentSales(int days);
+
     List<Sale> getSalesByProductAndDateRange(Integer productId, LocalDate startDate, LocalDate endDate);
+
     Long getTotalSalesQuantityForProduct(Integer productId, LocalDate startDate, LocalDate endDate);
 }
-
-
